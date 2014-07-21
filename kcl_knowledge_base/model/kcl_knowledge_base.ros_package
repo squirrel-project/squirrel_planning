@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="kcl_knowledge_base" author="michael" author_email="michael.cashmore@kcl.ac.uk" description="Knowledge base for planning in SQUIRREL">
+  <node name="kcl_knowledge_base">
+    <publisher name="kcl_planning_system/planning_notification" msg="kcl_planning_knowledge_msgs::Notification"/>
+    <subscriber name="kcl_planning_system/planning_filter" msg="kcl_planning_knowledge_msgs::Filter"/>
+    <serviceServer name="kcl_knowledge_base/get_instances" msg="kcl_planning_knowledge_msgs::GetInstancesOfType"/>
+    <serviceServer name="kcl_knowledge_base/get_attributes" msg="kcl_planning_knowledge_msgs::GetAttributesOfInstance"/>
+  </node>
+  <depend>std_msgs</depend>
+  <depend>planning_knowledge_msgs</depend>
+</ros:Package>

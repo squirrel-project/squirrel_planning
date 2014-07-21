@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<notation:Diagram xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:notation="http://www.eclipse.org/gmf/runtime/1.0.2/notation" xmlns:ros="http://ros/1.0" xmi:id="_OjPpcNqgEeOLb4WJu8PXtQ" type="RosPackage" name="knowledge_base.ros_package_diagram" measurementUnit="Pixel">
+<notation:Diagram xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:notation="http://www.eclipse.org/gmf/runtime/1.0.2/notation" xmlns:ros="http://ros/1.0" xmi:id="_OjPpcNqgEeOLb4WJu8PXtQ" type="RosPackage" name="kcl_knowledge_base.ros_package_diagram" measurementUnit="Pixel">
   <children xmi:type="notation:Shape" xmi:id="_QNQ7QNqgEeOLb4WJu8PXtQ" type="2001" fontName="Ubuntu">
     <children xmi:type="notation:DecorationNode" xmi:id="_QNQ7QtqgEeOLb4WJu8PXtQ" type="5008"/>
     <children xmi:type="notation:BasicCompartment" xmi:id="_QNQ7Q9qgEeOLb4WJu8PXtQ" type="7001">
@@ -11,14 +11,14 @@
       <children xmi:type="notation:DecorationNode" xmi:id="_ZlPXQNqgEeOLb4WJu8PXtQ" type="5004"/>
       <styles xmi:type="notation:DescriptionStyle" xmi:id="_ZlOwMdqgEeOLb4WJu8PXtQ"/>
       <styles xmi:type="notation:FontStyle" xmi:id="_ZlOwMtqgEeOLb4WJu8PXtQ" fontName="Ubuntu"/>
-      <element xmi:type="ros:Publisher" href="knowledge_base.ros_package#//@node.0/@publisher.0"/>
+      <element xmi:type="ros:Publisher" href="kcl_knowledge_base.ros_package#//@node.0/@publisher.0"/>
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_ZlOwM9qgEeOLb4WJu8PXtQ"/>
     </children>
     <children xmi:type="notation:Node" xmi:id="_y_dH0NqgEeOLb4WJu8PXtQ" type="3007">
       <children xmi:type="notation:DecorationNode" xmi:id="_y_du4dqgEeOLb4WJu8PXtQ" type="5007"/>
       <styles xmi:type="notation:DescriptionStyle" xmi:id="_y_dH0dqgEeOLb4WJu8PXtQ"/>
       <styles xmi:type="notation:FontStyle" xmi:id="_y_dH0tqgEeOLb4WJu8PXtQ" fontName="Ubuntu"/>
-      <element xmi:type="ros:Subscriber" href="knowledge_base.ros_package#//@node.0/@subscriber.0"/>
+      <element xmi:type="ros:Subscriber" href="kcl_knowledge_base.ros_package#//@node.0/@subscriber.0"/>
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_y_du4NqgEeOLb4WJu8PXtQ"/>
     </children>
     <children xmi:type="notation:Node" xmi:id="_2Ewr4NqgEeOLb4WJu8PXtQ" type="3002">
@@ -26,7 +26,7 @@
       <styles xmi:type="notation:DescriptionStyle" xmi:id="_2Ewr4dqgEeOLb4WJu8PXtQ"/>
       <styles xmi:type="notation:FontStyle" xmi:id="_2Ewr4tqgEeOLb4WJu8PXtQ" fontName="Ubuntu"/>
       <styles xmi:type="notation:LineStyle" xmi:id="_2Ewr49qgEeOLb4WJu8PXtQ"/>
-      <element xmi:type="ros:ServiceServer" href="knowledge_base.ros_package#//@node.0/@serviceServer.0"/>
+      <element xmi:type="ros:ServiceServer" href="kcl_knowledge_base.ros_package#//@node.0/@serviceServer.0"/>
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_2Ewr5NqgEeOLb4WJu8PXtQ"/>
     </children>
     <children xmi:type="notation:Node" xmi:id="_7lB2gNqgEeOLb4WJu8PXtQ" type="3002">
@@ -34,12 +34,12 @@
       <styles xmi:type="notation:DescriptionStyle" xmi:id="_7lB2gdqgEeOLb4WJu8PXtQ"/>
       <styles xmi:type="notation:FontStyle" xmi:id="_7lB2gtqgEeOLb4WJu8PXtQ" fontName="Ubuntu"/>
       <styles xmi:type="notation:LineStyle" xmi:id="_7lB2g9qgEeOLb4WJu8PXtQ"/>
-      <element xmi:type="ros:ServiceServer" href="knowledge_base.ros_package#//@node.0/@serviceServer.1"/>
+      <element xmi:type="ros:ServiceServer" href="kcl_knowledge_base.ros_package#//@node.0/@serviceServer.1"/>
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_7lB2hNqgEeOLb4WJu8PXtQ"/>
     </children>
-    <element xmi:type="ros:Node" href="knowledge_base.ros_package#//@node.0"/>
+    <element xmi:type="ros:Node" href="kcl_knowledge_base.ros_package#//@node.0"/>
     <layoutConstraint xmi:type="notation:Bounds" xmi:id="_QNQ7QdqgEeOLb4WJu8PXtQ" x="480" y="160"/>
   </children>
   <styles xmi:type="notation:DiagramStyle" xmi:id="_OjPpcdqgEeOLb4WJu8PXtQ"/>
-  <element xmi:type="ros:Package" href="knowledge_base.ros_package#/"/>
+  <element xmi:type="ros:Package" href="kcl_knowledge_base.ros_package#/"/>
 </notation:Diagram>
