@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>knowledge_base</name>
+  <name>kcl_knowledge_base</name>
   <version>0.0.0</version>
   <description>The knowledge_base package</description>
   <maintainer email="michael.cashmore@kcl.ac.uk">michael</maintainer>

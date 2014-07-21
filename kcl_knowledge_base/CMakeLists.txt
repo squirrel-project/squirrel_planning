@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(knowledge_base)
+project(kcl_knowledge_base)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -25,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
   LIBRARIES knowledge_base
   CATKIN_DEPENDS diagnostic_msgs planning_knowledge_msgs roscpp rospy std_msgs
   DEPENDS system_lib

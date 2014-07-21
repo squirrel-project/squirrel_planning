@@ -1,35 +1,40 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(planning_system)
+project(kcl_planning_system)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  planning_dispatch_msgs
-  planning_knowledge_msgs
+	roscpp
+    dynamic_reconfigure 
+	std_msgs
+	planning_dispatch_msgs
+	planning_knowledge_msgs
 )
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+# protected region additional user defined REQUIREMENTS on begin #
+# protected region additional user defined REQUIREMENTS end #
+
+generate_dynamic_reconfigure_options(cfg/planning_system.cfg cfg/manipulation_planning_interface.cfg cfg/pathfinding_planning_interface.cfg )
 
 ###################################
 ## catkin specific configuration ##
 ###################################
-
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES planning_system
-  CATKIN_DEPENDS roscpp rospy std_msgs planning_dispatch_msgs planning_knowledge_msgs
-  DEPENDS system_lib
+  INCLUDE_DIRS
+    common/src
+  CATKIN_DEPENDS 
+  	roscpp
+    dynamic_reconfigure
+	std_msgs
+	planning_dispatch_msgs
+	planning_knowledge_msgs
+   
 )
 
 ###########
@@ -38,88 +43,74 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(common/include)
+include_directories(common/src)
+include_directories(${catkin_INCLUDE_DIRS})
 
-# visualisation
-find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
 
 ## Declare a cpp executable
-add_executable(planner
-	src/PlanningLoop.cpp
-	src/VALfiles/pddl+.lex
-	src/VALfiles/pddl+.cpp
-	src/VALfiles/ptree.cpp
-	src/VALfiles/DebugWriteController.cpp)
-
-add_executable(listener src/util/Listener.cpp)
-add_executable(testHarness src/util/TestHarness.cpp)
+add_executable(planning_system ros/src/planning_system_ros.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(planning_system_node planning_system_generate_messages_cpp)
+add_dependencies(planning_system planning_system_gencfg)
+add_dependencies(planning_system ${kcl_planning_system_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(planner
+target_link_libraries(planning_system
+  ${catkin_LIBRARIES}
+)
+## Declare a cpp executable
+add_executable(manipulation_planning_interface ros/src/manipulation_planning_interface_ros.cpp)
+
+## Add cmake target dependencies of the executable/library
+## as an example, message headers may need to be generated before nodes
+add_dependencies(manipulation_planning_interface manipulation_planning_interface_gencfg)
+add_dependencies(manipulation_planning_interface ${kcl_planning_system_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(manipulation_planning_interface
+  ${catkin_LIBRARIES}
+)
+## Declare a cpp executable
+add_executable(pathfinding_planning_interface ros/src/pathfinding_planning_interface_ros.cpp)
+
+## Add cmake target dependencies of the executable/library
+## as an example, message headers may need to be generated before nodes
+add_dependencies(pathfinding_planning_interface pathfinding_planning_interface_gencfg)
+add_dependencies(pathfinding_planning_interface ${kcl_planning_system_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(pathfinding_planning_interface
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(listener
-  ${catkin_LIBRARIES}
-)
+# protected region additional user defined BUILD STATEMENTS on begin #
+# protected region additional user defined BUILD STATEMENTS end #
 
-target_link_libraries(testHarness
-  ${catkin_LIBRARIES}
-)
 
 #############
 ## Install ##
 #############
 
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
 ## Mark executables and/or libraries for installation
-# install(TARGETS planning_system planning_system_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS planning_system
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+## Mark executables and/or libraries for installation
+install(TARGETS manipulation_planning_interface
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+## Mark executables and/or libraries for installation
+install(TARGETS pathfinding_planning_interface
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_planning_system.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+# protected region user Cmake macros on begin #
+# protected region user Cmake macros end #
