@@ -66,10 +66,5 @@ target_link_libraries(rpobjectServer ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 ##########
 ## Test ##
 ##########
-
-## using ROSTest
-find_package(rostest REQUIRED)
-find_package(gtest)
-
-add_rostest_gtest(testKnowledgeBase test/test_launch.launch test/utest.cpp)
-target_link_libraries(testKnowledgeBase ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+# please do not use add_rosttest_gtest (seems to be interfering with qtcreator and cmake)
+# see test documentation: http://wiki.ros.org/gtest

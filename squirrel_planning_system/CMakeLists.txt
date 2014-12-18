@@ -91,10 +91,7 @@ target_link_libraries(trpmovebase ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 ##########
 ## Test ##
 ##########
-
-## using ROSTest
-find_package(rostest REQUIRED)
-find_package(gtest)
-
-add_rostest_gtest(testPlanningSystem test/test_launch.launch test/utest.cpp)
-target_link_libraries(testPlanningSystem ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+# please do not use add_rosttest_gtest (seems to be interfering with qtcreator and cmake)
+# see test documentation: http://wiki.ros.org/gtest
+#add_rostest_gtest(${PROJECT_NAME}_utest test/utest.cpp)
+#target_link_libraries(testPlanningSystem ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
