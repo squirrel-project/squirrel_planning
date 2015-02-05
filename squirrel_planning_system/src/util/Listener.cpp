@@ -1,9 +1,9 @@
 #include "ros/ros.h"
-#include "planning_dispatch_msgs/ActionDispatch.h"
-#include "planning_dispatch_msgs/ActionFeedback.h"
+#include "squirrel_planning_dispatch_msgs/ActionDispatch.h"
+#include "squirrel_planning_dispatch_msgs/ActionFeedback.h"
 
 	/* print output of actionDispatch topic to system */
-	void testDisptachCallback(const planning_dispatch_msgs::ActionDispatch::ConstPtr& msg)
+	void testDisptachCallback(const squirrel_planning_dispatch_msgs::ActionDispatch::ConstPtr& msg)
 	{
 		ROS_INFO("Dispatch [%i, %s, %f]", msg->action_id, msg->name.c_str(), msg->duration);
 		for(size_t i=0;i<msg->parameters.size();i++)
@@ -11,7 +11,7 @@
 	}
 
 	/* print output of actionFeedback topic to system */
-	void testFeedbackCallback(const planning_dispatch_msgs::ActionFeedback::ConstPtr& msg)
+	void testFeedbackCallback(const squirrel_planning_dispatch_msgs::ActionFeedback::ConstPtr& msg)
 	{
 		ROS_INFO("Feedback [%i,%s]", msg->action_id, msg->status.c_str());
 		for(size_t i=0;i<msg->information.size();i++)

@@ -164,7 +164,7 @@ namespace KCL_rosplan {
 		glPopMatrix();
 	}
 
-	void drawAction(planning_dispatch_msgs::ActionDispatch &msg, float startTime, size_t level) {
+	void drawAction(squirrel_planning_dispatch_msgs::ActionDispatch &msg, float startTime, size_t level) {
 
 		bool currentPlan = (level == KCL_rosplan::planningAttempts-1);
 
