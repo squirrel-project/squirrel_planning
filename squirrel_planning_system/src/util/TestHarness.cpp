@@ -1,12 +1,12 @@
 #include <ros/ros.h>
 #include <vector>
-#include "planning_knowledge_msgs/InstanceService.h"
-#include "planning_knowledge_msgs/AttributeService.h"
-#include "planning_knowledge_msgs/KnowledgeItem.h"
+#include "squirrel_planning_knowledge_msgs/InstanceService.h"
+#include "squirrel_planning_knowledge_msgs/AttributeService.h"
+#include "squirrel_planning_knowledge_msgs/KnowledgeItem.h"
 #include <iostream>
 #include <fstream>
 
-bool getInstances(planning_knowledge_msgs::InstanceService::Request  &req, planning_knowledge_msgs::InstanceService::Response &res)
+bool getInstances(squirrel_planning_knowledge_msgs::InstanceService::Request  &req, squirrel_planning_knowledge_msgs::InstanceService::Response &res)
 {
 
 	ros::NodeHandle n;
@@ -25,7 +25,7 @@ bool getInstances(planning_knowledge_msgs::InstanceService::Request  &req, plann
 	return true;
 }
 
-bool getInstanceAttr(planning_knowledge_msgs::AttributeService::Request  &req, planning_knowledge_msgs::AttributeService::Response &res)
+bool getInstanceAttr(squirrel_planning_knowledge_msgs::AttributeService::Request  &req, squirrel_planning_knowledge_msgs::AttributeService::Response &res)
 {
 
 	ros::NodeHandle n;
@@ -33,8 +33,8 @@ bool getInstanceAttr(planning_knowledge_msgs::AttributeService::Request  &req, p
 	ROS_INFO("Sending getInstanceAttr response.");
 
 	if(req.type_name.compare("gripper")==0) {
-		planning_knowledge_msgs::KnowledgeItem attr;
-		attr.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+		squirrel_planning_knowledge_msgs::KnowledgeItem attr;
+		attr.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 		attr.instance_type = req.type_name;
 		attr.instance_name = req.instance_name;
 		attr.attribute_name = "pose";
@@ -52,7 +52,7 @@ bool getInstanceAttr(planning_knowledge_msgs::AttributeService::Request  &req, p
 	return true;
 }
 
-bool getDomainAttr(planning_knowledge_msgs::AttributeService::Request  &req, planning_knowledge_msgs::AttributeService::Response &res)
+bool getDomainAttr(squirrel_planning_knowledge_msgs::AttributeService::Request  &req, squirrel_planning_knowledge_msgs::AttributeService::Response &res)
 {
 
 	ros::NodeHandle n;
@@ -60,8 +60,8 @@ bool getDomainAttr(planning_knowledge_msgs::AttributeService::Request  &req, pla
 	ROS_INFO("Sending getDomainAttr response.");
 
 	if(req.predicate_name.compare("empty")==0) {
-		planning_knowledge_msgs::KnowledgeItem attr;
-		attr.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+		squirrel_planning_knowledge_msgs::KnowledgeItem attr;
+		attr.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 		attr.instance_type = "";
 		attr.instance_name = "";
 		attr.attribute_name = "empty";
@@ -75,8 +75,8 @@ bool getDomainAttr(planning_knowledge_msgs::AttributeService::Request  &req, pla
 	if(req.predicate_name.compare("onfloor")==0) {
 		const std::string blocks[] = {"b1", "b2", "b3"};
 		for(int i=0;i<3;i++) {
-			planning_knowledge_msgs::KnowledgeItem attr;
-			attr.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+			squirrel_planning_knowledge_msgs::KnowledgeItem attr;
+			attr.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 			attr.instance_type = "";
 			attr.instance_name = "";
 			attr.attribute_name = "onfloor";
@@ -91,8 +91,8 @@ bool getDomainAttr(planning_knowledge_msgs::AttributeService::Request  &req, pla
 	if(req.predicate_name.compare("clear")==0) {
 		const std::string blocks[] = {"b1", "b2", "b3"};
 		for(int i=0;i<3;i++) {
-			planning_knowledge_msgs::KnowledgeItem attr;
-			attr.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+			squirrel_planning_knowledge_msgs::KnowledgeItem attr;
+			attr.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 			attr.instance_type = "";
 			attr.instance_name = "";
 			attr.attribute_name = "clear";
@@ -107,8 +107,8 @@ bool getDomainAttr(planning_knowledge_msgs::AttributeService::Request  &req, pla
 	if(req.predicate_name.compare("weight")==0) {
 		const std::string blocks[] = {"b1", "b2", "b3"};
 		for(int i=0;i<3;i++) {
-			planning_knowledge_msgs::KnowledgeItem attr;
-			attr.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+			squirrel_planning_knowledge_msgs::KnowledgeItem attr;
+			attr.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 			attr.instance_type = "";
 			attr.instance_name = "";
 			attr.attribute_name = "weight";
@@ -127,7 +127,7 @@ bool getDomainAttr(planning_knowledge_msgs::AttributeService::Request  &req, pla
 	return true;
 }
 
-bool getCurrentGoals(planning_knowledge_msgs::AttributeService::Request  &req, planning_knowledge_msgs::AttributeService::Response &res)
+bool getCurrentGoals(squirrel_planning_knowledge_msgs::AttributeService::Request  &req, squirrel_planning_knowledge_msgs::AttributeService::Response &res)
 {
 
 	ros::NodeHandle n;
@@ -137,8 +137,8 @@ bool getCurrentGoals(planning_knowledge_msgs::AttributeService::Request  &req, p
 	if(req.instance_name.compare("b1")==0) {
 
 		{ // predicate attributes
-			planning_knowledge_msgs::KnowledgeItem attr_on1;
-			attr_on1.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+			squirrel_planning_knowledge_msgs::KnowledgeItem attr_on1;
+			attr_on1.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 			attr_on1.instance_type = "";
 			attr_on1.instance_name = "";
 			attr_on1.attribute_name = "on";
@@ -155,8 +155,8 @@ bool getCurrentGoals(planning_knowledge_msgs::AttributeService::Request  &req, p
 	if(req.instance_name.compare("b2")==0) {
 
 		{ // predicate attributes
-			planning_knowledge_msgs::KnowledgeItem attr_on1;
-			attr_on1.knowledge_type = planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
+			squirrel_planning_knowledge_msgs::KnowledgeItem attr_on1;
+			attr_on1.knowledge_type = squirrel_planning_knowledge_msgs::KnowledgeItem::ATTRIBUTE;
 			attr_on1.instance_type = "";
 			attr_on1.instance_name = "";
 			attr_on1.attribute_name = "on";
