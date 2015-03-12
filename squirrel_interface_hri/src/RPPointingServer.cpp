@@ -19,7 +19,7 @@ namespace KCL_rosplan {
 	 : message_store(nh), has_received_point_(false) {
 		knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
-		head_tilt_pub = nh.advertise<std_msgs::Float64>("/joint_conroller/command", 10, true);
+		head_tilt_pub = nh.advertise<std_msgs::Float64>("/tilt_controller/command", 10, true);
 		head_nod_pub = nh.advertise<std_msgs::String>("/expression", 10, true);
 		head_down_angle = 0.6;
 		head_up_angle = -0.3;

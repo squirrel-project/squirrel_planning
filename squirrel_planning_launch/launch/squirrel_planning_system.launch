@@ -33,17 +33,16 @@
 	</node>
 
 	<!-- SQUIRREL interfaces -->
-	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen"></node>
-	<node name="squirrel_interface_hri" pkg="squirrel_interface_hri" type="rppointingServer" respawn="false" output="screen"></node>
-
 	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" respawn="false" output="screen">
-		<!-- set "true" if you wantto fake object perception completely -->
-	    <param name="simulate_perception" type="bool" value="true" />
+	    <param name="simulate" type="bool" value="true" />
 	</node>
-
+	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen">
+	</node>
+	<node name="squirrel_interface_hri" pkg="squirrel_interface_hri" type="rppointingServer" respawn="false" output="screen">
+	    <param name="simulate" type="bool" value="true" />
+	</node>
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rppushServer" respawn="false" output="screen">
-		<!-- set "true" if you want to simply move instead of pushing -->
-	    <param name="simulate_pushing" type="bool" value="true" />
+	    <param name="simulate" type="bool" value="true" />
 	</node>
 
 </launch>
