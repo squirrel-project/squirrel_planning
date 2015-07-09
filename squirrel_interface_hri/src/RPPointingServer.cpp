@@ -74,24 +74,41 @@ namespace KCL_rosplan {
 		// Wait for a point to be published.
 		ros::Rate r(10);
 		has_received_point_ = false;
-		while (!has_received_point_ && ros::ok()) {
+		int counter = 0;
+		while (!has_received_point_ && ros::ok() && counter < 600) {
 			ros::spinOnce();
 			r.sleep();
+			counter++;
 		}
+		
+		if(!has_received_point_) {
+			
+			// tilt the head kinect down
+			ht.data = head_down_angle;
+			head_tilt_pub.publish(ht);
+			
+			// publish feedback (failed)
+			fb.action_id = msg->action_id;
+			fb.status = "action failed";
+			action_feedback_pub.publish(fb);
+			
+			return;
+		}
+
 		has_received_point_ = false;
 		ROS_INFO("KCL: (PointingServer) Received point");
-
+		
 		// nod the head
 		std_msgs::String exp;
 		exp.data = "ok";
 		head_nod_pub.publish(exp);
 		ros::Rate nodRate(1);
 		nodRate.sleep();
-
+		
 		// tilt the head kinect down
 		ht.data = head_down_angle;
 		head_tilt_pub.publish(ht);
-
+		
 		// convert point to pose
 		geometry_msgs::PoseStamped pose_bl, pose;
 		pose_bl.header.frame_id = "/kinect_depth_optical_frame";
@@ -102,7 +119,7 @@ namespace KCL_rosplan {
 		pose_bl.pose.orientation.y = 0;
 		pose_bl.pose.orientation.z = 0;
 		pose_bl.pose.orientation.w = 1;
-
+		
 		tf::TransformListener tfl;
 		try {
 			tfl.waitForTransform("/map","/kinect_depth_optical_frame", ros::Time::now(), ros::Duration(1.0));

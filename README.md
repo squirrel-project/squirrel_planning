@@ -9,7 +9,7 @@ Installation
 ============
 
 You need the ROSPlan repository
-(follow the installation instructions here: https://github.com/kcl-planning.ROSPlan )
+(follow the installation instructions here: https://github.com/KCL-Planning/ROSPlan/wiki/a.-Installation )
 ```
 git clone https://github.com/clearpathrobotics/occupancy_grid_utils
 git clone https://github.com/kcl-planning/ROSPlan.git
