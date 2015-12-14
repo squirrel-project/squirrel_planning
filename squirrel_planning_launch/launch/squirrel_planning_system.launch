@@ -29,8 +29,9 @@
 	<node name="rosplan_interface_mapping" pkg="rosplan_interface_mapping" type="rproadmapServer" respawn="false" output="screen">
 	    <param name="data_path" value="$(find squirrel_planning_launch)/common/" />
 	    <param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
+	    <param name="cost_map_update_topic" value="/move_base/global_costmap/costmap_updates" />
 	    <param name="odom_topic" value="/odom" />
-	    <param name="use_static_map" value="false" type="bool" />
+	    <param name="use_static_map" value="false" />
 	    <param name="static_map_service" value="/static_map" />
 	</node>
 
@@ -46,6 +47,18 @@
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rppushServer" respawn="false" output="screen">
 		<!-- set "true" if you want to simply move instead of pushing -->
 		<param name="simulate_pushing" type="bool" value="false" />
+		<param name="push_action_server" value="/push" />
+		<param name="smash_action_server" value="/smash" />
+	</node>
+
+	<node name="squirrel_interface_mapping" pkg="squirrel_planning_execution" type="rpsquirrelRoadmap" respawn="false" output="screen">
+	    <param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+	    <param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
+	    <param name="cost_map_topic" value="/move_base/global_costmap/costmap_updates" />
+	    <param name="use_static_map" value="false" type="bool" />
+	    <param name="static_map_service" value="/static_map" />
+	    <param name="occupancy_threshold" value="20" />
+	    <param name="manipulation_service_topic" value="/squirrel_manipulation/waypoint_request" />
 	</node>
 
 </launch>

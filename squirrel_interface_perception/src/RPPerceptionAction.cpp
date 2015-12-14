@@ -97,13 +97,6 @@ namespace KCL_rosplan {
 			return;
 		}
 
-		if(!simulate_) {
-			// dispatch Perception action
-			squirrel_object_perception_msgs::LookForObjectsGoal goal;
-			goal.look_for_object = squirrel_object_perception_msgs::LookForObjectsGoal::EXPLORE;
-			action_client.sendGoal(goal);
-		}
-
 		// publish feedback (enabled)
 		publishFeedback(msg->action_id,"action enabled");
 
@@ -119,17 +112,21 @@ namespace KCL_rosplan {
 				move_base_msgs::MoveBaseGoal goal;
 				geometry_msgs::PoseStamped &pose = *results[0];
 				goal.target_pose = pose;
-        tf::Quaternion quat(tf::Vector3(0., 0., 1.), i*M_PI);
+				tf::Quaternion quat(tf::Vector3(0., 0., 1.), i*M_PI);
 				goal.target_pose.pose.orientation.w = quat.w();
 				goal.target_pose.pose.orientation.x = quat.x();
 				goal.target_pose.pose.orientation.y = quat.y();
 				goal.target_pose.pose.orientation.z = quat.z();
-        movebase_client.sendGoal(goal);
+				movebase_client.sendGoal(goal);
 
 				bool rotatedToAngle = movebase_client.waitForResult(ros::Duration(5*msg->duration));
 				if(!rotatedToAngle) success = false;
 
-				// observe
+				// dispatch Perception action
+				squirrel_object_perception_msgs::LookForObjectsGoal perceptionGoal;
+				perceptionGoal.look_for_object = squirrel_object_perception_msgs::LookForObjectsGoal::EXPLORE;
+				action_client.sendGoal(perceptionGoal);
+
 				bool finished_before_timeout = action_client.waitForResult(ros::Duration(msg->duration));
 				actionlib::SimpleClientGoalState state = action_client.getState();
 				if(!finished_before_timeout) success = false;

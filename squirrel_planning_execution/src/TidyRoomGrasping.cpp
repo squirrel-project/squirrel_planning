@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "squirrel_planning_execution/ShortDemo.h"
+#include "squirrel_planning_execution/TidyRoomGrasping.h"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -22,13 +22,13 @@ namespace KCL_rosplan {
 	 : message_store(nh), has_received_point_(false) {
 
 		// access to the knowledge base.
-		get_instance_client = nh.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_current_instances");
+		get_instance_client = nh.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_instances");
 		get_attribute_client = nh.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_instances_attributes");
 		knowledge_update_client = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 		filter_publisher = nh.advertise<rosplan_knowledge_msgs::Filter>("/kcl_rosplan/mission_filter", 10, true);
 
 		// PRM
-		roadmap_service = nh.serviceClient<rosplan_knowledge_msgs::CreatePRM>("/kcl_rosplan/roadmap_server/create_prm");
+		roadmap_service = nh.serviceClient<rosplan_knowledge_msgs::CreatePRM>("/kcl_rosplan/roadmap_server/request_waypoints");
 		add_waypoint_client = nh.serviceClient<rosplan_knowledge_msgs::AddWaypoint>("/kcl_rosplan/roadmap_server/add_waypoint");
 
 		// planner control.
@@ -47,7 +47,6 @@ namespace KCL_rosplan {
 		if(count>20) {
 			received_point_ = *ptr;
 			has_received_point_ = true;
-			count = 0;
 		}
 	}
 	
@@ -86,11 +85,10 @@ namespace KCL_rosplan {
 		pose_bl.pose.position.x = received_point_.point.x;
 		pose_bl.pose.position.y = received_point_.point.y;
 		pose_bl.pose.position.z = received_point_.point.z;
-      		tf::Quaternion quat(tf::Vector3(0., 0., 1.), M_PI);
-		pose_bl.pose.orientation.w = quat.w();
-		pose_bl.pose.orientation.x = quat.x();
-		pose_bl.pose.orientation.y = quat.y();
-		pose_bl.pose.orientation.z = quat.z();
+		pose_bl.pose.orientation.x = 0;
+		pose_bl.pose.orientation.y = 0;
+		pose_bl.pose.orientation.z = 0;
+		pose_bl.pose.orientation.w = 1;
 
 		tf::TransformListener tfl;
 		try {
@@ -101,20 +99,15 @@ namespace KCL_rosplan {
 			return;
 		}
 
-		pose.pose.orientation.w = quat.w();
-		pose.pose.orientation.x = quat.x();
-		pose.pose.orientation.y = quat.y();
-		pose.pose.orientation.z = quat.z();
-
 		// set goal pose
 		goal_pose.header.frame_id = pose.header.frame_id;
 		goal_pose.pose.position.x = pose.pose.position.x;
 		goal_pose.pose.position.y = pose.pose.position.y;
 		goal_pose.pose.position.z = pose.pose.position.z;
-		goal_pose.pose.orientation.x = quat.x();
-		goal_pose.pose.orientation.y = quat.y();
-		goal_pose.pose.orientation.z = quat.z();
-		goal_pose.pose.orientation.w = quat.w();
+		goal_pose.pose.orientation.x = pose.pose.orientation.x;
+		goal_pose.pose.orientation.y = pose.pose.orientation.y;
+		goal_pose.pose.orientation.z = pose.pose.orientation.z;
+		goal_pose.pose.orientation.w = pose.pose.orientation.w;
 
 		// create new waypoint
 		rosplan_knowledge_msgs::AddWaypoint addWPSrv;
@@ -133,20 +126,6 @@ namespace KCL_rosplan {
 	void SimpleDemoExecutor::runDemo() {
 
 		ros::NodeHandle nh;
-
-		// Add kenny
-		rosplan_knowledge_msgs::KnowledgeUpdateService add_kenny;
-		add_kenny.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		rosplan_knowledge_msgs::KnowledgeItem kenny_knowledge;
-		kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-		kenny_knowledge.instance_type = "robot";
-		kenny_knowledge.instance_name = "kenny";
-		add_kenny.request.knowledge = kenny_knowledge;
-		if (!knowledge_update_client.call(add_kenny)) {
-			ROS_ERROR("KCL: (TidyRoom) Could not add kenny to the knowledge base.");
-			exit(-1);
-		}
-		ROS_INFO("KCL: (TidyRoom) Added kenny to the knowledge base.");
 
 		// clear the old filter
 		rosplan_knowledge_msgs::Filter filterMessage;
@@ -174,7 +153,7 @@ namespace KCL_rosplan {
 		// run once
 		ros::spinOnce();
 		ROS_INFO("KCL: (SimpleDemo) Start the mission");
-
+/*
 		// Start by generating some waypoints.
 		rosplan_knowledge_msgs::CreatePRM create_prm;
 		create_prm.request.nr_waypoints = 1;
@@ -188,7 +167,7 @@ namespace KCL_rosplan {
 			return;
 		}
 		ROS_INFO("KCL: (SimpleDemo) Road map service returned.");
-		
+*/
 		// get object point
 		ROS_INFO("KCL: (SimpleDemo) Waiting for explore point.");
 		std::string obWPID("explore_waypoint");
@@ -260,7 +239,7 @@ namespace KCL_rosplan {
 			tidyLocationUnknownSrv.request.knowledge.values.push_back(object);
 			if (!knowledge_update_client.call(tidyLocationUnknownSrv)) 
 				ROS_ERROR("KCL: (SimpleDemo) error removing tidy_location_unknown predicate");
-
+/*
 			// fetch position of object from message store
 			std::vector< boost::shared_ptr<geometry_msgs::PoseStamped> > results;
 			if(message_store.queryNamed<geometry_msgs::PoseStamped>(*ci, results)) {
@@ -314,6 +293,14 @@ namespace KCL_rosplan {
 			ppSrv.request.knowledge.values.push_back(location);
 			if (!knowledge_update_client.call(ppSrv))
 				ROS_ERROR("KCL: (SimpleDemo) error adding knowledge");
+*/
+			// generating some waypoints.
+			rosplan_knowledge_msgs::CreatePRM create_prm;
+			if (!roadmap_service.call(create_prm)) {
+				ROS_ERROR("KCL: (SimpleDemo) Failed to call the road map service.");
+				return;
+			}
+			ROS_INFO("KCL: (SimpleDemo) Road map service returned.");
 		}
 
 		// Run the planner agian.

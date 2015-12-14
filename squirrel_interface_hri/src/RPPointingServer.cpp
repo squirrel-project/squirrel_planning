@@ -35,6 +35,7 @@ namespace KCL_rosplan {
 		if(count>20) {
 			received_point_ = *ptr;
 			has_received_point_ = true;
+			count = 0;
 		}
 	}
 	

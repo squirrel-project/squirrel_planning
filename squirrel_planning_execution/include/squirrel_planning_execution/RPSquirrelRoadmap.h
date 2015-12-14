@@ -4,6 +4,8 @@
 #include "visualization_msgs/MarkerArray.h"
 #include "visualization_msgs/Marker.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/OccupancyGrid.h"
+#include "nav_msgs/GetMap.h"
 #include "mongodb_store/message_store.h"
 #include "rosplan_knowledge_msgs/KnowledgeItem.h"
 #include "rosplan_knowledge_msgs/KnowledgeUpdateService.h"
@@ -11,6 +13,7 @@
 #include "squirrel_planning_knowledge_msgs/TaskPoseService.h"
 #include "rosplan_knowledge_msgs/CreatePRM.h"
 #include "rosplan_knowledge_msgs/AddWaypoint.h"
+#include <tf/transform_datatypes.h>
 #include <sstream>
 #include <string>
 #include <ctime>
@@ -45,6 +48,9 @@ namespace KCL_rosplan {
 	private:
 		
 		std::string data_path;
+		std::string static_map_service;
+		bool use_static_map;
+		double occupancy_threshold;
 
 		// Scene database
 		mongodb_store::MessageStoreProxy message_store;
@@ -52,6 +58,10 @@ namespace KCL_rosplan {
 		// Knowledge base
 		ros::ServiceClient update_knowledge_client;
 		ros::ServiceClient get_instance_client;
+
+		// map
+		nav_msgs::OccupancyGrid cost_map;
+		ros::ServiceClient map_client;
 
 		// Roadmap
 		std::map<std::string, Waypoint*> waypoints;
@@ -63,6 +73,9 @@ namespace KCL_rosplan {
 		void publishWaypointMarkerArray(ros::NodeHandle nh);
 		void clearMarkerArrays(ros::NodeHandle nh);
 
+		// waypoint request services
+		ros::ServiceClient manipulation_client;
+
 	public:
 
 		/* constructor */
@@ -70,6 +83,7 @@ namespace KCL_rosplan {
 
 		/* service to (re)generate waypoints */
 		bool generateRoadmap(rosplan_knowledge_msgs::CreatePRM::Request &req, rosplan_knowledge_msgs::CreatePRM::Response &res);
+		void costMapCallback( const nav_msgs::OccupancyGridConstPtr& msg );
 	};
 }
 #endif

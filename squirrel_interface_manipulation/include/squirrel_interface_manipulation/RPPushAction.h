@@ -2,10 +2,15 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <boost/foreach.hpp>
+#include <tf/LinearMath/Vector3.h>
+#include <tf/LinearMath/Quaternion.h>
 #include <actionlib/client/simple_action_client.h>
 #include "rosplan_dispatch_msgs/ActionDispatch.h"
 #include "rosplan_dispatch_msgs/ActionFeedback.h"
 #include "squirrel_manipulation_msgs/PushAction.h"
+#include "squirrel_manipulation_msgs/SmashAction.h"
+#include "move_base_msgs/MoveBaseAction.h"
 #include "mongodb_store/message_store.h"
 #include "geometry_msgs/PoseStamped.h"
 
@@ -28,14 +33,19 @@ namespace KCL_rosplan {
 		bool simulate_;
 
 		mongodb_store::MessageStoreProxy message_store;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::PushAction> action_client;
+		actionlib::SimpleActionClient<squirrel_manipulation_msgs::PushAction> push_action_client;
+		actionlib::SimpleActionClient<squirrel_manipulation_msgs::SmashAction> smash_action_client;
 		actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> simulate_client;
 		ros::Publisher action_feedback_pub;
+
+		/* execute pushing actions */
+		void dispatchPushAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+		void dispatchSmashAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 
 	public:
 
 		/* constructor */
-		RPPushAction(ros::NodeHandle &nh, std::string &actionserver, bool simulate);
+		RPPushAction(ros::NodeHandle &nh, std::string &pushactionserver, std::string &smashactionserver, bool simulate);
 
 		/* listen to and process action_dispatch topic */
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);

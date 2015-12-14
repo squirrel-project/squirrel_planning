@@ -58,14 +58,18 @@ namespace KCL_rosplan {
 		// create new waypoint
 		rosplan_knowledge_msgs::AddWaypoint addWPSrv;
 		std::stringstream ss;
-		ss << req.id << "_wp";
+		ss << "wp_" << req.id;
 		addWPSrv.request.id = ss.str();
 		addWPSrv.request.waypoint = req.pose;
-		// addWPSrv.request.waypoint.pose.position.x += 35;
-		addWPSrv.request.waypoint.pose.orientation.x = 0;
-		addWPSrv.request.waypoint.pose.orientation.y = 0;
-		addWPSrv.request.waypoint.pose.orientation.z = (1 - 3.14*3.14);
-		addWPSrv.request.waypoint.pose.orientation.w = 3.14;
+
+		addWPSrv.request.waypoint.pose.position.z = 0;
+
+		tf::Quaternion quat(tf::Vector3(0., 0., 1.), M_PI);
+		addWPSrv.request.waypoint.pose.orientation.x = quat.x();
+		addWPSrv.request.waypoint.pose.orientation.y = quat.y();
+		addWPSrv.request.waypoint.pose.orientation.z = quat.z();
+		addWPSrv.request.waypoint.pose.orientation.w = quat.w();
+
 		addWPSrv.request.connecting_distance = 5;
 		addWPSrv.request.occupancy_threshold = 20;
 		if (!add_waypoint_client.call(addWPSrv)) {

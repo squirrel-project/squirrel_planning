@@ -46,6 +46,8 @@
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rppushServer" respawn="false" output="screen">
 		<!-- set "true" if you want to simply move instead of pushing -->
 	    <param name="simulate_pushing" type="bool" value="false" />
+		<param name="push_action_server" value="/push" />
+		<param name="smash_action_server" value="/smash" />
 	</node>
 
 </launch>

@@ -8,3 +8,8 @@ Technical Maintainer: Senka Krivic (UIBK)
 requirements:
 	python3
         python3.4-dev
+	python3-numpy
+	libblas
+	liblapack
+	gfortran
+	python3-scipy

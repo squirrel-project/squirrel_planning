@@ -6,6 +6,8 @@
 #include "squirrel_planning_knowledge_msgs/RemoveObjectService.h"
 #include "squirrel_planning_knowledge_msgs/UpdateObjectService.h"
 #include "mongodb_store/message_store.h"
+#include <tf/LinearMath/Vector3.h>
+#include <tf/LinearMath/Quaternion.h>
 
 #ifndef KCL_object_perception
 #define KCL_object_perception
