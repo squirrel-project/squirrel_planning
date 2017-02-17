@@ -465,7 +465,7 @@ namespace KCL_rosplan {
 		KCL_rosplan::FinaliseClassificationPDDLAction finalise_classify_action(nh);
 		KCL_rosplan::NextTurnPDDLAction next_turn_action(nh);
 		KCL_rosplan::SimulatedObservePDDLAction simulated_observe_action(nh);
-/*		
+
 		// Lets start the planning process.
 		std::string data_path;
 		nh.getParam("/data_path", data_path);
@@ -500,7 +500,7 @@ namespace KCL_rosplan {
 		// send goal
 		plan_action_client.sendGoal(psrv);
 		ROS_INFO("KCL: (SortingGame) Goal sent");
-*/
+
 		ros::spin();
 		return 0;
 	}

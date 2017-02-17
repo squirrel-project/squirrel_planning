@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- data paths -->
+	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
+	<param name="/scenario_setup_file" value="$(find squirrel_planning_execution)/conf/year3-scenario1.conf" />
+
+	<!-- domain file -->
+	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/template_robot_knows_domain.pddl" />
+
+	<!-- knowledge base -->
+	<node name="rosplan_knowledge_base" pkg="rosplan_knowledge_base" type="knowledgeBase" respawn="false" output="screen" />
+
+	<!-- scene database (MongoDB) -->
+	<node name="rosplan_scene_database" pkg="mongodb_store" type="mongodb_server.py" respawn="false" output="screen">
+	    <param name="database_path" value="$(find rosplan_knowledge_base)/common/mongoDB" />
+	</node>
+	<node name="rosplan_scene_message_store" pkg="mongodb_store" type="message_store_node.py" respawn="false" output="log" />
+
+	<!-- planning system -->
+	<node name="rosplan_planning_system" pkg="rosplan_planning_system" type="planner" respawn="false" output="screen">
+		<!-- directory for generated files -->
+	    <param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+	    <param name="problem_path" value="$(find squirrel_planning_launch)/common/problem.pddl" />
+            <param name="strl_file_path" value="$(find squirrel_planning_launch)/common/plan.strl" />
+
+		<!-- to run the planner -->
+<!--            <param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_plan.pddl" /> -->
+            <param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase1.pddl" />
+	    <param name="generate_default_problem" value="false" />
+	</node>
+
+	<!-- simulation acitons (ALL TRUE) -->
+	<node name="simulated_actions" pkg="squirrel_planning_execution" type="simulatedPDDLActionsNode" output="screen">
+		<param name="query_user" value="false" />
+		<param name="simulate_goto_waypoint" value="true"/>
+		<param name="simulate_explore_waypoint" value="true"/>
+		<param name="simulate_clear_object" value="true"/>
+		<param name="simulate_classify_object" value="true"/>
+		<param name="simulate_emote" value="true"/>
+		<param name="simulate_put_object_in_box" value="true"/>
+		<param name="simulate_pickup_object" value="true"/>
+		<param name="simulate_drop_object" value="true"/>
+		<param name="simulate_give_object" value="true"/>
+		<param name="simulate_take_object" value="true"/>
+		<param name="simulate_examine_object_in_hand" value="true"/>
+		<param name="simulate_follow_child" value="true"/>
+	</node>
+
+	<!-- RPSquirrelRecursion actions -->
+	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="robotKnowsGame" output="screen">
+		<param name="simulated" value="false" />
+		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase1.pddl" /> 
+		<param name="planner_command_phase3" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase3.pddl" /> 
+		<param name="box1_location" value="-0.16,-2.82,0.0" />
+		<param name="box2_location" value="4.9,0.34,0.0" />
+	</node>
+
+	<!-- Interface nodes
+	<node name="squirrel_planning_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" output="screen">
+		<param name="action_server" value="/squirrel_look_for_objects_in_hand" />
+	</node>
+
+	<node name="squirrel_planning_interface_emote" pkg="squirrel_interface_emote" type="rpEmoteServer" output="screen">
+
+	</node>
+
+	<node name="squirrel_planning_interface_manipulation" pkg="squirrel_interface_manipulation" type="rphandoverServer" output="screen">
+		<param name="handover_action_server" value="/handover" />
+	</node>
+	<node name="rosplan_interface_movebase" pkg="rosplan_interface_movebase" type="rpmovebase" output="screen">
+		<param name="action_server" value="/move_base" />
+		<param name="pddl_action_name" value="goto_waypoint" />
+	</node>
+	-->
+	<!-- 
+	<node name="squirrel_planning_interface_pushing" pkg="squirrel_interface_manipulation" type="rppushServer" output="screen">
+		<param name="smash_action_server" value="/smash" />
+		<param name="push_action_server" value="/push" />
+	</node>
+	-->
+</launch>
+

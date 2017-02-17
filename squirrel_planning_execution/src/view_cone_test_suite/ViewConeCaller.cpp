@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 	*/
 	vg.createViewCones(poses, bounding_box, nr_view_cones, occupancy_threshold, fov, view_distance, sample_size, safe_distance);
 
-	ROS_INFO("Got the view cones, there are %d!", poses.size());
+	ROS_INFO("Got the view cones, there are %zd!", poses.size());
 
 	// Create a broadcast of TF.
 	tf::TransformBroadcaster br;

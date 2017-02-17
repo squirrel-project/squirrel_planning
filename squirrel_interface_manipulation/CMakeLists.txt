@@ -47,12 +47,15 @@ include_directories(
 ## Declare cpp executables
 add_executable(rppushServer src/RPPushAction.cpp)
 add_executable(rpgraspServer src/RPGraspAction.cpp)
+add_executable(rphandoverServer src/RPHandoverAction.cpp)
 add_dependencies(rppushServer ${catkin_EXPORTED_TARGETS})
-add_dependencies(rpgraspServer ${catkin_EXPORTED_TARGETS} kclhand_control_gencpp)
+add_dependencies(rpgraspServer ${catkin_EXPORTED_TARGETS})
+add_dependencies(rphandoverServer ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries against which to link a library or executable target
 target_link_libraries(rppushServer ${catkin_LIBRARIES})
 target_link_libraries(rpgraspServer ${catkin_LIBRARIES})
+target_link_libraries(rphandoverServer ${catkin_LIBRARIES})
 
 ##########
 ## Test ##

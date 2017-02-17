@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+//#include <sensor_msgs/PointCloud2.h>
 #include <actionlib/client/simple_action_client.h>
 #include "rosplan_dispatch_msgs/ActionDispatch.h"
 #include "rosplan_dispatch_msgs/ActionFeedback.h"
@@ -29,7 +30,9 @@ namespace KCL_rosplan {
 		ros::ServiceClient find_dynamic_objects_client;
 		ros::ServiceClient add_object_client;
 		ros::ServiceClient update_knowledge_client;
-
+		ros::ServiceClient get_instance_client;
+		ros::ServiceClient examine_action_service;
+		ros::ServiceClient knowledge_query_client;
 		ros::Publisher action_feedback_pub;
 
 		std::map<std::string,std::string> db_name_map;
@@ -37,13 +40,18 @@ namespace KCL_rosplan {
 		void publishFeedback(int action_id, std::string feedback);
 
 		/* actions */
-		void exploreAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 		void examineAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+		void examineObjectInHandAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+		void exploreAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 
 		/* objects to database */
+		void updateType(const std::string& object_id, const std::string& object_rec_id);
+
 		void addObject(squirrel_object_perception_msgs::SceneObject &object);
 		void updateObject(squirrel_object_perception_msgs::SceneObject &object, std::string newWaypoint);
 		void removeObject(squirrel_object_perception_msgs::SceneObject &object);
+
+		void registerPoints(const sensor_msgs::PointCloud2::ConstPtr& msg);
 
 	public:
 

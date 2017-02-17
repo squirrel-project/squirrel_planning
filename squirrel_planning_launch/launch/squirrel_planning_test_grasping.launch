@@ -2,11 +2,11 @@
 <launch>
 
 	<!-- data paths -->
-	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
-	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
+	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="/rosplan/planner_path" value="$(find rosplan_planning_system)/common/bin/" />
 
 	<!-- domain file -->
-	<param name="domain_path" value="$(find squirrel_planning_launch)/common/grasping_domain-nt.pddl" />
+	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/grasping_domain-nt.pddl" />
 
 	<!-- knowledge base -->
 	<node name="rosplan_knowledge_base" pkg="rosplan_knowledge_base" type="knowledgeBase" respawn="false" output="screen" />
@@ -19,21 +19,33 @@
 
 	<!-- planning system -->
 	<node name="rosplan_planning_system" pkg="rosplan_planning_system" type="planner" respawn="false" output="screen">
-		<!-- directory for generated files -->
 		<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
 		<param name="problem_path" value="$(find squirrel_planning_launch)/common/problem.pddl" />
 		<param name="strl_file_path" value="$(find squirrel_planning_launch)/common/plan.strl" />
 
-		<!-- to run the planner -->
 		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/test_grasp_plan.pddl" />
 		<param name="generate_default_problem" value="true" />
 	</node>
 
 	<!-- Interface nodes -->
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
-		<param name="blind_grasp_action_server" value="/blindGrasp" />
+		<param name="blind_grasp_action_server" value="/metahand_grasp_server" />
 	</node>
+
+	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" output="screen">
+		<param name="action_server" value="/squirrel_look_for_objects_in_hand" />
+	</node>
+
+	<node name="squirrel_interface_perception_object" pkg="squirrel_interface_perception" type="rpObjectPerception" output="screen">
+
+	</node>
+<!--
 	<node name="squirrel_grasping_node" pkg="squirrel_grasping" type="squirrel_blind_grasping_node.py" output="screen" />
+-->
+<!--
+	<include file="$(find squirrel_grasping)/launch/squirrel_grasping_metahand.launch" >
+	</include>
+-->
 
 </launch>
 

@@ -258,7 +258,7 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 		tf::Quaternion q(best_pose.orientation.x, best_pose.orientation.y, best_pose.orientation.z, best_pose.orientation.w);
 		float yaw = tf::getYaw(q);
 		
-		ROS_INFO("(ViewConeGenerator) Add the pose(%f, %f, %f), yaw=%f with %d cells to the return list.", best_pose.position.x, best_pose.position.y, best_pose.position.z, yaw, best_visible_cells.size());
+		ROS_INFO("(ViewConeGenerator) Add the pose(%f, %f, %f), yaw=%f with %zd cells to the return list.", best_pose.position.x, best_pose.position.y, best_pose.position.z, yaw, best_visible_cells.size());
 		poses.push_back(best_pose);
 	}
 	

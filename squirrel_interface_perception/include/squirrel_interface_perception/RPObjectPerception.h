@@ -43,9 +43,10 @@ namespace KCL_rosplan {
 		ros::ServiceServer add_object_service;
 		ros::ServiceServer remove_object_service;
 		ros::ServiceServer update_object_service;
-		
+
 		// Map ids passed by the caller to ids as stored in mongodb.
 		std::multimap<std::string, std::string> mongo_id_mapping;
+
 
 	public:
 

@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosplan_dispatch_msgs
   squirrel_expression
   squirrel_hri_msgs
+  squirrel_vad_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS
@@ -23,7 +24,7 @@ find_package(Boost REQUIRED COMPONENTS
 ## Declare things to be passed to dependent projects
 catkin_package(
   LIBRARIES squirrel_knowledge_base
-  CATKIN_DEPENDS roscpp rospy std_msgs rosplan_knowledge_msgs rosplan_dispatch_msgs squirrel_expression squirrel_hri_msgs 
+  CATKIN_DEPENDS roscpp rospy std_msgs rosplan_knowledge_msgs rosplan_dispatch_msgs squirrel_expression squirrel_hri_msgs squirrel_vad_msgs
   DEPENDS
 )
 

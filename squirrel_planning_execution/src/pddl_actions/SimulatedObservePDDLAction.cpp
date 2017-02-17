@@ -38,6 +38,9 @@ void SimulatedObservePDDLAction::dispatchCallback(const rosplan_dispatch_msgs::A
 	if (normalised_action_name != "observe-has_commanded" &&
 	    normalised_action_name != "observe-is_of_type" &&
 	    normalised_action_name != "observe-holding" &&
+	    normalised_action_name != "observe-sorting_done" &&
+	    normalised_action_name != "observe-is_examined" &&
+	    normalised_action_name != "observe-belongs_in" &&
 	    normalised_action_name != "jump")
 	{
 		return;
@@ -51,9 +54,42 @@ void SimulatedObservePDDLAction::dispatchCallback(const rosplan_dispatch_msgs::A
 	fb.status = "action enabled";
 	action_feedback_pub_.publish(fb);
 	
+	if (normalised_action_name == "observe-sorting_done")
+	{
+		// Add the new knowledge.
+		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
+		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
+		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
+		knowledge_item.attribute_name = "sorting_done";
+		
+		float p = (float)rand() / (float)RAND_MAX;
+		ROS_INFO("KCL: (SimulatedObservePDDLAction) Done sorting? %f >= %f.", p, 0.5f);
+		knowledge_item.is_negative = p >= 0.5f;
+		
+		knowledge_update_service.request.knowledge = knowledge_item;
+		if (!update_knowledge_client_.call(knowledge_update_service)) {
+			ROS_ERROR("KCL: (SimulatedObservePDDLAction) Could not add the sorting_done predicate to the knowledge base.");
+			exit(-1);
+		}
+		ROS_INFO("KCL: (SimulatedObservePDDLAction) Added %s (sorting_done) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "");
+		
+		// Remove the opposite option from the knowledge base.
+		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
+		knowledge_item.is_negative = !knowledge_item.is_negative;
+		knowledge_update_service.request.knowledge = knowledge_item;
+		if (!update_knowledge_client_.call(knowledge_update_service)) {
+			ROS_ERROR("KCL: (SimulatedObservePDDLAction) Could not remove the sorting_done predicate to the knowledge base.");
+	// 		exit(-1);
+		}
+		ROS_INFO("KCL: (SimulatedObservePDDLAction) Removed %s (sorting_done) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "");
+		
+		knowledge_item.values.clear();
+	}
 	fb.action_id = msg->action_id;
 	fb.status = "action achieved";
 	action_feedback_pub_.publish(fb);
 }
 
 };
+

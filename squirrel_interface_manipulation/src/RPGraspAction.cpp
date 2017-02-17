@@ -11,6 +11,7 @@ namespace KCL_rosplan {
 		drop_client = nh.serviceClient<kclhand_control::graspPreparation>("/hand_controller/openFinger");
 		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", blindGraspActionServer.c_str());
 		blind_grasp_action_client.waitForServer();
+		ROS_INFO("KCL: (GraspAction) action server found");
 
 		// create the action feedback publisher
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -64,9 +65,9 @@ namespace KCL_rosplan {
 		for(size_t i=0; i<msg->parameters.size(); i++) {
 			if(0==msg->parameters[i].key.compare("wp"))
 				wpID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("v"))
+			if(0==msg->parameters[i].key.compare("r"))
 				robotID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("o")) {
+			if(0==msg->parameters[i].key.compare("ob")) {
 				objectID = msg->parameters[i].value;
 				foundObject = true;
 			}
@@ -139,7 +140,7 @@ namespace KCL_rosplan {
 		std::string objectID;
 		bool foundObject = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
-			if(0==msg->parameters[i].key.compare("v"))
+			if(0==msg->parameters[i].key.compare("r"))
 				robotID = msg->parameters[i].value;
 			if(0==msg->parameters[i].key.compare("ob")) {
 				objectID = msg->parameters[i].value;
@@ -266,7 +267,7 @@ namespace KCL_rosplan {
 
 
 		std::string GraspActionserver, blindGraspActionServer;
-		nh.param("blind_grasp_action_server", blindGraspActionServer, std::string("/blindGrasp"));
+		nh.param("blind_grasp_action_server", blindGraspActionServer, std::string("/metahand_grasp_server"));
 
 		// create PDDL action subscriber
 		KCL_rosplan::RPGraspAction rpga(nh, blindGraspActionServer);
