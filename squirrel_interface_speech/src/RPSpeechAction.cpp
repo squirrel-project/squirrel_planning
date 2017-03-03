@@ -100,7 +100,7 @@ namespace KCL_rosplan {
 	
 	void RPSpeechAction::purgeOldCommands()
 	{
-		// Remove all commands that have been issued more than 5 seconds ago.
+		// Remove all commands that have been issued more than 30 seconds ago.
 		ros::Time current_time = ros::Time::now();
 		
 
