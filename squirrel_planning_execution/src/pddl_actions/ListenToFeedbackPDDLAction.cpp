@@ -127,7 +127,7 @@ void ListenToFeedbackPDDLAction::dispatchCallback(const rosplan_dispatch_msgs::A
 	kv.value = box;
 	knowledge_item.values.push_back(kv);
 	
-	knowledge_item.is_negative = false;
+	knowledge_item.is_negative = !possitive_feedback;
 	knowledge_update_service.request.knowledge = knowledge_item;
 	
 	// Check if any of these facts are true.
@@ -136,7 +136,7 @@ void ListenToFeedbackPDDLAction::dispatchCallback(const rosplan_dispatch_msgs::A
 		ROS_ERROR("KCL: (ExamineObjectInHandPDDLAction) Could not add the (belongs_in %s %s) predicate to the knowledge base.", object.c_str(), box.c_str());
 		exit(1);
 	}
-	ROS_INFO("KCL: (ExamineObjectInHandPDDLAction) Added the (belongs_in %s %s) predicate to the knowledge base.", object.c_str(), box.c_str());
+	ROS_INFO("KCL: (ListenFeedbackPDDLAction) Added the %s (belongs_in %s %s) predicate to the knowledge base.", knowledge_item.is_negative ? "NOT" : "", object.c_str(), box.c_str());
 	
 	fb.action_id = msg->action_id;
 	fb.status = "action achieved";

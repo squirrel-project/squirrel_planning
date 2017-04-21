@@ -1,4 +1,5 @@
 #include "squirrel_interface_speech/VADSpeechAction.h"
+#include <std_msgs/String.h>
 
 /* The implementation of RPSpeechAction.h */
 namespace KCL_rosplan {
@@ -8,12 +9,26 @@ namespace KCL_rosplan {
 		: node_handle_(&nh), message_store_(nh)
 	{
 		command_stream_ = nh.subscribe<squirrel_vad_msgs::vad>("/voice_detector", 1, &VADSpeechAction::processVADSpeech, this);
+		sound_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
 	}
 
 	/* action dispatch callback */
 	void VADSpeechAction::processVADSpeech(const squirrel_vad_msgs::vad::ConstPtr& msg)
 	{
 		message_store_.insertNamed("vad", *msg);
+
+		if (msg->energy > 0.75f)
+		{
+			std_msgs::String sound_command;
+			sound_command.data = "CHEERING";
+			sound_pub_.publish(sound_command);
+		}
+		else if (msg->energy > 0.25f)
+		{
+			std_msgs::String sound_command;
+			sound_command.data = "SURPRISED";
+			sound_pub_.publish(sound_command);
+		}
 	}
 } // close namespace
 
@@ -39,3 +54,4 @@ int main(int argc, char **argv) {
 	}
 	return 0;
 }
+

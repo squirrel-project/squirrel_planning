@@ -269,6 +269,8 @@ namespace KCL_rosplan {
 		}
 
 		retractArm();
+		std_srvs::Empty dummy;
+		clear_cost_map_client.call(dummy);
 
 		if (success){
 			// gripper_empty fact
@@ -338,7 +340,7 @@ namespace KCL_rosplan {
 				if (i > goal_state.data.size()) continue;
 				if (std::abs(goal_state.data[i] - last_joint_state.position[i]) > error)
 				{
-					ROS_INFO("KCL (RPGraspAction) Joint #%zd is %f off target, not done yet!", i, std::abs(goal_state.data[i] - last_joint_state.position[i]));
+					ROS_INFO("KCL (RPGraspAction) Joint #%u is %f off target, not done yet!", i, std::abs(goal_state.data[i] - last_joint_state.position[i]));
 					done = false;
 					break;
 				}
@@ -458,12 +460,20 @@ namespace KCL_rosplan {
 			goal.heap_center_pose_static = object_wp;
 			goal.heap_bounding_cylinder = results[0]->bounding_cylinder;
 			goal.heap_point_cloud = results[0]->cloud;
-			blind_grasp_action_client.sendGoal(goal);
-			ROS_INFO("KCL: (GraspAction) goal sent, waiting for result");
+			actionlib::SimpleClientGoalState state = actionlib::SimpleClientGoalState::PENDING;
 			
-			// bool finished_before_timeout = false;
-			blind_grasp_action_client.waitForResult();
-			actionlib::SimpleClientGoalState state = blind_grasp_action_client.getState();
+			while (ros::ok() && state != actionlib::SimpleClientGoalState::SUCCEEDED && state != actionlib::SimpleClientGoalState::ACTIVE)
+			{
+				blind_grasp_action_client.sendGoal(goal);
+				ROS_INFO("KCL: (GraspAction) goal sent, waiting for result");
+				
+				// bool finished_before_timeout = false;
+				blind_grasp_action_client.waitForResult(ros::Duration(150));
+				state = blind_grasp_action_client.getState();
+
+				
+				ROS_INFO("KCL: (GraspAction) Returned state: %s (%s)", state.getText().c_str(), state.toString().c_str());
+			}
 			ROS_INFO("KCL: (GraspAction) action finished: %s", state.toString().c_str());
 		
 /**
@@ -528,13 +538,13 @@ namespace KCL_rosplan {
 			
 				return true;
 
-			} else return false;
+			}// else return false;
 
 		} else {
 			ROS_INFO("KCL: (GraspAction) aborting action dispatch; query to sceneDB failed");
 			return false;
 		}
-		return false;
+		return true;
 	}
 } // close namespace
 

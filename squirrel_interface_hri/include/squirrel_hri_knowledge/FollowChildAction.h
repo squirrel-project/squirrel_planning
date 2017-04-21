@@ -35,11 +35,13 @@ namespace KCL_rosplan {
 
 		// Knowledge base
 		ros::ServiceClient knowledgeInterface;
+		ros::ServiceClient clear_cost_map_client;
 
 		// action topics
 		ros::Publisher action_feedback_pub;
 		ros::Publisher head_tilt_pub;
 		ros::Publisher head_nod_pub;
+		ros::Publisher sound_pub_;
 		
 		// locations where we expect a child to go.
 		std::vector<geometry_msgs::Point> child_destinations;

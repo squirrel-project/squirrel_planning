@@ -31,6 +31,7 @@ SimulatedObservePDDLAction::SimulatedObservePDDLAction(ros::NodeHandle& node_han
 	dispatch_sub_ = node_handle.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::SimulatedObservePDDLAction::dispatchCallback, this);
 
 	sort_for_ = node_handle.getParam("sort_for", sort_for_);
+	sort_for_ = 3;
 }
 
 SimulatedObservePDDLAction::~SimulatedObservePDDLAction()

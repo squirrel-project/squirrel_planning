@@ -47,14 +47,15 @@
 		<param name="simulate_take_object" value="false"/>
 		<param name="simulate_examine_object_in_hand" value="false"/>
 		<param name="simulate_follow_child" value="false"/>
+		<param name="sort_for" value="3" />
 	</node>
 
 	<!-- RPSquirrelRecursion actions -->
 	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="robotKnowsGame" output="screen">
 		<param name="simulated" value="false" />
-		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase1.pddl" /> 
+		<!--param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase1.pddl" /--> 
+		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase3.pddl" /> 
 		<param name="planner_command_phase3" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase3.pddl" /> 
-		<param name="sort_for" value="3" />
 	</node>
 
 	<!--Interface nodes-->
@@ -76,6 +77,10 @@
         </node>
 
 	<node name="squirrel_interface_hri" pkg="squirrel_interface_hri" type="FollowChildServer" respawn="false" output="screen">
+
+        </node>
+
+	<node name="squirrel_interface_speech" pkg="squirrel_interface_speech" type="vadspeechServer" respawn="false" output="screen">
 
         </node>
 

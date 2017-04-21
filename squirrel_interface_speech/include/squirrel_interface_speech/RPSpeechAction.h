@@ -24,6 +24,7 @@ namespace KCL_rosplan {
 		ros::ServiceClient update_knowledge_client_;
 		ros::ServiceClient get_instance_client_;
 		ros::ServiceClient get_attribute_client_;
+		ros::Publisher sound_pub_;
 		
 		ros::Subscriber command_stream_;                // Receive commands from the kids.
 		std::vector<squirrel_speech_msgs::RecognizedCommand> active_commands_;   // All active commands that have been issued recently.

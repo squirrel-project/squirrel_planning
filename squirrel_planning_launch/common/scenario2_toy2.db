@@ -1,0 +1,255 @@
+###
+# t type
+###
+t object
+t robot
+t box
+t waypoint
+
+###
+# o object type
+###
+#o blue_dinosaur object
+o yellow_dinosaur object
+o lama object
+o donkey object
+o calf object
+#o lego_firetruck object
+#o lego_garbage object
+o blue_car_soft object
+o red_car_soft object
+o winnie_pooh object
+o brown_bear object
+#o turtle object
+#o hedgehog object
+o green_dinosaur object
+o triceratops object
+#o giraffe object
+#o dolfin object
+
+o robot robot
+
+o box1 box
+o box2 box
+o box3 box
+
+o kenny_wp waypoint
+o end_follow_wp waypoint
+o box1_location waypoint
+o box2_location waypoint
+o box3_location waypoint
+#o blue_dinosaur_wp waypoint
+o yellow_dinosaur_wp waypoint
+o lama_wp waypoint
+o donkey_wp waypoint
+o calf_wp waypoint
+#o lego_firetruck_wp waypoint
+#o lego_garbage_wp waypoint
+o blue_car_soft_wp waypoint
+o red_car_soft_wp waypoint
+o winnie_pooh_wp waypoint
+o brown_bear_wp waypoint
+#o turtle_wp waypoint
+#o hedgehog_wp waypoint
+o green_dinosaur_wp waypoint
+o triceratops_wp waypoint
+#o giraffe_wp waypoint
+#o dolfin_wp waypoint
+
+###
+# p predicate [type]
+###
+p robot_at robot waypoint
+p object_at object waypoint
+p box_at box waypoint
+p belongs_in object box
+
+# colours
+p is_blue object
+p is_red object
+p is_brown object
+p is_yellow object
+p is_white object
+p is_green object
+
+# categories
+p is_dinosaur object
+p is_animal object
+p is_car object
+p is_bear object
+p is_horse object
+
+# material properties
+p is_plastic object
+p is_hard object
+p is_soft object
+p has_pattern object
+
+# size properties
+p is_small object
+p is_medium object
+p is_big object
+
+###
+# f predicate [object]
+###
+
+# blue_dinosaur
+#f is_blue blue_dinosaur
+#f is_dinosaur blue_dinosaur
+#f is_small blue_dinosaur
+#f is_soft blue_dinosaur
+#f is_animal blue_dinosaur
+#f object_at blue_dinosaur blue_dinosaur_wp
+
+# yellow_dinosaur
+f is_yellow yellow_dinosaur
+f is_dinosaur yellow_dinosaur
+f is_medium yellow_dinosaur
+f is_soft yellow_dinosaur
+f is_animal yellow_dinosaur
+f object_at yellow_dinosaur yellow_dinosaur_wp
+
+# lama
+f is_brown lama
+f is_small lama
+f is_soft lama
+f is_animal lama
+f is_horse lama
+f object_at lama lama_wp
+
+# donkey
+f is_brown donkey
+f is_medium donkey
+f is_soft donkey
+f is_animal donkey
+f is_horse donkey
+f object_at donkey donkey_wp
+
+# calf
+f is_white calf
+f is_medium calf
+f is_soft calf
+f is_animal calf
+f is_horse calf
+f has_pattern calf
+f object_at calf calf_wp
+
+# lego_firetruck
+#f is_red lego_firetruck
+#f is_small lego_firetruck
+#f is_hard lego_firetruck
+#f is_plastic lego_firetruck
+#f is_car lego_firetruck
+#f object_at lego_firetruck lego_firetruck_wp
+
+# lego_garbage
+#f is_green lego_garbage
+#f is_medium lego_garbage
+#f is_hard lego_garbage
+#f is_plastic lego_garbage
+#f is_car lego_garbage
+#f object_at lego_garbage lego_garbage_wp
+
+# blue_car_soft
+f is_blue blue_car_soft
+f is_medium blue_car_soft
+f is_soft blue_car_soft
+f is_car blue_car_soft
+f object_at blue_car_soft blue_car_soft_wp
+
+# red_car_soft
+f is_red red_car_soft
+f is_small red_car_soft
+f is_soft red_car_soft
+f is_car red_car_soft
+f object_at red_car_soft red_car_soft_wp
+
+# winnie_pooh
+f is_yellow winnie_pooh
+f is_red winnie_pooh
+f is_animal winnie_pooh
+f is_bear winnie_pooh
+f is_soft winnie_pooh
+f is_medium winnie_pooh
+f object_at winnie_pooh winnie_pooh_wp
+
+# brown_bear
+f is_brown brown_bear
+f is_red brown_bear
+f is_animal brown_bear
+f is_bear brown_bear
+f is_soft brown_bear
+f is_medium brown_bear
+f object_at brown_bear brown_bear_wp
+
+# turtle
+#f is_brown turtle
+#f is_animal turtle
+#f is_soft turtle
+#f is_small turtle
+#f object_at turtle turtle_wp
+
+# hedgehog
+#f is_brown hedgehog
+#f is_animal hedgehog
+#f is_soft hedgehog
+#f is_small hedgehog
+#f object_at hedgehog hedgehog_wp
+
+# green_dinosaur
+f is_big green_dinosaur
+f is_dinosaur green_dinosaur
+f is_green green_dinosaur
+f is_soft green_dinosaur
+f is_animal green_dinosaur
+f object_at green_dinosaur green_dinosaur_wp
+
+# triceratops
+f is_medium triceratops
+f is_dinosaur triceratops
+f is_blue triceratops
+f is_soft triceratops
+f is_animal triceratops
+f object_at triceratops triceratops_wp
+
+# giraffe
+#f is_small giraffe
+#f is_yellow giraffe
+#f is_brown giraffe
+#f has_pattern giraffe
+#f is_animal giraffe
+#f is_soft giraffe
+#f object_at giraffe giraffe_wp
+
+# dolfin
+#f is_blue dolfin
+#f is_animal dolfin
+#f is_soft dolfin
+#f is_medium dolfin
+#f object_at dolfin dolfin_wp
+
+###
+# r waypoint (f,f,f) (f,f,f)[last is optional]
+###
+r kenny_wp (0.372,-0.34,0.0)
+r box1_location (-1.47,2.13,0.0) (-0.95,1.43,0.0)
+r box2_location (2.35,-2.56,,0.0) (1.73,-1.89,0.0)
+r box3_location (-1.52,-2.54,0.0) (-0.85,-2.04,0.0)
+#r blue_dinosaur_wp (1.91,-0.64,0.0)
+r yellow_dinosaur_wp (1.75,0.401,0.0)
+r lama_wp (0.866,-2.31,0.0)
+r donkey_wp (-0.103,-2.23,0.0)
+r calf_wp (-1.24,0.56,0.0)
+#o lego_firetruck_wp waypoint
+#o lego_garbage_wp waypoint
+r blue_car_soft_wp (2.21,-1.13,0.0)
+r red_car_soft_wp (-1.15,-0.977,0.0)
+r winnie_pooh_wp (1.2,0.937,0.0)
+r brown_bear_wp (1.99,-0.361,0.0)
+#r turtle_wp (
+#o hedgehog_wp waypoint
+r green_dinosaur_wp (0.446,1.79,0.0)
+r triceratops_wp (-1.40,-0.113,0.0)
+#r giraffe_wp (-0.119,-2.56,0.0)
+#r dolfin_wp (0.598,1.94)

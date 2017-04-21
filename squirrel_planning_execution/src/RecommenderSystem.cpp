@@ -1182,7 +1182,7 @@ namespace KCL_rosplan {
 				}
 				else if (results[fact] == highest_value)
 				{
-					dest << "\"" << fact->getObjects()[0]->getName() << "\"" << " -> \"" << fact->getObjects()[1]->getName() << "\"[penwidth=2, color=\"#55DD55\"];" << std::endl;
+					dest << "\"" << fact->getObjects()[0]->getName() << "\"" << " -> \"" << fact->getObjects()[1]->getName() << "\"[penwidth=2, color=\"#CDDDDD\"];" << std::endl;
 				}
 				else if (results[fact] > 0.55f)
 				{
@@ -1266,7 +1266,6 @@ void readDBFile(mongodb_store::MessageStoreProxy& message_store, ros::ServiceCli
 		while (getline(f, line))
 		{
 
-			std::cout << line << std::endl;
 			if (line.size() == 0 || line[0] == '#') continue;
 
 			std::vector<std::string> tokens;
@@ -1307,8 +1306,6 @@ void readDBFile(mongodb_store::MessageStoreProxy& message_store, ros::ServiceCli
 					ROS_ERROR("KCL: (RobotKnowsGame) Could not add the %s %s to the knowledge base.", type_name.c_str(), object_name.c_str());
 					exit(-1);
 				}
-				ROS_INFO("KCL: (RobotKnowsGame) Added the %s %s to the knowledge base.", type_name.c_str(), object_name.c_str());
-
 			}
 			else if (line[0] == 'p')
 			{
@@ -1366,17 +1363,6 @@ void readDBFile(mongodb_store::MessageStoreProxy& message_store, ros::ServiceCli
 				pose.pose.orientation.w = 1;
 				std::string id (message_store.insertNamed(waypoint_predicate, pose));
 
-				ROS_INFO("KCL (RecommenderSystem) %s is at (%f,%f,%f,)", waypoint_predicate.c_str(), pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
-/*	
-				if (tokens.size() == 4)
-				{
-					geometry_msgs::Pose reference_waypoint_location = transformToPose(tokens[3]);
-					float angle = atan2(waypoint_location.position.y - reference_waypoint_location.position.y, waypoint_location.position.x - reference_waypoint_location.position.x);
-					pose.pose.orientation = tf::createQuaternionMsgFromYaw(angle);
-				}
-				std::string near_waypoint_mongodb_id3(message_store.insertNamed(waypoint_predicate, pose));
-*/
-
 				// Calculate it's near component.
 				float centre_x = 0.372;
 				float centre_y = -0.342;
@@ -1403,7 +1389,6 @@ void readDBFile(mongodb_store::MessageStoreProxy& message_store, ros::ServiceCli
 
 
 				std::string near_id(message_store.insertNamed(ss.str(), pose));
-				ROS_INFO("KCL (RecommenderSystem) %s is at (%f,%f,%f,)", ss.str().c_str(), pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
 			}
 		}
 	}
@@ -1441,18 +1426,6 @@ int main(int argc, char** argv)
 	std::vector<const KCL_rosplan::Predicate*> predicates;
 	std::set<const KCL_rosplan::Fact*> true_facts;
 	readDBFile(ms, update_knowledge_client, config_file, types, objects, predicates, true_facts);
-
-        std::vector<const KCL_rosplan::Predicate*> relevant_predicates;
-        for (std::vector<const KCL_rosplan::Predicate*>::const_iterator ci = predicates.begin(); ci != predicates.end(); ++ci)
-        {
-                if ((*ci)->getName() == "object_at" ||
-                    (*ci)->getName() == "robot_at" ||
-                    (*ci)->getName() == "box_at")
-                {
-                        continue;
-                }
-                relevant_predicates.push_back(*ci);
-        }
 
         std::vector<const KCL_rosplan::Object*> relevant_objects;
         for (std::vector<const KCL_rosplan::Object*>::const_iterator ci = objects.begin(); ci != objects.end(); ++ci)
@@ -1510,7 +1483,6 @@ int main(int argc, char** argv)
 	KCL_rosplan::RecommenderSystem rs(nh);
 	ROS_INFO("KCL: (RecommenderSystem) Recommender System started.");
 	
-/*
 	std::vector<const KCL_rosplan::Predicate*> relevant_predicates;
 	for (std::vector<const KCL_rosplan::Predicate*>::const_iterator ci = predicates.begin(); ci != predicates.end(); ++ci)
 	{
@@ -1523,6 +1495,7 @@ int main(int argc, char** argv)
 		relevant_predicates.push_back(*ci);
 	}
 	
+/*
 	std::vector<const KCL_rosplan::Object*> relevant_objects;
 	
 	const KCL_rosplan::Fact* previous_fact = facts_to_sense[0];
@@ -1622,7 +1595,7 @@ int main(int argc, char** argv)
 		double now = ros::Time::now().toSec();
 		if (now - last_update > 10)
 		{
-			rs.visualise(data_path, objects, predicates, all_facts, true_facts);
+			rs.visualise(data_path, objects, relevant_predicates, all_facts, true_facts);
 		}
 		ros::spinOnce();
 		

@@ -1,4 +1,5 @@
 #include "squirrel_hri_knowledge/FollowChildAction.h"
+#include <std_srvs/Empty.h>
 
 namespace KCL_rosplan {
 
@@ -9,9 +10,11 @@ FollowChildAction::FollowChildAction(ros::NodeHandle &nh, const std::string& fol
 	knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 	action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
 
-	ROS_INFO("KCL: (FollowChildAction) waiting for follow_child_action action server to start on");
+	ROS_INFO("KCL: (FollowChildAction) waiting for follow_child_action action server to start on %s", follow_child_action_name.c_str());
 	action_client.waitForServer();
 	ROS_INFO("KCL: (FollowChildAction) action server started.");
+	sound_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
+	clear_cost_map_client = nh.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
 }
 
 void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
@@ -27,6 +30,7 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 		fb.action_id = msg->action_id;
 		fb.status = "action enabled";
 		action_feedback_pub.publish(fb);
+
 		
 		// get waypoint ID from action dispatch
 		std::string childID;
@@ -49,6 +53,10 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 		goal.target_locations = child_destinations;
 		
 		action_client.sendGoal(goal);
+
+		std_msgs::String sound_command;
+		sound_command.data = "HERE_HERE";
+		sound_pub_.publish(sound_command);
 
 		bool finished_before_timeout = action_client.waitForResult();
 		if (finished_before_timeout) {
@@ -93,6 +101,12 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 			
 			return;
 		}
+
+		sound_command.data = "CHEERING";
+		sound_pub_.publish(sound_command);
+
+		std_srvs::Empty dummy;
+		clear_cost_map_client.call(dummy);
 		
 		// publish feedback (achieved)
 		fb.action_id = msg->action_id;
