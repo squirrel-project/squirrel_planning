@@ -1125,17 +1125,7 @@ namespace KCL_rosplan {
 		for (std::vector<const Object*>::const_iterator ci = objects.begin(); ci != objects.end(); ++ci)
 		{
 			const Object* o = *ci;
-			if (o->getType().getName() == "box")
-			{
-				for (std::vector<const KCL_rosplan::Fact*>::const_iterator ci = interesting_facts.begin(); ci != interesting_facts.end(); ++ci)
-				{
-					const KCL_rosplan::Fact* fact = *ci;
-					std::stringstream ss;
-					ss << o->getName() << "_" << *fact;
-					dest << o->getName() << "[ label=\"" << ss.str() << "\" style=\"fill: #fff; \"];" << std::endl;
-				}
-			}
-			else if (o->getType().getName() == "object")
+			if (o->getType().getName() == "box" || o->getType().getName() == "object")
 			{
 				dest << o->getName() << "[ label=\"" << o->getName() << "\" style=\"fill: #fff; \"];" << std::endl;
 			}
@@ -1150,9 +1140,7 @@ namespace KCL_rosplan {
 			float value = results[fact];
 			if (value > 0.5 && !fact->isNegative())
 			{
-				std::stringstream ss;
-				ss << fact->getObjects()[1]->getName() << "_" << *fact;
-				dest << "\"" << fact->getObjects()[0]->getName() << "\"" << " -> \"" << ss.str() << "\";" << std::endl;
+				dest << "\"" << fact->getObjects()[0]->getName() << "\"" << " -> \"" << fact->getObjects()[1]->getName() << "\";" << std::endl;
 			}
 		}
 
@@ -1516,10 +1504,11 @@ int main(int argc, char** argv)
 		box_to_location_mapping[object->getName()] = ss.str();
 	}
 	
-	KCL_rosplan::PlanToSensePDDLGenerator pta;
-	//KCL_rosplan::PlanToAskPDDLGenerator pta;
-	pta.createPDDL(root, data_path, "domain.pddl", "problem.pddl", "kenny_wp", object_to_location_mapping, box_to_location_mapping);
-	
+	KCL_rosplan::PlanToAskPDDLGenerator pta;
+	pta.createPDDL(root, data_path, "domain_ask.pddl", "problem_ask.pddl", "kenny_wp", object_to_location_mapping, box_to_location_mapping);
+
+	KCL_rosplan::PlanToSensePDDLGenerator pts;
+	pts.createPDDL(root, data_path, "domain_sense.pddl", "problem_sense.pddl", "kenny_wp", object_to_location_mapping, box_to_location_mapping);
 	// Start the planner using the generated domain / problem files.
 	
 	std::string planner_path;
