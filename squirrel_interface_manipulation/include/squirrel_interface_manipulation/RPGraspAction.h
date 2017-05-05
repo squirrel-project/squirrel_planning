@@ -51,6 +51,7 @@ namespace KCL_rosplan {
 		actionlib::SimpleActionClient<squirrel_manipulation_msgs::JointPtpAction> ptpActionClient;
 		ros::Publisher action_feedback_pub;
 		ros::ServiceClient update_knowledge_client;
+		ros::ServiceClient clear_cost_map_client;
 		ros::Subscriber joint_state_sub;
         bool do_placement;
 

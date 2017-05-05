@@ -42,6 +42,8 @@ private:
 	ros::Publisher action_feedback_pub_;            // Publisher that communicates feedback to ROSPlan.
 	ros::Subscriber dispatch_sub_;                  // Subscriber to the dispatch topic of ROSPlan.
 	mongodb_store::MessageStoreProxy message_store_;// Message store.
+
+	int sort_for_;                                  // Number of time it should sort a toy before moving on.
 };
 
 };

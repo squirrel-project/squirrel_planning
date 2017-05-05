@@ -440,7 +440,6 @@ namespace KCL_rosplan {
 		
 		/**
 		 * Store the relationships between objects, in which order they need to be observed.
-		 * @param last_observed_fact The last observation that was made.
 		 * @param new_observed_fact The newly observed fact.
 		 * @param true_branch If true then we explore the true branch, otherwise we explore the false branch.
 		 */
@@ -450,7 +449,7 @@ namespace KCL_rosplan {
 		 * Update @ref{weighted_facts_copy} by infering mutual exclusive pairs of actions and update their weights
 		 * accordingly.
 		 */
-		void processMutualExclusive(const Fact& last_sensed_fact, std::map<const Fact*, float>& weighted_facts_copy, const std::vector<const Fact*>& interesting_facts);
+		void processMutualExclusive(std::map<const Fact*, float>& weighted_facts_copy, const std::vector<const Fact*>& interesting_facts);
 		
 	public:
 
@@ -492,7 +491,7 @@ namespace KCL_rosplan {
 		 * @param predicates The list of predicates and their arity.
 		 * @param all_facts All the grounded facts.
 		 */
-		void visualise(const std::string& path, const std::vector<const Object*>& objects, const std::vector<const Predicate*>& predicates, const std::vector<const KCL_rosplan::Fact*>& all_facts);
+		void visualise(const std::string& path, const std::vector<const Object*>& objects, const std::vector<const Predicate*>& predicates, const std::vector<const KCL_rosplan::Fact*>& all_facts, const std::set<const KCL_rosplan::Fact*>& true_facts);
 	};
 }
 #endif

@@ -5,7 +5,7 @@
 	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
-	<param name="/facts_db" value="$(find squirrel_planning_launch)/common/scenario2_toy.db" />
+	<param name="/facts_db" value="$(find squirrel_planning_launch)/common/scenario2_toy2.db" />
 
 	<param name="/squirrel_planning_execution/recommender/data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="/squirrel_planning_execution/recommender/input_file" value="input.cvs" />
@@ -55,7 +55,11 @@
 	<!-- RPSquirrelRecursion actions -->
 	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="recommenderTester" output="screen">
 		<param name="simulated" value="false" />
-		<param name="planner_command" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />
+<!--		<param name="planner_command" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />-->
+		<param name="planner_command_ask" value="cat $(find squirrel_planning_launch)/common/ask_plan.pddl" />
+<!--		<param name="planner_command_ask" value="cat $(find squirrel_planning_launch)/common/sense_plan.pddl" />  -->
+		<param name="planner_command_sense" value="cat $(find squirrel_planning_launch)/common/sense_plan.pddl" /> 
+		<param name="planner_command" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />-->
 		<param name="box1_location" value="-0.16,-2.82,0.0" />
 		<param name="box2_location" value="4.9,0.34,0.0" />
 		<param name="/squirrel_planning_execution/recommender/data_path" value="$(find squirrel_planning_launch)/common/" />

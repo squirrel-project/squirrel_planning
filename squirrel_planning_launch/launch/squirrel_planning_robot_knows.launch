@@ -5,7 +5,7 @@
 	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
-	<param name="/scenario_setup_file" value="$(find squirrel_planning_execution)/conf/year3-scenario1-freiburg.conf" />
+	<param name="/scenario_setup_file" value="$(find squirrel_planning_execution)/conf/year3-scenario1-freiburg2.conf" />
 
 	<!-- domain file -->
 	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/template_robot_knows_domain.pddl" />
@@ -43,16 +43,18 @@
 		<param name="simulate_put_object_in_box" value="false"/>
 		<param name="simulate_pickup_object" value="false"/>
 		<param name="simulate_drop_object" value="false"/>
-		<param name="simulate_give_object" value="true"/>
-		<param name="simulate_take_object" value="true"/>
+		<param name="simulate_give_object" value="false"/>
+		<param name="simulate_take_object" value="false"/>
 		<param name="simulate_examine_object_in_hand" value="false"/>
 		<param name="simulate_follow_child" value="false"/>
+		<param name="sort_for" value="3" />
 	</node>
 
 	<!-- RPSquirrelRecursion actions -->
 	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="robotKnowsGame" output="screen">
 		<param name="simulated" value="false" />
-		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase1.pddl" /> 
+		<!--param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase1.pddl" /--> 
+		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase3.pddl" /> 
 		<param name="planner_command_phase3" value="cat $(find squirrel_planning_launch)/common/robot_knows_phase3.pddl" /> 
 	</node>
 
@@ -65,11 +67,9 @@
 	<node name="squirrel_planning_interface_emote" pkg="squirrel_interface_emote" type="rpEmoteServer" output="screen">
 	</node>
 
-<!--
 	<node name="squirrel_planning_interface_manipulation" pkg="squirrel_interface_manipulation" type="rphandoverServer" output="screen">
 		<param name="handover_action_server" value="/handover" />
 	</node>
--->
 
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
                 <param name="blind_grasp_action_server" value="/metahand_grasp_server" />
@@ -77,6 +77,10 @@
         </node>
 
 	<node name="squirrel_interface_hri" pkg="squirrel_interface_hri" type="FollowChildServer" respawn="false" output="screen">
+
+        </node>
+
+	<node name="squirrel_interface_speech" pkg="squirrel_interface_speech" type="vadspeechServer" respawn="false" output="screen">
 
         </node>
 

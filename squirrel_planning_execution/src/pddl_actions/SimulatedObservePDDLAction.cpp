@@ -29,6 +29,9 @@ SimulatedObservePDDLAction::SimulatedObservePDDLAction(ros::NodeHandle& node_han
 
 	// Subscribe to the action feedback topic.
 	dispatch_sub_ = node_handle.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::SimulatedObservePDDLAction::dispatchCallback, this);
+
+	sort_for_ = node_handle.getParam("sort_for", sort_for_);
+	sort_for_ = 3;
 }
 
 SimulatedObservePDDLAction::~SimulatedObservePDDLAction()
@@ -79,7 +82,7 @@ void SimulatedObservePDDLAction::dispatchCallback(const rosplan_dispatch_msgs::A
 //		float p = (float)rand() / (float)RAND_MAX;
 //		ROS_INFO("KCL: (SimulatedObservePDDLAction) Done sorting? %f >= %f.", p, 0.5f);
 //		knowledge_item.is_negative = p >= 0.5f;
-		knowledge_item.is_negative = call_counter < 3;
+		knowledge_item.is_negative = call_counter < sort_for_;
 		
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {

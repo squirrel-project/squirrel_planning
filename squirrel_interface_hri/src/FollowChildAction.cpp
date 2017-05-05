@@ -1,4 +1,5 @@
 #include "squirrel_hri_knowledge/FollowChildAction.h"
+#include <std_srvs/Empty.h>
 
 namespace KCL_rosplan {
 
@@ -9,9 +10,11 @@ FollowChildAction::FollowChildAction(ros::NodeHandle &nh, const std::string& fol
 	knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 	action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
 
-	ROS_INFO("KCL: (FollowChildAction) waiting for follow_child_action action server to start on");
+	ROS_INFO("KCL: (FollowChildAction) waiting for follow_child_action action server to start on %s", follow_child_action_name.c_str());
 	action_client.waitForServer();
 	ROS_INFO("KCL: (FollowChildAction) action server started.");
+	sound_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
+	clear_cost_map_client = nh.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
 }
 
 void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
@@ -27,6 +30,7 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 		fb.action_id = msg->action_id;
 		fb.status = "action enabled";
 		action_feedback_pub.publish(fb);
+
 		
 		// get waypoint ID from action dispatch
 		std::string childID;
@@ -50,6 +54,10 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 		
 		action_client.sendGoal(goal);
 
+		std_msgs::String sound_command;
+		sound_command.data = "HERE_HERE";
+		sound_pub_.publish(sound_command);
+
 		bool finished_before_timeout = action_client.waitForResult();
 		if (finished_before_timeout) {
 
@@ -69,8 +77,17 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 				// Add the child's location to the knowledge base.
 				squirrel_hri_msgs::FollowChildResultConstPtr result = action_client.getResult();
 				geometry_msgs::PoseStamped child_location = result->final_location;
-				std::string id(message_store.insertNamed("child_location", child_location));
-				message_store.updateID(id, child_location);
+
+				if (last_stored_id != "")
+				{
+					if (message_store.deleteID(last_stored_id))
+					{
+						ROS_INFO("KCL: (FollowChildAction) Deleted previous child pose with id: %s.", last_stored_id.c_str());
+					}
+				}
+
+				last_stored_id = message_store.insertNamed("child_location", child_location);
+				message_store.updateNamed("child_location", child_location);
 				ROS_INFO("KCL: (FollowChildAction) Child is at (%f,%f,%f,)", child_location.pose.position.x, child_location.pose.position.y, child_location.pose.position.z);
 			}
 		} else {
@@ -84,6 +101,12 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 			
 			return;
 		}
+
+		sound_command.data = "CHEERING";
+		sound_pub_.publish(sound_command);
+
+		std_srvs::Empty dummy;
+		clear_cost_map_client.call(dummy);
 		
 		// publish feedback (achieved)
 		fb.action_id = msg->action_id;
