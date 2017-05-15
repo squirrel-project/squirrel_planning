@@ -1495,8 +1495,7 @@ int main(int argc, char** argv)
 		relevant_predicates.push_back(*ci);
 	}
 	
-	std::vector<const KCL_rosplan::Object*> relevant_objects;
-	
+	std::vector<const KCL_rosplan::Fact*> facts_to_sense = rs.getBestSensingActions(relevant_objects, relevant_predicates, weighted_facts, interesting_facts, 3);
 	const KCL_rosplan::Fact* previous_fact = facts_to_sense[0];
 	for (unsigned int i = 0; i < std::min((int)facts_to_sense.size(), 5); ++i)
 	{
@@ -1558,13 +1557,18 @@ int main(int argc, char** argv)
 	std::string domain_path_ask = ss.str();
 
 	ss.str(std::string());
+	ss << data_path << "problem_ask.pddl";
+	std::string problem_path_ask = ss.str();
+	std::cout << problem_path_ask << std::endl;
+
+	ss.str(std::string());
 	ss << data_path << "domain_sense.pddl";
 	std::string domain_path_sense = ss.str();
 	
 	ss.str(std::string());
-	ss << data_path << "problem.pddl";
-	std::string problem_path = ss.str();
-	std::cout << problem_path << std::endl;
+	ss << data_path << "problem_sense.pddl";
+	std::string problem_path_sense = ss.str();
+	std::cout << problem_path_sense << std::endl;
 	
 	std::string planner_command_ask;
 	nh.getParam("/squirrel_planning_execution/planner_command_ask", planner_command_ask);
@@ -1574,7 +1578,7 @@ int main(int argc, char** argv)
 	
 	rosplan_dispatch_msgs::PlanGoal psrv;
 	psrv.domain_path = domain_path_ask;
-	psrv.problem_path = problem_path;
+	psrv.problem_path = problem_path_ask;
 	psrv.data_path = data_path;
 	psrv.planner_command = planner_command_ask;
 	psrv.start_action_id = 0;
@@ -1609,7 +1613,7 @@ int main(int argc, char** argv)
 			
 			// Start the planner using the generated domain / problem files.
 			psrv.domain_path = domain_path_sense;
-			psrv.problem_path = problem_path;
+			psrv.problem_path = problem_path_sense;
 			psrv.data_path = data_path;
 			psrv.planner_command = planner_command_sense;
 			psrv.start_action_id = 0;

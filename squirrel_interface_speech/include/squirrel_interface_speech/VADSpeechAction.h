@@ -20,6 +20,7 @@ namespace KCL_rosplan {
 		
 		mongodb_store::MessageStoreProxy message_store_;
 		ros::Subscriber command_stream_;
+		ros::Publisher sound_pub_;
 	public:
 
 		/* constructor */

@@ -38,28 +38,28 @@
 	<!-- simulation acitons (ALL TRUE) -->
 	<node name="simulated_actions" pkg="squirrel_planning_execution" type="simulatedPDDLActionsNode" output="screen">
 		<param name="query_user" value="false" />
-		<param name="simulate_goto_waypoint" value="false"/>
-		<param name="simulate_explore_waypoint" value="false"/>
-		<param name="simulate_clear_object" value="false"/>
-		<param name="simulate_classify_object" value="false"/>
-		<param name="simulate_emote" value="false"/>
-		<param name="simulate_put_object_in_box" value="false"/>
-		<param name="simulate_pickup_object" value="false"/>
-		<param name="simulate_drop_object" value="false"/>
-		<param name="simulate_give_object" value="false"/>
-		<param name="simulate_take_object" value="false"/>
-		<param name="simulate_examine_object_in_hand" value="false"/>
-		<param name="simulate_follow_child" value="false"/>
+		<param name="simulate_goto_waypoint" value="true"/>
+		<param name="simulate_explore_waypoint" value="true"/>
+		<param name="simulate_clear_object" value="true"/>
+		<param name="simulate_classify_object" value="true"/>
+		<param name="simulate_emote" value="true"/>
+		<param name="simulate_put_object_in_box" value="true"/>
+		<param name="simulate_pickup_object" value="true"/>
+		<param name="simulate_drop_object" value="true"/>
+		<param name="simulate_give_object" value="true"/>
+		<param name="simulate_take_object" value="true"/>
+		<param name="simulate_examine_object_in_hand" value="true"/>
+		<param name="simulate_follow_child" value="true"/>
 	</node>
 
 	<!-- RPSquirrelRecursion actions -->
 	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="recommenderTester" output="screen">
 		<param name="simulated" value="false" />
-<!--		<param name="planner_command" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />-->
-		<param name="planner_command_ask" value="cat $(find squirrel_planning_launch)/common/ask_plan.pddl" />
+		<param name="planner_command_ask" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />
+		<param name="planner_command_sense" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />
+<!--		<param name="planner_command_ask" value="cat $(find squirrel_planning_launch)/common/ask_plan.pddl" />-->
 <!--		<param name="planner_command_ask" value="cat $(find squirrel_planning_launch)/common/sense_plan.pddl" />  -->
-		<param name="planner_command_sense" value="cat $(find squirrel_planning_launch)/common/sense_plan.pddl" /> 
-		<param name="planner_command" value="timeout 300 $(find rosplan_planning_system)/common/bin/ff -o DOMAIN -f PROBLEM" />-->
+<!--		<param name="planner_command_sense" value="cat $(find squirrel_planning_launch)/common/sense_plan.pddl" /> -->
 		<param name="box1_location" value="-0.16,-2.82,0.0" />
 		<param name="box2_location" value="4.9,0.34,0.0" />
 		<param name="/squirrel_planning_execution/recommender/data_path" value="$(find squirrel_planning_launch)/common/" />
@@ -71,6 +71,7 @@
 	<node name="squirrel_interface_speech" pkg="squirrel_interface_speech" type="rpspeechServer" output="screen" />
 
 	<!--Interface nodes-->
+	<!-- 
 	<node name="squirrel_planning_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" output="screen">
 		<param name="action_server" value="/squirrel_look_for_objects_in_hand" />
 		<param name="recognise_server" value="/squirrel_recognize_objects" />
@@ -98,7 +99,6 @@
 		<param name="pddl_action_name" value="goto_waypoint" />
 	</node>
 
-	<!-- 
 	<node name="squirrel_planning_interface_pushing" pkg="squirrel_interface_manipulation" type="rppushServer" output="screen">
 		<param name="smash_action_server" value="/smash" />
 		<param name="push_action_server" value="/push" />
