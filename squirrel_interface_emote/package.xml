@@ -14,7 +14,6 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>rosplan_knowledge_msgs</build_depend>
   <build_depend>rosplan_dispatch_msgs</build_depend>
-  <build_depend>squirrel_expression</build_depend>
   <build_depend>squirrel_hri_msgs</build_depend>
   <build_depend>squirrel_vad_msgs</build_depend>
   
@@ -25,7 +24,6 @@
   <run_depend>rosplan_knowledge_msgs</run_depend>
   <run_depend>rosplan_dispatch_msgs</run_depend>
   <run_depend>squirrel_speech_msgs</run_depend>
-  <run_depend>squirrel_expression</run_depend>
   <run_depend>squirrel_hri_msgs</run_depend>
   <run_depend>squirrel_vad_msgs</run_depend>
 

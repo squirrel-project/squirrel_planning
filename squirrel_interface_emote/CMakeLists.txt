@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   rosplan_knowledge_msgs
   rosplan_dispatch_msgs
-  squirrel_expression
   squirrel_hri_msgs
   squirrel_vad_msgs
 )

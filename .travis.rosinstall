@@ -1,12 +1,16 @@
 - git:
-    uri: 'git@github.com:clearpathrobotics/occupancy_grid_utils.git'
+    uri: 'https://github.com/clearpathrobotics/occupancy_grid_utils.git'
     local-name: occupancy_grid_utils
-    version: indigo_dev
+    version: indigo-devel
 - git:
-    uri: 'git@github.com:squirrel-project/squirrel_common.git'
+    uri: 'https://github.com/squirrel-project/squirrel_common.git'
     local-name: squirrel_common
     version: indigo_dev
 - git:
-    uri: 'git@github.com:kcl-planning/ROSPlan.git'
-    local-name: ROSPlan
+    uri: 'https://github.com/squirrel-project/squirrel_driver.git'
+    local-name: squirrel_driver
     version: indigo_dev
+- git:
+    uri: 'https://github.com/kcl-planning/ROSPlan.git'
+    local-name: ROSPlan
+    version: master

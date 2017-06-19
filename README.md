@@ -1,3 +1,5 @@
+Travis-CI: [![Build Status](https://travis-ci.org/squirrel-project/squirrel_planning.svg?branch=indigo_dev)](https://travis-ci.org/squirrel-project/squirrel_planning)
+
 squirrel_planning
 =================
 
