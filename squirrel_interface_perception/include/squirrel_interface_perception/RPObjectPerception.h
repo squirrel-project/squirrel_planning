@@ -43,9 +43,10 @@ namespace KCL_rosplan {
 		ros::ServiceServer add_object_service;
 		ros::ServiceServer remove_object_service;
 		ros::ServiceServer update_object_service;
-		
+
 		// Map ids passed by the caller to ids as stored in mongodb.
 		std::multimap<std::string, std::string> mongo_id_mapping;
+
 
 	public:
 
@@ -56,6 +57,7 @@ namespace KCL_rosplan {
 		bool addObjects(squirrel_planning_knowledge_msgs::AddObjectService::Request &req, squirrel_planning_knowledge_msgs::AddObjectService::Response &res);
 		bool removeObjects(squirrel_planning_knowledge_msgs::RemoveObjectService::Request &req, squirrel_planning_knowledge_msgs::RemoveObjectService::Response &res);
 		bool updateObjects(squirrel_planning_knowledge_msgs::UpdateObjectService::Request &req, squirrel_planning_knowledge_msgs::UpdateObjectService::Response &res);
+		bool lookAtObject(squirrel_planning_knowledge_msgs::UpdateObjectService::Request &req, squirrel_planning_knowledge_msgs::UpdateObjectService::Response &res);
 
 	};
 }

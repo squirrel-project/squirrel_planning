@@ -98,6 +98,8 @@ void ClassifyObjectPDDLAction::dispatchCallback(const rosplan_dispatch_msgs::Act
 	}
 	else 
 	{
+		float p = (float)rand() / (float)RAND_MAX;
+		ROS_INFO("KCL: (ClassifyObjectPDDLAction) Is negative? %f >= %f.", p, classification_probability_);
 		knowledge_item.is_negative = (float)rand() / (float)RAND_MAX >= classification_probability_;
 	}
 	bool classification_succeeded = !knowledge_item.is_negative;
@@ -128,7 +130,7 @@ void ClassifyObjectPDDLAction::dispatchCallback(const rosplan_dispatch_msgs::Act
 	knowledge_update_service.request.knowledge = knowledge_item;
 	if (!update_knowledge_client_.call(knowledge_update_service)) {
 		ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not remove the classifiable_from predicate to the knowledge base.");
-		exit(-1);
+// 		exit(-1);
 	}
 	ROS_INFO("KCL: (ClassifyObjectPDDLAction) Removed %s (classifiable_from %s %s %s) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "", from.c_str(), view.c_str(), object.c_str());
 	
@@ -142,9 +144,14 @@ void ClassifyObjectPDDLAction::dispatchCallback(const rosplan_dispatch_msgs::Act
 		rosplan_knowledge_msgs::GetInstanceService get_instance;
 		get_instance.request.type_name = "type";
 		
-		if (!get_instance_client_.call(get_instance) || get_instance.response.instances.empty())
+		if (!get_instance_client_.call(get_instance))
 		{
 			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not get the instances of type 'type'.");
+			exit(1);
+		}
+		if (get_instance.response.instances.empty())
+		{
+			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Got instances of type 'type', but there are none!");
 			exit(1);
 		}
 		

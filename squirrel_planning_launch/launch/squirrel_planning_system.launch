@@ -46,6 +46,7 @@
 
 	<node name="rosplan_interface_movebase" pkg="rosplan_interface_movebase" type="rpmovebase" output="screen">
 		<param name="action_server" value="/move_base" />
+		<param name="pddl_action_name" vlaue="goto_waypoint" />
 	</node>
 
     <node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">

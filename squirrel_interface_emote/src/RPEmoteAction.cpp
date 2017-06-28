@@ -23,6 +23,8 @@ namespace KCL_rosplan {
 		action_feedback_pub_ = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
 		
 		dispatch_sub_ = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPEmoteAction::dispatchCallback, this);
+
+		arousal_sub_ = nh.subscribe("/arousal", 1000, &KCL_rosplan::RPEmoteAction::registerArousal, this);
 		
 		sound_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
 		wiggle_pub_ = nh.advertise<std_msgs::String>("/motion_expression", 1, true);
@@ -54,6 +56,8 @@ namespace KCL_rosplan {
 		const std::string& wiggle = msg->parameters[2].value;
 		
 		ROS_INFO("KCL: (RPEmoteAction) Process the action: %s, %s: emit sound %s and wiggle like %s", normalised_action_name.c_str(), robot.c_str(), sound.c_str(), wiggle.c_str());
+
+		// Check the arousal level and match it to some social behaviour.
 		
 		// Start the wiggle.
 	
@@ -73,12 +77,17 @@ namespace KCL_rosplan {
 			
 			ros::Duration(1).sleep();
 			
-			ROS_INFO("KCL: (RPEmoteAction) Waiting %d longer before moving on...", i); 
+			ROS_INFO("KCL: (RPEmoteAction) Waiting %d longer before moving on...", 3 - i); 
 		}
 		
 		fb.action_id = msg->action_id;
 		fb.status = "action achieved";
 		action_feedback_pub_.publish(fb);
+	}
+
+	void RPEmoteAction::registerArousal(const squirrel_vad_msgs::RecognisedResult::ConstPtr& msg)
+	{
+		last_registered_arousal_ = msg->label;
 	}
 } // close namespace
 

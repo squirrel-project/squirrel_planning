@@ -15,6 +15,8 @@
 
 #include "squirrel_manipulation_msgs/PushAction.h"
 #include "squirrel_manipulation_msgs/SmashAction.h"
+#include "squirrel_manipulation_msgs/PutDownAction.h"
+#include "kclhand_control/ActuateHandAction.h"
 #include "move_base_msgs/MoveBaseAction.h"
 #include "mongodb_store/message_store.h"
 #include "geometry_msgs/PoseStamped.h"

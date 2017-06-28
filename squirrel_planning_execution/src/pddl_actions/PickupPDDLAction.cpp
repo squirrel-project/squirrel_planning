@@ -63,9 +63,9 @@ void PickupPDDLAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDispa
 	const std::string& object_waypoint = msg->parameters[1].value;
 	const std::string& robot_waypoint = msg->parameters[2].value;
 	const std::string& object = msg->parameters[3].value;
-	const std::string& type = msg->parameters[4].value;
+	//const std::string& type = msg->parameters[4].value;
 	
-	ROS_INFO("KCL: (PickupPDDLAction) Process the action: %s, Pickup %s(%s) by %s", normalised_action_name.c_str(), object.c_str(), type.c_str(), robot.c_str());
+	ROS_INFO("KCL: (PickupPDDLAction) Process the action: %s, Pickup %s by %s", normalised_action_name.c_str(), object.c_str(), robot.c_str());
 	
 	// Remove the old knowledge.
 	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;

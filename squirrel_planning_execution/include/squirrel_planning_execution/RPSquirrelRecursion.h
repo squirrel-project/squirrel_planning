@@ -73,13 +73,6 @@ namespace KCL_rosplan {
 		void generateInitialState();
 		
 		/**
-		 * Create a PDDL domainfile that is needed to execute @ref{action_name}.
-		 * @param action_name The name of the PDDL action that has been dispatched.
-		 * @return True if the domain was successfully created, false otherwise.
-		 */
-		bool createDomain(const std::string& action_name);
-		
-		/**
 		 * In the case that we are running a simulation we setup the knowledge base.
 		 */
 		void setupSimulation();
@@ -94,13 +87,13 @@ namespace KCL_rosplan {
 		/* constructor */
 		RPSquirrelRecursion(ros::NodeHandle &nh);
 
-		/* listen to and process action_dispatch topic */
-		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
-		
 		/* callback function from the ROSPlan planning system to generate the PDDL problem file (and domain in our case) */
 		bool generatePDDLProblemFile(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res);
 		bool generateContingentProblem(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res);
 		bool generateRegularProblem(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res);
+		
+		/* Fetch functions. */
+		inline mongodb_store::MessageStoreProxy& getMessageStore() { return message_store; }
 	};
 }
 #endif

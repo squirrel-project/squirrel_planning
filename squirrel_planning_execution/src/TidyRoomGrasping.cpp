@@ -95,7 +95,7 @@ namespace KCL_rosplan {
 			tfl.waitForTransform("/map","/kinect_depth_optical_frame", ros::Time::now(), ros::Duration(1.0));
 			tfl.transformPose("/map", pose_bl, pose);
 		} catch ( tf::TransformException& ex ) {
-			ROS_ERROR("%s: error while transforming point", ros::this_node::getName().c_str(), ex.what());
+			ROS_ERROR("%s: error while transforming point %s", ros::this_node::getName().c_str(), ex.what());
 			return;
 		}
 

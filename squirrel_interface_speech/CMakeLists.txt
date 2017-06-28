@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosplan_dispatch_msgs
   mongodb_store
   squirrel_speech_msgs
+  squirrel_vad_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS
@@ -23,7 +24,7 @@ find_package(Boost REQUIRED COMPONENTS
 ## Declare things to be passed to dependent projects
 catkin_package(
   LIBRARIES squirrel_knowledge_base
-  CATKIN_DEPENDS roscpp rospy std_msgs rosplan_knowledge_msgs rosplan_dispatch_msgs mongodb_store squirrel_speech_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs rosplan_knowledge_msgs rosplan_dispatch_msgs mongodb_store squirrel_speech_msgs squirrel_vad_msgs
   DEPENDS
 )
 
@@ -41,12 +42,19 @@ include_directories(
 set(SPEECH_SOURCES
 	src/RPSpeechAction.cpp)
 
+set(VAD_SOURCES
+	src/VADSpeechInterface.cpp)
+
 ## Declare cpp executables
 add_executable(rpspeechServer ${SPEECH_SOURCES})
 add_dependencies(rpspeechServer ${catkin_EXPORTED_TARGETS})
 
+add_executable(vadspeechServer ${VAD_SOURCES})
+add_dependencies(vadspeechServer ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries against which to link a library or executable target
 target_link_libraries(rpspeechServer ${catkin_LIBRARIES})
+target_link_libraries(vadspeechServer ${catkin_LIBRARIES})
 
 ##########
 ## Test ##

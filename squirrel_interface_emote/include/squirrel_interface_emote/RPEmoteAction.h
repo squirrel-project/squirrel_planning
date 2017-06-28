@@ -2,6 +2,7 @@
 #include <vector>
 #include <squirrel_speech_msgs/RecognizedCommand.h>
 #include <rosplan_dispatch_msgs/ActionDispatch.h>
+#include <squirrel_vad_msgs/RecognisedResult.h>
 
 #ifndef SQUIRREL_INTERFACE_EMOTE_RPEMOTEACTION_H
 #define SQUIRREL_INTERFACE_EMOTE_RPEMOTEACTION_H
@@ -26,10 +27,13 @@ namespace KCL_rosplan {
 		ros::ServiceClient get_attribute_client_;
 		
 		ros::Subscriber dispatch_sub_;
+		ros::Subscriber arousal_sub_;
 		
 		ros::Publisher action_feedback_pub_;
 		ros::Publisher sound_pub_;
 		ros::Publisher wiggle_pub_;
+
+		float last_registered_arousal_;
 		
 	public:
 
@@ -37,6 +41,8 @@ namespace KCL_rosplan {
 		RPEmoteAction(ros::NodeHandle &nh);
 		
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+
+		void registerArousal(const squirrel_vad_msgs::RecognisedResult::ConstPtr& msg);
 	};
 }
 #endif

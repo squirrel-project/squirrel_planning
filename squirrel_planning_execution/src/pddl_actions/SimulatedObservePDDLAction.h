@@ -3,6 +3,7 @@
 
 #include <ros/ros.h>
 #include <rosplan_dispatch_msgs/ActionDispatch.h>
+#include "mongodb_store/message_store.h"
 
 namespace KCL_rosplan
 {
@@ -34,11 +35,15 @@ public:
 	void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 	
 private:
-	ros::ServiceClient update_knowledge_client_; // Service client to update the knowledge base.
-	ros::ServiceClient get_instance_client_;     // Service client to get instances stored by ROSPlan.
-	ros::ServiceClient get_attribute_client_;    // Service client to get attributes of instances stored by ROSPlan.
-	ros::Publisher action_feedback_pub_;         // Publisher that communicates feedback to ROSPlan.
-	ros::Subscriber dispatch_sub_;               // Subscriber to the dispatch topic of ROSPlan.
+	ros::ServiceClient update_knowledge_client_;    // Service client to update the knowledge base.
+	ros::ServiceClient get_instance_client_;        // Service client to get instances stored by ROSPlan.
+	ros::ServiceClient get_attribute_client_;       // Service client to get attributes of instances stored by ROSPlan.
+	ros::ServiceClient query_knowledge_client_;     // Service to query the knowledge base.
+	ros::Publisher action_feedback_pub_;            // Publisher that communicates feedback to ROSPlan.
+	ros::Subscriber dispatch_sub_;                  // Subscriber to the dispatch topic of ROSPlan.
+	mongodb_store::MessageStoreProxy message_store_;// Message store.
+
+	int sort_for_;                                  // Number of time it should sort a toy before moving on.
 };
 
 };
