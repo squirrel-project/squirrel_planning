@@ -116,6 +116,9 @@ set(sortingGame_SOURCES
   src/pddl_actions/FinaliseClassificationPDDLAction.cpp
   src/pddl_actions/SimulatedObservePDDLAction.cpp)
   
+set(behaviour_SOURCES
+  src/BehaviourAndEmotion.cpp)
+  
 set(speechSimulator_SOURCES
   src/SpeechSimulator.cpp)
 
@@ -153,6 +156,7 @@ add_executable(speechSimulator ${speechSimulator_SOURCES})
 add_executable(viewConeTester ${viewConeTester_SOURCES})
 add_executable(recommenderTester ${recommenderTester_SOURCES})
 add_executable(robotKnowsGame ${robotKnows_SOURCES})
+add_executable(behaviour ${behaviour_SOURCES})
 
 add_dependencies(tidyroom ${catkin_EXPORTED_TARGETS})
 add_dependencies(simpledemo ${catkin_EXPORTED_TARGETS})
@@ -164,6 +168,7 @@ add_dependencies(speechSimulator ${catkin_EXPORTED_TARGETS})
 add_dependencies(viewConeTester ${catkin_EXPORTED_TARGETS})
 add_dependencies(recommenderTester ${catkin_EXPORTED_TARGETS})
 add_dependencies(robotKnowsGame ${catkin_EXPORTED_TARGETS})
+add_dependencies(behaviour ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(tidyroom ${catkin_LIBRARIES})
 target_link_libraries(simpledemo ${catkin_LIBRARIES})
@@ -175,6 +180,7 @@ target_link_libraries(speechSimulator ${catkin_LIBRARIES})
 target_link_libraries(viewConeTester ${catkin_LIBRARIES})
 target_link_libraries(recommenderTester ${catkin_LIBRARIES})
 target_link_libraries(robotKnowsGame ${catkin_LIBRARIES})
+target_link_libraries(behaviour ${catkin_LIBRARIES})
 
 ##########
 ## Test ##
