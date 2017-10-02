@@ -16,6 +16,8 @@
 #include "pddl_actions/SimulatedObservePDDLAction.h"
 #include "pddl_actions/ExamineObjectInHandPDDLAction.h"
 #include "pddl_actions/FollowChildPDDLAction.h"
+#include "pddl_actions/ChildGiveObjectToRobotPDDLAction.h"
+#include "pddl_actions/ChildPickupPDDLAction.h"
 
 int main(int argc, char **argv) {
 
@@ -23,17 +25,19 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh("~");
 
 	bool goto_waypoint,
-		explore_waypoint,
-		clear_object,
-		classify_object,
-		emote,
-		put_object_in_box,
-		pickup_object,
-		drop_object,
-		give_object,
-		take_object,
-		examine_object_in_hand,
-		follow_child;
+	     explore_waypoint,
+	     clear_object,
+	     classify_object,
+	     emote,
+	     put_object_in_box,
+	     pickup_object,
+	     drop_object,
+	     give_object,
+	     take_object,
+	     examine_object_in_hand,
+	     follow_child,
+	     child_give_object_to_robot,
+	     child_pickup;
 
 	nh.getParam("simulate_goto_waypoint", goto_waypoint);
 	nh.getParam("simulate_explore_waypoint", explore_waypoint);
@@ -47,6 +51,8 @@ int main(int argc, char **argv) {
 	nh.getParam("simulate_take_object", take_object);
 	nh.getParam("simulate_examine_object_in_hand", examine_object_in_hand);
 	nh.getParam("simulate_follow_child", follow_child);
+	nh.getParam("simulate_child_give_object_to_robot", child_give_object_to_robot);
+	nh.getParam("simulate_child_pickup", child_pickup);
 
 	KCL_rosplan::GotoPDDLAction* goto_action;
 	KCL_rosplan::ExploreWaypointPDDLAction* explore_waypoint_action;
@@ -62,6 +68,8 @@ int main(int argc, char **argv) {
 	KCL_rosplan::ExamineObjectInHandPDDLAction* examine_object_in_hand_action;
 	KCL_rosplan::SimulatedObservePDDLAction observe_actions(nh);
 	KCL_rosplan::FollowChildPDDLAction* follow_child_action;
+	KCL_rosplan::ChildGiveObjectToRobotPDDLAction* child_give_object_to_robot_action;
+	KCL_rosplan::ChildPickupPDDLAction* child_pickup_action;
 
 	// Setup all the simulated actions.
 	if(goto_waypoint) {
@@ -112,6 +120,16 @@ int main(int argc, char **argv) {
 	if (follow_child) {
 		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: follow_child");
 		follow_child_action = new KCL_rosplan::FollowChildPDDLAction(nh);
+	}
+	if (child_give_object_to_robot)
+	{
+		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: child_give_object_to_robot");
+		child_give_object_to_robot_action = new KCL_rosplan::ChildGiveObjectToRobotPDDLAction(nh);
+	}
+	if (child_pickup)
+	{
+		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: child_pickup");
+		child_pickup_action = new KCL_rosplan::ChildPickupPDDLAction(nh);
 	}
 		
 	children_action = new KCL_rosplan::ChildrenPDDLAction(nh);

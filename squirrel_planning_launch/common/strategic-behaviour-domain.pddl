@@ -8,6 +8,7 @@
 	waypoint
 	box
 	object
+	type
 )
 
 ;; Emotions range from [-1,1]. None of the emotions are alowed to fall above 0.
@@ -168,7 +169,7 @@
 	)
 )
 
-(:durative-action move
+(:durative-action goto_waypoint
 	:parameters (?v - robot ?from ?to - waypoint)
 	:duration (= ?duration 10)
 	:condition (and
@@ -323,8 +324,8 @@
 	)
 )
 
-(:durative-action tidy
-	:parameters (?v - robot ?o - object ?b - box ?wp - waypoint)
+(:durative-action put_object_in_box
+	:parameters (?v - robot ?wp - waypoint ?o - object ?b - box ?t - type)
 	:duration (= ?duration 30)
 	:condition (and
 		(over all (robot_at ?v ?wp))

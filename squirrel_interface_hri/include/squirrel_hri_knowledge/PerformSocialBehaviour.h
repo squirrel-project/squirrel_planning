@@ -9,6 +9,7 @@
 #include "mongodb_store/message_store.h"
 #include "squirrel_hri_msgs/FollowChildAction.h"
 #include "actionlib/client/simple_action_client.h"
+#include "move_base_msgs/MoveBaseAction.h"
 #include <geometry_msgs/Pose2D.h>
 
 #ifndef SQUIRREL_INTERFACE_HRI_PERFORM_SOCIAL_BEHAVIOUR_H
@@ -44,17 +45,13 @@ namespace KCL_rosplan {
 		
 		// Movebase action lib.
 		actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> action_client;
-		
-		void gotoLocation();
 
 	public:
 
 		/* constructor */
-		PerformSocialBehaviour(ros::NodeHandle &nh, const std::string& follow_child_action_name, const std::vector<geometry_msgs::Point>& child_destinations);
+		PerformSocialBehaviour(ros::NodeHandle &nh, const std::string& move_base_action_name);
 
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
-		
-		actionlib::SimpleActionClient<squirrel_hri_msgs::FollowChildAction> action_client;
 	};
 }
 #endif

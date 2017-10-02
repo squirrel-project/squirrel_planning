@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 
+#include <squirrel_vad_msgs/vad.h>
 #include "squirrel_planning_execution/BehaviourAndEmotion.h"
 #include "pddl_actions/ShedKnowledgePDDLAction.h"
 #include "pddl_actions/FinaliseClassificationPDDLAction.h"
@@ -155,6 +156,7 @@ namespace KCL_rosplan {
 			knowledge_item.values.clear();
 		}
 		
+		// Add the boxes.
 		std::vector<std::string> boxes;
 		boxes.push_back("box1");
 		boxes.push_back("box2");
@@ -223,6 +225,7 @@ namespace KCL_rosplan {
 			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", ss.str().c_str());
 		}
 		
+		// Add the waypoints.
 		std::vector<std::string> waypoints;
 		waypoints.push_back("kenny_waypoint");
 		waypoints.push_back("pickup_waypoint");
@@ -242,6 +245,21 @@ namespace KCL_rosplan {
 				exit(-1);
 			}
 			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", waypoint_predicate.c_str());
+		}
+		
+		// Add a token type (not really used).
+		{
+			rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+			knowledge_item.instance_type = "type";
+			knowledge_item.instance_name = "dummy_type";
+			
+			knowledge_update_service.request.knowledge = knowledge_item;
+			if (!update_knowledge_client.call(knowledge_update_service)) {
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the type %s to the knowledge base.", knowledge_item.instance_name.c_str());
+				exit(-1);
+			}
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added the type %s to the knowledge base.", knowledge_item.instance_name.c_str());
 		}
 		
 		// Introduce kenny.
@@ -599,6 +617,15 @@ namespace KCL_rosplan {
 		pose.pose.orientation.w = 1.0f;
 		std::string near_waypoint_mongodb_id3(message_store.insertNamed("child1_location", pose));
 		}
+		
+		// Set the initial arrousal level.
+		squirrel_vad_msgs::vad vad;
+		vad.header.seq = 0;
+		vad.header.stamp = ros::Time::now();
+		vad.header.frame_id = "/map";
+		vad.energy = 0.5;
+		vad.duration = 10.0;
+		message_store.insertNamed<squirrel_vad_msgs::vad>("vad", vad);
 	}
 
 	int main(int argc, char **argv) {

@@ -1,10 +1,11 @@
 #include "squirrel_hri_knowledge/PerformSocialBehaviour.h"
+#include <squirrel_vad_msgs/vad.h>
 
 namespace KCL_rosplan {
 
 	/* constructor */
-PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh)
-	 : message_store(nh), arousal_threshold(0.25f)
+PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh, const std::string& move_base_action_name)
+	 : message_store(nh), arousal_threshold(0.25f), action_client(move_base_action_name)
 {
 	knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 	action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -12,40 +13,20 @@ PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh)
 	nh.getParam("arousal_threshold", arousal_threshold);
 }
 
-bool PerformSocialBehaviour::gotoLocation(const geometry_msgs::PoseStamped& location)
-{
-	ROS_INFO("KCL: (GotoViewWaypointPDDLAction) waiting for move_base action server to start");
-	action_client.waitForServer();
-
-	std::cout << "KCL: (GotoViewWaypointPDDLAction) Goto (" << location.pose.position.x << ", " << location.pose.position.y << ", " << location.pose.position.z << ")." << std::endl;
-	
-	move_base_msgs::MoveBaseGoal goal;
-	goal.target_pose = location;
-	action_client.sendGoal(goal);
-
-	bool finished_before_timeout = action_client.waitForResult();
-	if (finished_before_timeout) {
-
-		actionlib::SimpleClientGoalState state = action_client.getState();
-		ROS_INFO("KCL: (GotoViewWaypointPDDLAction) action finished: %s", state.toString().c_str());
-
-		if(state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-			return true;
-
-		}
-	} else {
-		// timed out (failed)
-		action_client.cancelAllGoals();
-		ROS_INFO("KCL: (GotoViewWaypointPDDLAction) action timed out");
-	}
-	return false;
-}
-
-
 void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
 {
 		// ignore other actions
-		if(0!=msg->name.compare("perform_social_behaviour")) return;
+		if (msg->name != "accomodate-distress" &&
+		    msg->name != "improve-distress" &&
+		    msg->name != "accomodate-sadness" &&
+		    msg->name != "improve-sadness" &&
+		    msg->name != "improve-boredom" &&
+		    msg->name != "maintain-happyness" &&
+		    msg->name != "improve-introvert" &&
+		    msg->name != "reciprocal-behaviour")
+		{
+			return;
+		}
 
 		ROS_INFO("KCL: (PerformSocialBehaviour) action recieved");
 		
@@ -66,13 +47,13 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 		}
 		
 		// Depending on the level we perform different social behaviour.
-		float arousal = results[0];
+		float arousal = results[0]->energy;
 		
 		// No arousal.
 		if (arousal == 0)
 		{
 			// Do nothing for a bit...
-			ros::Duration(10)::sleep();
+			ros::Duration(10).sleep();
 			
 			// Then look at the children.
 			// @todo Talk to Bajo.
@@ -122,7 +103,8 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
 	
 	// listen for action dispatch
-	ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::PerformSocialBehaviour::dispatchCallback, &fca);
+	KCL_rosplan::	PerformSocialBehaviour psb(nh, "/move");
+	ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::PerformSocialBehaviour::dispatchCallback, &psb);
 	ROS_INFO("KCL: (PerformSocialBehaviour) Ready to receive");
 
 	ros::spin();

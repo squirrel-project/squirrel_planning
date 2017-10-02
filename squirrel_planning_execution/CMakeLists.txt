@@ -106,7 +106,9 @@ set(simulatedPDDLActionsNode_SOURCES
   src/pddl_actions/ChildrenPDDLAction.cpp
   src/pddl_actions/SimulatedObservePDDLAction.cpp
   src/pddl_actions/ExamineObjectInHandPDDLAction.cpp
-  src/pddl_actions/FollowChildPDDLAction.cpp)
+  src/pddl_actions/FollowChildPDDLAction.cpp
+  src/pddl_actions/ChildGiveObjectToRobotPDDLAction.cpp
+  src/pddl_actions/ChildPickupPDDLAction.cpp)
   
 set(sortingGame_SOURCES
   src/SortingGame.cpp

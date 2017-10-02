@@ -5,6 +5,7 @@
     c1 c2 c3 - child
     toy1 toy2 - object
     kenny - robot
+    dummy_type - type
     toy1_location near_toy1 toy2_location near_toy2 box1_location near_box1 box2_location near_box2 kenny_waypoint pickup_waypoint child_waypoint - waypoint
 )
 (:init

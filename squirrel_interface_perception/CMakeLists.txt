@@ -50,6 +50,9 @@ set(SIP_SOURCES
 set(ROP_SOURCES
 	src/RPObjectPerception.cpp)
 
+set(RCC_SOURCES
+	src/RPCameraControl.cpp)
+
 ## Declare cpp executables
 add_executable(rpperceptionServer ${SIP_SOURCES})
 add_dependencies(rpperceptionServer ${catkin_EXPORTED_TARGETS})
@@ -57,10 +60,15 @@ add_dependencies(rpperceptionServer ${catkin_EXPORTED_TARGETS})
 add_executable(rpObjectPerception ${ROP_SOURCES})
 add_dependencies(rpObjectPerception ${catkin_EXPORTED_TARGETS})
 
+add_executable(rpCameraControl ${RCC_SOURCES})
+add_dependencies(rpCameraControl ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries against which to link a library or executable target
 target_link_libraries(rpperceptionServer ${catkin_LIBRARIES})
 
 target_link_libraries(rpObjectPerception ${catkin_LIBRARIES})
+
+target_link_libraries(rpCameraControl ${catkin_LIBRARIES})
 
 ##########
 ## Test ##
