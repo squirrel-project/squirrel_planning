@@ -22,7 +22,7 @@
 #include <visualization_msgs/Marker.h>
 
 
-/* The implementation of RPSquirrelRecursion.h */
+/* The implementation of BehaviourAndEmotion.h */
 namespace KCL_rosplan {
 
 	/*-------------*/
@@ -46,7 +46,7 @@ namespace KCL_rosplan {
 		//nh.param("squirrel_perception_classify_waypoint_service_topic", classifyTopic, classifyTopic);
 		//classify_object_waypoint_client = nh.serviceClient<squirrel_waypoint_msgs::ExamineWaypoint>(classifyTopic);
 		
-		//pddl_generation_service = nh.advertiseService("/kcl_rosplan/generate_planning_problem", &KCL_rosplan::RPSquirrelRecursion::generatePDDLProblemFile, this);
+		//pddl_generation_service = nh.advertiseService("/kcl_rosplan/generate_planning_problem", &KCL_rosplan::BehaviourAndEmotion::generatePDDLProblemFile, this);
 
 		//nh.getParam("/squirrel_planning_execution/simulated", simulated);
 		
@@ -63,7 +63,7 @@ namespace KCL_rosplan {
 		std::vector<std::string> toys;
 		toys.push_back("toy1");
 		toys.push_back("toy2");
-		toys.push_back("toy3");
+		//toys.push_back("toy3");
 		
 		for (std::vector<std::string>::const_iterator ci = toys.begin(); ci != toys.end(); ++ci)
 		{
@@ -130,6 +130,11 @@ namespace KCL_rosplan {
 			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", ss.str().c_str());
 			
 			// Make all but one object reachable.
+			if (ci == toys.begin())
+			{
+				continue;
+			}
+			
 			knowledge_item.values.clear();
 			
 			// Link the boxes to these waypoints.
@@ -164,10 +169,10 @@ namespace KCL_rosplan {
 			
 			knowledge_update_service.request.knowledge = knowledge_item;knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-				ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the box %s to the knowledge base.", box_predicate.c_str());
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the box %s to the knowledge base.", box_predicate.c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (RPSquirrelRecursion) Added %s to the knowledge base.", box_predicate.c_str());
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", box_predicate.c_str());
 			
 			// Add waypoints for these boxes.
 			knowledge_item.instance_type = "waypoint";
@@ -177,10 +182,10 @@ namespace KCL_rosplan {
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-				ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (RPSquirrelRecursion) Added %s to the knowledge base.", ss.str().c_str());
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", ss.str().c_str());
 			
 			// Link the boxes to these waypoints.
 			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
@@ -198,10 +203,10 @@ namespace KCL_rosplan {
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-				ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the fact (box_at %s %s) to the knowledge base.", box_predicate.c_str(), ss.str().c_str());
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (box_at %s %s) to the knowledge base.", box_predicate.c_str(), ss.str().c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (RPSquirrelRecursion) Added the fact (box_at %s %s) to the knowledge base.", box_predicate.c_str(), ss.str().c_str());
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (box_at %s %s) to the knowledge base.", box_predicate.c_str(), ss.str().c_str());
 			knowledge_item.values.clear();
 			
 			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
@@ -212,10 +217,10 @@ namespace KCL_rosplan {
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-				ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (RPSquirrelRecursion) Added %s to the knowledge base.", ss.str().c_str());
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", ss.str().c_str());
 		}
 		
 		std::vector<std::string> waypoints;
@@ -233,21 +238,33 @@ namespace KCL_rosplan {
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-				ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the waypoint %s to the knowledge base.", waypoint_predicate.c_str());
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the waypoint %s to the knowledge base.", waypoint_predicate.c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (RPSquirrelRecursion) Added %s to the knowledge base.", waypoint_predicate.c_str());
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", waypoint_predicate.c_str());
 		}
 		
-		// Set kenny at it's starting waypoint.
+		// Introduce kenny.
 		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+		knowledge_item.instance_type = "robot";
+		knowledge_item.instance_name = "kenny";
+		
+		knowledge_update_service.request.knowledge = knowledge_item;
+		if (!update_knowledge_client.call(knowledge_update_service)) {
+			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the robot %s to the knowledge base.", knowledge_item.instance_name.c_str());
+			exit(-1);
+		}
+		ROS_INFO("KCL: (BehaviourAndEmotion) Added %s to the knowledge base.", knowledge_item.instance_name.c_str());
+		
+		// Set kenny at it's starting waypoint.
 		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
 		knowledge_item.attribute_name = "robot_at";
 		knowledge_item.is_negative = false;
 		
 		diagnostic_msgs::KeyValue kv;
 		kv.key = "v";
-		kv.value = "robot";
+		kv.value = "kenny";
 		knowledge_item.values.push_back(kv);
 		
 		kv.key = "wp";
@@ -256,10 +273,10 @@ namespace KCL_rosplan {
 		
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the fact (robot_at robot kenny_waypoint) to the knowledge base.");
+			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (robot_at kenny kenny_waypoint) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (RPSquirrelRecursion) Added the fact (robot_at robot kenny_waypoint) to the knowledge base.");
+		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (robot_at kenny kenny_waypoint) to the knowledge base.");
 		knowledge_item.values.clear();
 		
 		// Set the robot to not being busy initially.
@@ -267,11 +284,12 @@ namespace KCL_rosplan {
 		knowledge_item.attribute_name = "not_busy";
 		knowledge_item.is_negative = false;
 		
+		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the fact (not_busy) to the knowledge base.");
+			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (not_busy) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (RPSquirrelRecursion) Added the fact (not_busy) to the knowledge base.");
+		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (not_busy) to the knowledge base.");
 		knowledge_item.values.clear();
 		
 		// Make the gripper empty.
@@ -280,24 +298,24 @@ namespace KCL_rosplan {
 		knowledge_item.is_negative = false;
 		
 		kv.key = "v";
-		kv.value = "robot";
+		kv.value = "kenny";
 		knowledge_item.values.push_back(kv);
 		
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (RPSquirrelRecursion) Could not add the fact (gripper_empty robot) to the knowledge base.");
+			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (gripper_empty kenny) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (RPSquirrelRecursion) Added the fact (gripper_empty robot) to the knowledge base.");
+		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (gripper_empty kenny) to the knowledge base.");
 		knowledge_item.values.clear();
 		
 		/**
 		 * Setup the children.
 		 */
 		std::vector<std::string> children;
-		children.push_back("child1");
-		children.push_back("child2");
-		children.push_back("child3");
+		children.push_back("c1");
+		children.push_back("c2");
+		children.push_back("c3");
 		
 		for (std::vector<std::string>::const_iterator ci = children.begin(); ci != children.end(); ++ci)
 		{
@@ -322,7 +340,7 @@ namespace KCL_rosplan {
 			
 			// Pleasure.
 			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-			knowledge_item.instance_name = "pleasure";
+			knowledge_item.attribute_name = "pleasure";
 			knowledge_item.function_value = 0.1;
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
@@ -334,7 +352,7 @@ namespace KCL_rosplan {
 			
 			// Arousal.
 			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-			knowledge_item.instance_name = "arousal";
+			knowledge_item.attribute_name = "arousal";
 			knowledge_item.function_value = 0.1;
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
@@ -346,7 +364,7 @@ namespace KCL_rosplan {
 			
 			// Domain.
 			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-			knowledge_item.instance_name = "dominance";
+			knowledge_item.attribute_name = "dominance";
 			knowledge_item.function_value = 0.1;
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
@@ -358,7 +376,7 @@ namespace KCL_rosplan {
 			
 			// Reciprocal.
 			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-			knowledge_item.instance_name = "reciprocal";
+			knowledge_item.attribute_name = "reciprocal";
 			knowledge_item.function_value = 0.1;
 			
 			knowledge_update_service.request.knowledge = knowledge_item;
@@ -367,6 +385,35 @@ namespace KCL_rosplan {
 				exit(-1);
 			}
 			ROS_INFO("KCL: (BehaviourAndEmotion) Added (reciprocal %s) to the knowledge base.", child_predicate.c_str());
+		}
+		
+		/**
+		 * Setup the goals.
+		 */
+		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_GOAL;
+		for (std::vector<std::string>::const_iterator ci = toys.begin(); ci != toys.end(); ++ci)
+		{
+			const std::string& toy_predicate = *ci;
+			rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
+			knowledge_item.attribute_name = "in_box";
+			knowledge_item.is_negative = false;
+			
+			// Select a random box.
+			kv.key = "b";
+			kv.value = boxes[rand() % boxes.size()];
+			knowledge_item.values.push_back(kv);
+			
+			kv.key = "o";
+			kv.value = toy_predicate;
+			knowledge_item.values.push_back(kv);
+			
+			knowledge_update_service.request.knowledge = knowledge_item;
+			if (!update_knowledge_client.call(knowledge_update_service)) {
+				ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the goal (in_box %s %s) to the knowledge base.", knowledge_item.values[0].value.c_str(),  toy_predicate.c_str());
+				exit(-1);
+			}
+			ROS_INFO("KCL: (BehaviourAndEmotion) Added the goal (in_box %s %s) to the knowledge base.", knowledge_item.values[0].value.c_str(),  toy_predicate.c_str());
 		}
 	}
 	
@@ -377,7 +424,7 @@ namespace KCL_rosplan {
 	/**
 	 * Generate a contingent problem.
 	 */
-	//bool RPSquirrelRecursion::generatePDDLProblemFile(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res) {
+	//bool BehaviourAndEmotion::generatePDDLProblemFile(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res) {
 	//	return true;
 	//}
 } // close namespace
@@ -556,7 +603,7 @@ namespace KCL_rosplan {
 
 	int main(int argc, char **argv) {
 
-		ros::init(argc, argv, "rosplan_interface_RPSquirrelRecursion");
+		ros::init(argc, argv, "rosplan_interface_BehaviourAndEmotion");
 		ros::NodeHandle nh;
 
 		// create PDDL action subscriber
@@ -578,12 +625,13 @@ namespace KCL_rosplan {
 		// Lets start the planning process.
 		std::string data_path;
 		nh.getParam("/data_path", data_path);
+		ROS_INFO("KCL: (BehaviourAndEmotion) Data path: %s.", data_path.c_str());
 		
 		std::string planner_path;
 		nh.getParam("/planner_path", planner_path);
+		ROS_INFO("KCL: (BehaviourAndEmotion) Planner path: %s.", planner_path.c_str());
 		
 		std::stringstream ss;
-		//ss << data_path << "tidy_room_domain-nt.pddl";
 		ss << data_path << "strategic-behaviour-domain.pddl";
 		std::string domain_path = ss.str();
 		
@@ -592,7 +640,8 @@ namespace KCL_rosplan {
 		std::string problem_path = ss.str();
 		
 		std::string planner_command;
-		nh.getParam("/squirrel_planning_execution/planner_command", planner_command);
+		nh.getParam("/planner_command", planner_command);
+		ROS_INFO("KCL: (BehaviourAndEmotion) Planning command: %s.", planner_command.c_str());
 		
 		rosplan_dispatch_msgs::PlanGoal psrv;
 		psrv.domain_path = domain_path;

@@ -1,7 +1,10 @@
+<?xml version="1.0"?>
 <launch>
-	!-- domain file -->
+	<!-- domain file -->
 	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
+	<param name="planner_command" value="timeout 1800 $(find rosplan_planning_system)/common/bin/popf3-clp-last DOMAIN PROBLEM" />
+	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
 
 	<!-- domain file -->
 	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/strategic-behaviour-domain.pddl" />
@@ -25,8 +28,8 @@
 	    <param name="problem_path" value="$(find squirrel_planning_launch)/common/problem.pddl" />
             <param name="strl_file_path" value="$(find squirrel_planning_launch)/common/plan.strl" />
 		<!-- to run the planner -->
-	    <param name="planner_command" value="timeout 10 $(find rosplan_planning_system)/common/bin/popf -n" />
-            <param name="generate_default_problem" value="false" />
+	    <param name="planner_command" value="timeout 1800 $(find rosplan_planning_system)/common/bin/popf3-clp-last DOMAIN PROBLEM" />
+            <param name="generate_default_problem" value="true" />
 	</node>
 
 	<!-- standard ROS interfaces 

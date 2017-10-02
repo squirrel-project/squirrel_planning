@@ -259,6 +259,7 @@
 	:duration (= ?duration 60)
 	:condition (and
 		(at start (< (reciprocal ?c) 0.5))
+		(over all (<= (reciprocal ?c) 1))
 	)
 	:effect (and 
 		(at end (increase (reciprocal ?c) 0.5))
