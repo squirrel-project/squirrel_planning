@@ -11,6 +11,7 @@
 	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
 	<param name="planner_command" value="timeout 1800 $(find rosplan_planning_system)/common/bin/popf3-clp-last DOMAIN PROBLEM" />
 	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="/scenario_setup_file" value="$(find squirrel_planning_execution)/conf/year4-behaviour-vienna.conf" />
 
 	<!-- domain file -->
 	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/strategic-behaviour-domain.pddl" />

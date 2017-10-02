@@ -70,22 +70,42 @@ namespace KCL_rosplan {
 		ViewConeGenerator* view_cone_generator;
 		
 		// Generate the initial state for the highest level of abstraction.
-		void generateInitialState();
+		//void generateInitialState();
 		
 		/**
 		 * In the case that we are running a simulation we setup the knowledge base.
 		 */
-		void setupSimulation();
+		//void setupSimulation();
 		
 		bool initial_problem_generated;
 		
 		// Determine whether this is a simulation or not.
 		bool simulated;
+		
+		// Expect s to be "(f,f,f)"
+		geometry_msgs::Pose transformToPose(const std::string& s);
+		
+		// Publisher to the visualiser.
+		ros::Publisher vis_pub;
+		
+		void sendMarker(const geometry_msgs::Pose& pose, const std::string& name, float size);
 
+		void tokenise(const std::string& s, std::vector<std::string>& tokens);
+		
 	public:
 
-		/* constructor */
-		BehaviourAndEmotion(ros::NodeHandle &nh);
+		/**
+		 * Constructor.
+		 * @param nh The node handle.
+		 * @param vis_pub The publisher where RVIZ data should be sent.
+		 */
+		BehaviourAndEmotion(ros::NodeHandle &nh, const std::string& vis_pub_topic);
+		
+		/**
+		 * Setup the scenario by reading from a config file and outputting the data to RVIZ.
+		 * @param config_file The location of the configuration file to read.
+		 */
+		void setupSimulation(const std::string& config_file);
 
 		/* callback function from the ROSPlan planning system to generate the PDDL problem file (and domain in our case) */
 		bool generatePDDLProblemFile(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res);
