@@ -69,14 +69,6 @@ namespace KCL_rosplan {
 		// View point generator.
 		ViewConeGenerator* view_cone_generator;
 		
-		// Generate the initial state for the highest level of abstraction.
-		//void generateInitialState();
-		
-		/**
-		 * In the case that we are running a simulation we setup the knowledge base.
-		 */
-		//void setupSimulation();
-		
 		bool initial_problem_generated;
 		
 		// Determine whether this is a simulation or not.
