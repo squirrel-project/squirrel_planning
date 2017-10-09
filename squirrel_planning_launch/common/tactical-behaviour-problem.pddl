@@ -5,6 +5,8 @@
 	box1 - box
 	kenny - robot
 	kenny_wp toy1_wp toy2_wp toy3_wp box1_wp - waypoint
+	wiggle_error wiggle_no - wiggle
+	sound_NEUTRAL sound_CHEERING - sound
 )
 (:init
 	(not_busy)

@@ -1,5 +1,6 @@
 #include "squirrel_hri_knowledge/PerformSocialBehaviour.h"
 #include <squirrel_vad_msgs/vad.h>
+#include <std_msgs/ColorRGBA.h>
 
 namespace KCL_rosplan {
 
@@ -9,6 +10,9 @@ PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh, const std::s
 {
 	knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 	action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
+	
+	lights_pub_ = nh.advertise<std_msgs::ColorRGBA>("/light/command", 1, true);
+	sound_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
 	
 	nh.getParam("arousal_threshold", arousal_threshold);
 }
@@ -49,6 +53,8 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 		// Depending on the level we perform different social behaviour.
 		float arousal = results[0]->energy;
 		
+		std_msgs::ColorRGBA color_command;
+		
 		// No arousal.
 		if (arousal == 0)
 		{
@@ -57,17 +63,56 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 			
 			// Then look at the children.
 			// @todo Talk to Bajo.
+			
+			float red = 25;
+			float green = 240;
+			float blue = 50;
+			ROS_INFO("KCL: (ShowLightsAction) Parsed the lights, showing (%f, %f, %f)", red, green, blue);
+			
+			color_command.r = red;
+			color_command.g = green;
+			color_command.b = blue;
+			lights_pub_.publish(color_command);
+			
+			std_msgs::String sound_command;
+			sound_command.data = "HELLO";
+			sound_pub_.publish(sound_command);
 		}
 		// Low arousal.
 		else if (arousal < arousal_threshold)
 		{
 			// Go to some random location.
+			float red = 25;
+			float green = 40;
+			float blue = 250;
+			ROS_INFO("KCL: (ShowLightsAction) Parsed the lights, showing (%f, %f, %f)", red, green, blue);
+			
+			color_command.r = red;
+			color_command.g = green;
+			color_command.b = blue;
+			lights_pub_.publish(color_command);
+			
+			std_msgs::String sound_command;
+			sound_command.data = "GOODBYE";
+			sound_pub_.publish(sound_command);
 		}
 		// High arousal.
 		else
 		{
 			// Make some noise!
+			float red = 255;
+			float green = 24;
+			float blue = 50;
+			ROS_INFO("KCL: (ShowLightsAction) Parsed the lights, showing (%f, %f, %f)", red, green, blue);
 			
+			color_command.r = red;
+			color_command.g = green;
+			color_command.b = blue;
+			lights_pub_.publish(color_command);
+			
+			std_msgs::String sound_command;
+			sound_command.data = "CHEERING";
+			sound_pub_.publish(sound_command);
 		}
 		
 		// get waypoint ID from action dispatch

@@ -47,7 +47,7 @@
 )
 
 ;; Mini behaviours.
-(:durative-action flash-lights-w-sound
+(:durative-action show_lights
 	:parameters (?v - robot ?c - child )
 	:duration (= ?duration 5)
 	:condition (and 
@@ -64,25 +64,25 @@
 	)
 )
 
-(:durative-action flash-lights
-	:parameters (?v - robot ?c - child )
-	:duration (= ?duration 5)
-	:condition (and 
-		(at start (not_flashing_lights))
-		(at start (<= (attentiveness ?c) 0.1))
-		(at start (not_playing_sound))
-	)
-	:effect (and
-		(at start (flashing_lights))
-		(at start (not (not_flashing_lights)))
-		(at end (not (flashing_lights)))
-		(at end (not_flashing_lights))
-		(at end (increase (attentiveness ?c) 0.1))
-	)
-)
+;;(:durative-action flash-lights
+;;	:parameters (?v - robot ?c - child )
+;;	:duration (= ?duration 5)
+;;	:condition (and 
+;;		(at start (not_flashing_lights))
+;;		(at start (<= (attentiveness ?c) 0.1))
+;;		(at start (not_playing_sound))
+;;	)
+;;	:effect (and
+;;		(at start (flashing_lights))
+;;		(at start (not (not_flashing_lights)))
+;;		(at end (not (flashing_lights)))
+;;		(at end (not_flashing_lights))
+;;		(at end (increase (attentiveness ?c) 0.1))
+;;	)
+;;)
 
-(:durative-action play-sound
-	:parameters (?v - robot ?c - child)
+(:durative-action emote
+	:parameters (?v - robot ?c - child ?s - sound ?w - wiggle)
 	:duration (= ?duration 5)
 	:condition (and
 		(at start (> (attentiveness ?c) -0.1))

@@ -41,13 +41,22 @@ include_directories(
 ## Pointing service
 set(EMOTE_SOURCES
 	src/RPEmoteAction.cpp)
+	
+## Lights service
+set(LIGHTS_SOURCES
+	src/ShowLightsAction.cpp)
 
 ## Declare cpp executables
 add_executable(rpEmoteServer ${EMOTE_SOURCES})
 add_dependencies(rpEmoteServer ${catkin_EXPORTED_TARGETS})
 
+add_executable(lightsServer ${LIGHTS_SOURCES})
+add_dependencies(lightsServer ${catkin_EXPORTED_TARGETS})
+
+
 ## Specify libraries against which to link a library or executable target
 target_link_libraries(rpEmoteServer ${catkin_LIBRARIES})
+target_link_libraries(lightsServer ${catkin_LIBRARIES})
 
 ##########
 ## Test ##

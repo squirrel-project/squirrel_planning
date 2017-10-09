@@ -41,6 +41,9 @@ namespace KCL_rosplan {
 		ros::Publisher head_tilt_pub;
 		ros::Publisher head_nod_pub;
 		
+		ros::Publisher lights_pub_;
+		ros::Publisher sound_pub_;
+		
 		float arousal_threshold;
 		
 		// Movebase action lib.
