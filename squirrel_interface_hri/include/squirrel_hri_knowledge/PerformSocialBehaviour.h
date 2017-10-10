@@ -42,7 +42,7 @@ namespace KCL_rosplan {
 		ros::Publisher head_nod_pub;
 		
 		ros::Publisher lights_pub_;
-		ros::Publisher sound_pub_;
+		ros::Publisher expression_pub_;
 		
 		float arousal_threshold;
 		

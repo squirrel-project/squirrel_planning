@@ -1,6 +1,7 @@
 #include "squirrel_hri_knowledge/PerformSocialBehaviour.h"
 #include <squirrel_vad_msgs/vad.h>
 #include <std_msgs/ColorRGBA.h>
+#include <squirrel_hri_msgs/Expression.h>
 
 namespace KCL_rosplan {
 
@@ -12,7 +13,7 @@ PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh, const std::s
 	action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
 	
 	lights_pub_ = nh.advertise<std_msgs::ColorRGBA>("/light/command", 1, true);
-	sound_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
+	expression_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
 	
 	nh.getParam("arousal_threshold", arousal_threshold);
 }
@@ -75,8 +76,8 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 			lights_pub_.publish(color_command);
 			
 			std_msgs::String sound_command;
-			sound_command.data = "HELLO";
-			sound_pub_.publish(sound_command);
+			sound_command.data = squirrel_hri_msgs::Expression::HELLO;
+			expression_pub_.publish(sound_command);
 		}
 		// Low arousal.
 		else if (arousal < arousal_threshold)
@@ -93,8 +94,8 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 			lights_pub_.publish(color_command);
 			
 			std_msgs::String sound_command;
-			sound_command.data = "GOODBYE";
-			sound_pub_.publish(sound_command);
+			sound_command.data = squirrel_hri_msgs::Expression::GOODBYE;
+			expression_pub_.publish(sound_command);
 		}
 		// High arousal.
 		else
@@ -111,8 +112,8 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 			lights_pub_.publish(color_command);
 			
 			std_msgs::String sound_command;
-			sound_command.data = "CHEERING";
-			sound_pub_.publish(sound_command);
+			sound_command.data = squirrel_hri_msgs::Expression::CHEERING;
+			expression_pub_.publish(sound_command);
 		}
 		
 		// get waypoint ID from action dispatch
