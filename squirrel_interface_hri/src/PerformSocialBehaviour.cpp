@@ -16,6 +16,7 @@ PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh, const std::s
 	expression_pub_ = nh.advertise<std_msgs::String>("/expression", 1, true);
 	
 	nh.getParam("arousal_threshold", arousal_threshold);
+	ROS_INFO("KCL: (PerformSocialBehaviour) Threshold set at %f.", arousal_threshold);
 }
 
 void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
@@ -57,7 +58,7 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 		std_msgs::ColorRGBA color_command;
 		
 		// No arousal.
-		if (arousal == 0)
+		if (arousal == -1.0)
 		{
 			// Do nothing for a bit...
 			ros::Duration(10).sleep();
