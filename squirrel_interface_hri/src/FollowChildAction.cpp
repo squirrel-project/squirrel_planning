@@ -42,7 +42,7 @@ void FollowChildAction::dispatchCallback(const rosplan_dispatch_msgs::ActionDisp
 		
 		// dispatch MoveBase action
 		squirrel_hri_msgs::FollowChildGoal goal;
-		goal.child_id_to_follow = childID;
+		goal.child_id_to_follow.data = childID;
 		goal.time_standing_still = 10;
 		goal.target_locations = child_destinations;
 		

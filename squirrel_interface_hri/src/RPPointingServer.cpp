@@ -43,7 +43,7 @@ namespace KCL_rosplan {
 	void RPPointingServer::dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg) {
 
 		// ignore non-goto-waypoint actions
-		if(0!=msg->name.compare("request_tidy")) return;
+		if(msg->name != "request_tidy") return;
 
 		ROS_INFO("KCL: (PointingServer) action recieved");
 

@@ -16,6 +16,7 @@
 #include "pddl_actions/SimulatedObservePDDLAction.h"
 #include "pddl_actions/ExamineObjectInHandPDDLAction.h"
 #include "pddl_actions/FollowChildPDDLAction.h"
+#include "pddl_actions/ChargeBatteryPDDLAction.h"
 
 int main(int argc, char **argv) {
 
@@ -33,7 +34,8 @@ int main(int argc, char **argv) {
 		give_object,
 		take_object,
 		examine_object_in_hand,
-		follow_child;
+		follow_child,
+		charge_battery;
 
 	nh.getParam("simulate_goto_waypoint", goto_waypoint);
 	nh.getParam("simulate_explore_waypoint", explore_waypoint);
@@ -47,6 +49,7 @@ int main(int argc, char **argv) {
 	nh.getParam("simulate_take_object", take_object);
 	nh.getParam("simulate_examine_object_in_hand", examine_object_in_hand);
 	nh.getParam("simulate_follow_child", follow_child);
+	nh.getParam("simulate_charge_battery", charge_battery);
 
 	KCL_rosplan::GotoPDDLAction* goto_action;
 	KCL_rosplan::ExploreWaypointPDDLAction* explore_waypoint_action;
@@ -62,6 +65,7 @@ int main(int argc, char **argv) {
 	KCL_rosplan::ExamineObjectInHandPDDLAction* examine_object_in_hand_action;
 	KCL_rosplan::SimulatedObservePDDLAction observe_actions(nh);
 	KCL_rosplan::FollowChildPDDLAction* follow_child_action;
+	KCL_rosplan::ChargeBatteryPDDLAction* charge_battery_action;
 
 	// Setup all the simulated actions.
 	if(goto_waypoint) {
@@ -112,6 +116,10 @@ int main(int argc, char **argv) {
 	if (follow_child) {
 		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: follow_child");
 		follow_child_action = new KCL_rosplan::FollowChildPDDLAction(nh);
+	}
+	if (charge_battery) {
+		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: charge_battery");
+		charge_battery_action = new KCL_rosplan::ChargeBatteryPDDLAction(nh);
 	}
 		
 	children_action = new KCL_rosplan::ChildrenPDDLAction(nh);
