@@ -128,7 +128,7 @@ void ExamineObjectInHandPDDLAction::dispatchCallback(const rosplan_dispatch_msgs
 	knowledge_item.values.clear();
 	
 	// If the fact is not negative, we need to decide upon the type of this object.
-	if (examination_succeeded)
+	if (examination_succeeded && false)
 	{
 		// Check if this object has been classified or not.
 		rosplan_knowledge_msgs::GetInstanceService get_instance;
