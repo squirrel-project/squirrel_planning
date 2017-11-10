@@ -105,7 +105,8 @@ set(simulatedPDDLActionsNode_SOURCES
   src/pddl_actions/ChildrenPDDLAction.cpp
   src/pddl_actions/SimulatedObservePDDLAction.cpp
   src/pddl_actions/ExamineObjectInHandPDDLAction.cpp
-  src/pddl_actions/FollowChildPDDLAction.cpp)
+  src/pddl_actions/FollowChildPDDLAction.cpp
+  src/pddl_actions/ChargeBatteryPDDLAction.cpp)
   
 set(sortingGame_SOURCES
   src/SortingGame.cpp
@@ -122,12 +123,16 @@ set(viewConeTester_SOURCES
   src/ViewConeGenerator.cpp
   src/view_cone_test_suite/ViewConeCaller.cpp)
   
-set(knowRuleTester_SOURCES
-  src/pddl_generators/RobotKnowsSortingGamePDDLGenerator.cpp)
+#set(knowRuleTester_SOURCES
+#  src/pddl_generators/RobotKnowsSortingGamePDDLGenerator.cpp)
   
 set(recommenderTester_SOURCES
-  src/RecommenderSystem.cpp)
-  
+  src/RecommenderSystem.cpp
+  src/pddl_actions/ListenToFeedbackPDDLAction.cpp
+  src/pddl_actions/InspectObjectPDDLAction.cpp
+  src/PlanToSensePDDLGenerator.cpp
+  src/PlanToAskPDDLGenerator.cpp)
+
 ## planning simulation
 #set(planSim_SOURCES
 #  src/RPSquirrelRecursion.cpp
@@ -149,7 +154,7 @@ add_executable(simulatedPDDLActionsNode ${simulatedPDDLActionsNode_SOURCES})
 add_executable(sortingGame ${sortingGame_SOURCES})
 add_executable(speechSimulator ${speechSimulator_SOURCES})
 add_executable(viewConeTester ${viewConeTester_SOURCES})
-add_executable(knowRuleTester ${knowRuleTester_SOURCES})
+#add_executable(knowRuleTester ${knowRuleTester_SOURCES})
 add_executable(recommenderTester ${recommenderTester_SOURCES})
 add_executable(robotKnowsGame ${robotKnows_SOURCES})
 #add_executable(planSim ${planSim_SOURCES})
@@ -162,7 +167,7 @@ add_dependencies(simulatedPDDLActionsNode ${catkin_EXPORTED_TARGETS})
 add_dependencies(sortingGame ${catkin_EXPORTED_TARGETS})
 add_dependencies(speechSimulator ${catkin_EXPORTED_TARGETS})
 add_dependencies(viewConeTester ${catkin_EXPORTED_TARGETS})
-add_dependencies(knowRuleTester ${catkin_EXPORTED_TARGETS})
+#add_dependencies(knowRuleTester ${catkin_EXPORTED_TARGETS})
 add_dependencies(recommenderTester ${catkin_EXPORTED_TARGETS})
 add_dependencies(robotKnowsGame ${catkin_EXPORTED_TARGETS})
 #add_dependencies(planSim ${catkin_EXPORTED_TARGETS})
@@ -175,7 +180,7 @@ target_link_libraries(simulatedPDDLActionsNode ${catkin_LIBRARIES})
 target_link_libraries(sortingGame ${catkin_LIBRARIES})
 target_link_libraries(speechSimulator ${catkin_LIBRARIES})
 target_link_libraries(viewConeTester ${catkin_LIBRARIES})
-target_link_libraries(knowRuleTester ${catkin_LIBRARIES})
+#target_link_libraries(knowRuleTester ${catkin_LIBRARIES})
 target_link_libraries(recommenderTester ${catkin_LIBRARIES})
 target_link_libraries(robotKnowsGame ${catkin_LIBRARIES})
 #target_link_libraries(planSim ${catkin_LIBRARIES})

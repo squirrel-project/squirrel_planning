@@ -3,7 +3,7 @@
 namespace KCL_rosplan {
 
 	/* constructor */
-FollowChildAction::FollowChildAction(ros::NodeHandle &nh, const std::string& follow_child_action_name, const std::vector<geometry_msgs::Pose2D>& cd)
+FollowChildAction::FollowChildAction(ros::NodeHandle &nh, const std::string& follow_child_action_name, const std::vector<geometry_msgs::Point>& cd)
 	 : message_store(nh), action_client(follow_child_action_name, true), child_destinations(cd)
 {
 	knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
 
 	// create PDDL action subscriber
-	std::vector<geometry_msgs::Pose2D> child_destinations;
+	std::vector<geometry_msgs::Point> child_destinations;
 	KCL_rosplan::FollowChildAction fca(nh, "/follow_child", child_destinations);
 
 	// listen for action dispatch
