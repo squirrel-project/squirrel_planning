@@ -74,6 +74,8 @@
 
 	<node name="squirrel_grasping_node" pkg="squirrel_grasping" type="squirrel_blind_grasping_node.py" output="screen"/>
 
+	<node name="squirrel_lights" pkg="squirrel_interface_emote" type="lightsServer" output="screen"/>
+
 	<!-- setup initial state -->
 	<node name="oxygen_battery_game" pkg="squirrel_planning_execution" type="oxygenBattery" output="screen" />
 

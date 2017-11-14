@@ -136,6 +136,7 @@ set(recommenderTester_SOURCES
 
 set(oxygenBattery_SOURCES
   src/OxygenBattery.cpp 
+  src/pddl_actions/ShedKnowledgePDDLAction.cpp
   src/pddl_actions/PlannerInstance.cpp)
 
 ## planning simulation

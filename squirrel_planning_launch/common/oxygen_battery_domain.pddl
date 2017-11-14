@@ -122,6 +122,16 @@
 	)
 )
 
+(:action show_lights
+	:parameters (?v - robot ?c - child ?l - light_configuration)
+	:precondition (and
+		
+	)
+	:effect (and
+		
+	)
+)
+
 (:action give_object
 	:parameters (?v - robot ?wp - waypoint ?o - object ?c - child)
 	:precondition (and
@@ -289,8 +299,19 @@
 	)
 )
 
-(:action observe-belongs_in
-	:parameters (?o - object ?b - box ?wp ?wp2 - waypoint ?l ?l2 - level ?kb - knowledgebase)
+(:action happy_behaviour
+	:parameters (?v - robot)
+	:precondition (and
+
+	)
+	:effect (and
+		
+	)
+)
+	
+
+(:action unhappy_behaviour
+	:parameters (?v - robot)
 	:precondition (and
 
 	)

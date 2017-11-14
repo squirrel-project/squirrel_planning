@@ -7,6 +7,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <squirrel_object_perception_msgs/SceneObject.h>
+#include "pddl_actions/ShedKnowledgePDDLAction.h"
 
 #include <rosplan_dispatch_msgs/PlanAction.h>
 #include <rosplan_dispatch_msgs/PlanGoal.h>
@@ -617,6 +618,8 @@ int main(int argc, char **argv) {
 
 	ros::init(argc, argv, "rosplan_interface_OxygenBattery");
 	nh = new ros::NodeHandle();
+	
+	KCL_rosplan::ShedKnowledgePDDLAction shed_knowledge_action(*nh);
 	
 	// Overwrite the normal problem generator of ROSPlan.
 	ros::ServiceServer pddl_generation_service = nh->advertiseService("/kcl_rosplan/generate_planning_problem", &generatePDDLProblemFile);
