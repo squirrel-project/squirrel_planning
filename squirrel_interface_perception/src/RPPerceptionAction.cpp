@@ -50,6 +50,7 @@ namespace KCL_rosplan {
 		if(msg->name == "explore_waypoint") exploreAction(msg);
 		if(msg->name == "observe-classifiable_from") examineAction(msg);
 		if(msg->name == "examine_object_in_hand") examineObjectInHandAction(msg);
+		if(msg->name == "classify_object_in_hand") examineObjectInHandAction(msg);
 	}
 
 	
