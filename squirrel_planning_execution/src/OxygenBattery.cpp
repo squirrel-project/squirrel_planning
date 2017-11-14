@@ -306,7 +306,60 @@ void setupSimulation(const std::string& config_file, ros::ServiceClient& update_
 		exit(-1);
 	}
 	ROS_INFO("KCL: (OxygenBattery) Added the fact (robot_at robot kenny_waypoint) to the knowledge base.");
-
+	knowledge_item.values.clear();
+	
+	// Add the child.
+	{
+		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+		knowledge_item.instance_type = "child";
+		knowledge_item.instance_name = "child";
+		
+		knowledge_update_service.request.knowledge = knowledge_item;
+		if (!update_knowledge_client.call(knowledge_update_service)) {
+			ROS_ERROR("KCL: (OxygenBattery) Could not add the child child to the knowledge base.");
+			exit(-1);
+		}
+		ROS_INFO("KCL: (OxygenBattery) Added child to the knowledge base.");
+	}
+	
+	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
+	knowledge_item.attribute_name = "child_at";
+	knowledge_item.is_negative = false;
+	
+	kv.key = "c";
+	kv.value = "child";
+	knowledge_item.values.push_back(kv);
+	
+	kv.key = "wp";
+	kv.value = "base_waypoint";
+	knowledge_item.values.push_back(kv);
+	
+	knowledge_update_service.request.knowledge = knowledge_item;
+	if (!update_knowledge_client.call(knowledge_update_service)) {
+		ROS_ERROR("KCL: (OxygenBattery) Could not add the fact (child_at child base_waypoint) to the knowledge base.");
+		exit(-1);
+	}
+	ROS_INFO("KCL: (OxygenBattery) Added the fact (child_at child base_waypoint) to the knowledge base.");
+	
+	// Add the types.
+	std::vector<std::string> types;
+	types.push_back("oxygen");
+	types.push_back("battery");
+	for (std::vector<std::string>::const_iterator ci = types.begin(); ci != types.end(); ++ci)
+	{
+		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+		knowledge_item.instance_type = "type";
+		knowledge_item.instance_name = *ci;
+		
+		knowledge_update_service.request.knowledge = knowledge_item;
+		if (!update_knowledge_client.call(knowledge_update_service)) {
+			ROS_ERROR("KCL: (OxygenBattery) Could not add the type %s to the knowledge base.", (*ci).c_str());
+			exit(-1);
+		}
+		ROS_INFO("KCL: (OxygenBattery) Added %s to the knowledge base.", (*ci).c_str());
+	}
 	f.close();
 }
 

@@ -171,6 +171,15 @@
 	)
 )
 
+(:action classify_object_in_hand
+	:parameters (?v - robot ?o - object)
+	:precondition (and
+		(holding ?v ?o)
+	)
+	:effect (and 
+	)
+)
+
 (:action put_object_in_box
 	:parameters (?v - robot ?wp ?wp2 - waypoint ?o1 - object ?b - box ?t - type)
 	:precondition (and

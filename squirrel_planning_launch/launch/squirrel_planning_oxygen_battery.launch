@@ -43,6 +43,7 @@
 		<param name="simulate_pickup_object" value="true"/>
 		<param name="simulate_drop_object" value="true"/>
 		<param name="simulate_examine_object_in_hand" value="true"/>
+		<param name="simulate_classify_object_in_hand" value="true"/>
 		<param name="simulate_charge_battery" value="true"/>
 	</node>
 

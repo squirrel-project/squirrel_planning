@@ -105,6 +105,7 @@ set(simulatedPDDLActionsNode_SOURCES
   src/pddl_actions/ChildrenPDDLAction.cpp
   src/pddl_actions/SimulatedObservePDDLAction.cpp
   src/pddl_actions/ExamineObjectInHandPDDLAction.cpp
+  src/pddl_actions/ClassifyObjectInHandPDDLAction.cpp
   src/pddl_actions/FollowChildPDDLAction.cpp
   src/pddl_actions/ChargeBatteryPDDLAction.cpp)
   

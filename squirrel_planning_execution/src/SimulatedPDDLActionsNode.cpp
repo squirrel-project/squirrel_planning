@@ -15,6 +15,7 @@
 #include "pddl_actions/TakeObjectPDDLAction.h"
 #include "pddl_actions/SimulatedObservePDDLAction.h"
 #include "pddl_actions/ExamineObjectInHandPDDLAction.h"
+#include "pddl_actions/ClassifyObjectInHandPDDLAction.h"
 #include "pddl_actions/FollowChildPDDLAction.h"
 #include "pddl_actions/ChargeBatteryPDDLAction.h"
 
@@ -34,6 +35,7 @@ int main(int argc, char **argv) {
 		give_object,
 		take_object,
 		examine_object_in_hand,
+		classify_object_in_hand,
 		follow_child,
 		charge_battery;
 
@@ -48,6 +50,7 @@ int main(int argc, char **argv) {
 	nh.getParam("simulate_give_object", give_object);
 	nh.getParam("simulate_take_object", take_object);
 	nh.getParam("simulate_examine_object_in_hand", examine_object_in_hand);
+	nh.getParam("simulate_classify_object_in_hand", classify_object_in_hand);
 	nh.getParam("simulate_follow_child", follow_child);
 	nh.getParam("simulate_charge_battery", charge_battery);
 
@@ -63,6 +66,7 @@ int main(int argc, char **argv) {
 	KCL_rosplan::TakeObjectPDDLAction* take_object_action;
 	KCL_rosplan::ChildrenPDDLAction* children_action;
 	KCL_rosplan::ExamineObjectInHandPDDLAction* examine_object_in_hand_action;
+	KCL_rosplan::ClassifyObjectInHandPDDLAction* classify_object_in_hand_action;
 	KCL_rosplan::SimulatedObservePDDLAction observe_actions(nh);
 	KCL_rosplan::FollowChildPDDLAction* follow_child_action;
 	KCL_rosplan::ChargeBatteryPDDLAction* charge_battery_action;
@@ -112,6 +116,10 @@ int main(int argc, char **argv) {
 	if (examine_object_in_hand) {
 		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: examine_object_in_hand");
 		examine_object_in_hand_action = new KCL_rosplan::ExamineObjectInHandPDDLAction(nh, 0.0f);
+	}
+	if (classify_object_in_hand) {
+		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: classify_object_in_hand");
+		classify_object_in_hand_action = new KCL_rosplan::ClassifyObjectInHandPDDLAction(nh, 0.0f);
 	}
 	if (follow_child) {
 		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: follow_child");
