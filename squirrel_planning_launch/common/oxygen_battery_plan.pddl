@@ -20,8 +20,9 @@ step    0: RAMIFICATE
 	17: ramificate
 	18: show_lights robot child wiggle_error
 	19: emote robot sound_NO 255_0_0
-	20: jump 7
+	20: jump 0
 	21: shed_knowledge battery1_kb basis_kb
+	22: jump 0
      
 
 time spent:    0.07 seconds instantiating 1743 easy, 45 hard action templates
