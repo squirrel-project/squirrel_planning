@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <iostream>
 #include <fstream>
+#include <tf/tf.h>
 
 #include "mongodb_store/message_store.h"
 #include <actionlib/client/simple_action_client.h>
@@ -45,7 +46,15 @@ geometry_msgs::Pose transformToPose(const std::string& s)
 
 	p.position.x = ::atof(s.substr(1, first_break - 1).c_str());
 	p.position.y = ::atof(s.substr(first_break + 1, second_break - (first_break + 1)).c_str());
-	p.position.z = ::atof(s.substr(second_break + 1, s.size() - (second_break + 2)).c_str());
+	p.position.z = 0.0f;
+	
+	tf::Quaternion q(::atof(s.substr(second_break + 1, s.size() - (second_break + 2)).c_str()), 0.0f, 0.0f);
+	
+	p.orientation.x = q.getX();
+	p.orientation.y = q.getY();
+	p.orientation.z = q.getZ();
+	p.orientation.w = q.getW();
+	//p.position.z = ::atof(s.substr(second_break + 1, s.size() - (second_break + 2)).c_str());
 
 	return p;
 }
@@ -189,11 +198,12 @@ void setupSimulation(const std::string& config_file, ros::ServiceClient& update_
 				pose.header.stamp = ros::Time::now();
 				pose.header.frame_id = "/map";
 				pose.pose = waypoint_pose;
-				
+				/*
 				pose.pose.orientation.x = 0.0f;
 				pose.pose.orientation.y = 0.0f;
 				pose.pose.orientation.z = 0.0f;
 				pose.pose.orientation.w = 1.0f;
+				*/
 				std::string near_waypoint_mongodb_id3(message_store.insertNamed(waypoint_predicate, pose));
 
 				rosplan_knowledge_msgs::KnowledgeItem knowledge_item;

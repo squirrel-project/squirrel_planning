@@ -38,6 +38,7 @@
 	(sorting_done ?s - state)
 	(toy_at_right_box ?o - object ?b - box ?s - state)
 	(belongs_in ?o - object ?b - box ?s - state)
+	(classifiable_from ?from ?view - waypoint ?o - object ?s - state)
 )
 
 (:action explore_area
@@ -178,6 +179,22 @@
 		(holding ?v ?o)
 	)
 	:effect (and 
+	)
+)
+
+(:action observe-classifiable_from
+	:parameters (?from ?view - waypoint ?o - object ?v - robot  ?l ?l2 - level ?kb - knowledgebase)
+	:precondition (and
+		(not (resolve-axioms))
+		(next ?l ?l2)
+		(lev ?l)
+		(current_kb ?kb)
+		(not (current_kb basis_kb))
+
+		(robot_at ?v ?from dummy_state)
+	)
+	:effect (and
+		
 	)
 )
 

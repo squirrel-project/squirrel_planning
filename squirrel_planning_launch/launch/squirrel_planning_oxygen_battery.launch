@@ -6,6 +6,9 @@
 
 	<!-- data paths -->
 	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="/rosplan/strl_file_path" value="$(find squirrel_planning_launch)/common/" />
+	<param name="strl_file_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="planner_path" value="$(find rosplan_planning_system)/common/bin/" />
 
 	<!-- domain file -->
@@ -45,6 +48,7 @@
 		<param name="simulate_examine_object_in_hand" value="true"/>
 		<param name="simulate_classify_object_in_hand" value="true"/>
 		<param name="simulate_charge_battery" value="true"/>
+		<param name="simulate_give_object" value="true"/>
 	</node>
 
 	<!-- Interface nodes -->
