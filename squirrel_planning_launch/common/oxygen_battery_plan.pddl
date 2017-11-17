@@ -20,7 +20,7 @@ step    0: RAMIFICATE
 	17: ramificate
 	18: show_lights robot child wiggle_error
 	19: emote robot sound_NO 255_0_0
-	20: jump 12
+	20: jump 10
 	21: ramificate
 	22: show_lights robot child wiggle_error
 	23: emote robot sound_NO 255_0_0
@@ -47,7 +47,7 @@ step    0: RAMIFICATE
 	40: ramificate
 	41: show_lights robot child wiggle_error
 	42: emote robot sound_NO 255_0_0
-	43: jump 36
+	43: jump 34
 	44: ramificate
 	45: jump 34
 	46: shed_knowledge battery1_kb basis_kb
@@ -71,7 +71,7 @@ step    0: RAMIFICATE
 	64: ramificate
 	65: show_lights robot child wiggle_error
 	66: emote robot sound_NO 255_0_0
-	67: jump 59
+	67: jump 57
 	68: ramificate
 	69: jump 57
 	70: shed_knowledge battery1_kb basis_kb
