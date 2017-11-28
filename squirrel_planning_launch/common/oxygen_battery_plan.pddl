@@ -10,7 +10,7 @@ step    0: RAMIFICATE
 	7: emote robot sound_CHEERING wiggle_idle
 	8: assume_knowledge basis_kb battery1_kb
 	9: ramificate
-	10: observe-classifiable_from BASE_WAYPOINT BATTERY_WAYPOINT BATTERY ROBOT l1 l0
+	10: observe-classifiable_from BASE_WAYPOINT BATTERY_WAYPOINT BATTERY ROBOT l1 l0 battery1_kb
 	11: ramificate
 	12: observe-is_of_type battery battery l2 l1 battery1_kb
 	13: ramificate
@@ -37,7 +37,7 @@ step    0: RAMIFICATE
 	31: emote robot sound_CHEERING wiggle_idle
 	32: assume_knowledge basis_kb battery1_kb
 	33: ramificate
-	34: observe-classifiable_from BASE_WAYPOINT BATTERY_WAYPOINT BATTERY ROBOT l1 l0
+	34: observe-classifiable_from BASE_WAYPOINT BATTERY_WAYPOINT BATTERY ROBOT l1 l0 battery1_kb
 	35: ramificate
 	36: observe-is_of_type battery battery l2 l1 battery1_kb
 	37: ramificate
@@ -61,7 +61,7 @@ step    0: RAMIFICATE
 	54: emote robot sound_CHEERING wiggle_idle
 	55: assume_knowledge basis_kb battery1_kb
 	56: ramificate
-	57: observe-classifiable_from BASE_WAYPOINT BATTERY_WAYPOINT BATTERY ROBOT l1 l0
+	57: observe-classifiable_from BASE_WAYPOINT BATTERY_WAYPOINT BATTERY ROBOT l1 l0 battery1_kb
 	58: ramificate
 	59: observe-is_of_type battery battery l2 l1 battery1_kb
 	60: ramificate

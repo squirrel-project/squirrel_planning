@@ -320,7 +320,7 @@ namespace KCL_rosplan {
 	
 	void RPPerceptionAction::updateType(const std::string& object_id, const std::string& object_rec_name)
 	{
-		ROS_INFO("KCL: (PerceptionAction) Update where %s belongs.", object_id.c_str());
+		ROS_INFO("KCL: (PerceptionAction) Update the type of %s to %s.", object_id.c_str(), object_rec_name.c_str());
 		
 		// is_of_type fact
 		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
@@ -331,74 +331,34 @@ namespace KCL_rosplan {
 		
 		// First we get all the possible types of toys that we can encounter.
 		rosplan_knowledge_msgs::GetInstanceService getInstances;
-		getInstances.request.type_name = "box";
+		getInstances.request.type_name = "type";
 		if (!get_instance_client.call(getInstances)) {
-			ROS_ERROR("KCL: (PerceptionAction) Failed to get all the box instances.");
+			ROS_ERROR("KCL: (PerceptionAction) Failed to get all the type instances.");
 			return;
 		}
-		ROS_INFO("KCL: (PerceptionAction) Received %zd box instances.", getInstances.response.instances.size());
+		ROS_INFO("KCL: (PerceptionAction) Received %zd type instances.", getInstances.response.instances.size());
 		
-		std::string found_box;
+	
 		for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
 		{
-			const std::string& box = *ci;
-			rosplan_knowledge_msgs::KnowledgeQueryService knowledge_query;
-			rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-			
-			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-			knowledge_item.attribute_name = "belongs_in";
+			const std::string& type = *ci;
+
+			// Make if of that type.
+			knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
+			knowledge_update_service.request.knowledge.attribute_name = "is_of_type";
 			kv.key = "o";
+			kv.value = object_id;
+			knowledge_update_service.request.knowledge.values.push_back(kv);
+			kv.key = "t";
 			kv.value = object_rec_name;
-			knowledge_item.values.push_back(kv);
-			kv.key = "b";
-			kv.value = box;
-			knowledge_item.values.push_back(kv);
-			knowledge_item.is_negative = false;
+			knowledge_update_service.request.knowledge.values.push_back(kv);
+			knowledge_update_service.request.knowledge.is_negative = type != object_rec_name;
 
-			// Check if this fact is true.
-			knowledge_query.request.knowledge.push_back(knowledge_item);
-
-			if (!knowledge_query_client.call(knowledge_query))
-			{
-				ROS_INFO("KCL: (PerceptionAction) Could not query the knowledge base.");
-				exit(1);
+			if (!update_knowledge_client.call(knowledge_update_service)) {
+				ROS_ERROR("KCL: (PerceptionAction) Could not add is_of_type predicate to the knowledge base.");
 			}
-
-			if (knowledge_query.response.results[0] != 1)
-			{
-				ROS_INFO("KCL: (PerceptionAction) %s does not belong in %s", object_rec_name.c_str(), box.c_str());
-			}
-			else
-			{
-				found_box = box;
-				ROS_INFO("KCL: (PerceptionAction) %s belongs in %s", object_rec_name.c_str(), box.c_str());
-			}
-		}
-		
-		// Add new type, if necessary.
-		if (found_box != "")
-		{
-			for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
-			{
-				const std::string& box = *ci;
-
-				// Make if of that type.
-				knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-				knowledge_update_service.request.knowledge.attribute_name = "belongs_in";
-				kv.key = "o";
-				kv.value = object_id;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				kv.key = "b";
-				kv.value = box;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				knowledge_update_service.request.knowledge.is_negative = box != found_box;
-
-				if (!update_knowledge_client.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (PerceptionAction) Could not add belongs_in predicate to the knowledge base.");
-				}
-				ROS_ERROR("KCL: (PerceptionAction) Add %s (belongs_in %s %s) predicate to the knowledge base.", knowledge_update_service.request.knowledge.is_negative ? "NOT" : "", object_id.c_str(), box.c_str());
-				knowledge_update_service.request.knowledge.values.clear();
-			}
+			ROS_ERROR("KCL: (PerceptionAction) Add %s (is_of_type %s %s) predicate to the knowledge base.", knowledge_update_service.request.knowledge.is_negative ? "NOT" : "", object_id.c_str(), type.c_str());
+			knowledge_update_service.request.knowledge.values.clear();
 		}
 	}
 	
