@@ -24,7 +24,7 @@
 #include "squirrel_manipulation_msgs/BlindGraspAction.h"
 #include "squirrel_manipulation_msgs/PutDownAction.h"
 #include "squirrel_manipulation_msgs/PtpAction.h"
-#include "kclhand_control/graspPreparation.h"
+//#include "kclhand_control/graspPreparation.h"
 #include "kclhand_control/ActuateHandAction.h"
 
 
