@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include "rosplan_knowledge_msgs/KnowledgeItem.h"
 #include "rosplan_knowledge_msgs/KnowledgeUpdateService.h"
@@ -117,6 +118,10 @@ bool ConfigReader::readConfigurationFile(const std::string& config_file, mongodb
 			{
 				if (!processObjectToBoxMapping(tokens, ms, line)) success = false;
 			}
+			else if (line[0] == 'f')
+			{
+				if (!processFunction(tokens, ms, line)) success = false;
+			}
 			else if (line[0] != '#')
 			{
 				ROS_ERROR("KCL (ConfigReader) Unknown initial token: %s\n", tokens[0].c_str());
@@ -126,6 +131,83 @@ bool ConfigReader::readConfigurationFile(const std::string& config_file, mongodb
 	}
 	f.close();
 	return success;
+}
+
+bool ConfigReader::addFact(const std::string& predicate, const std::map<std::string, std::string>& parameters, bool is_negative)
+{
+	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
+	knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
+	
+	rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
+	knowledge_item.attribute_name = predicate;
+	knowledge_item.is_negative = is_negative;
+	
+	std::stringstream ss;
+	for (std::map<std::string, std::string>::const_iterator ci =  parameters.begin(); ci != parameters.end(); ++ci)
+	{
+		diagnostic_msgs::KeyValue kv;
+		kv.key = ci->first;
+		kv.value = ci->second;
+		knowledge_item.values.push_back(kv);
+		
+		ss << ci->second << "(" << ci->first << ") ";
+	}
+	knowledge_update_service.request.knowledge = knowledge_item;
+	
+	if (!update_knowledge_client.call(knowledge_update_service)) {
+		ROS_ERROR("KCL: (ConfigReader) Could not add the fact (%s %s) to the knowledge base.", predicate.c_str(), ss.str().c_str());
+		return false;
+	}
+	ROS_INFO("KCL: (ConfigReader) Added the fact (%s %s) to the knowledge base.", predicate.c_str(), ss.str().c_str());
+	return true;
+}
+
+bool ConfigReader::addInstance(const std::string& type, const std::string& name)
+{
+	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
+	knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
+	
+	rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+	knowledge_item.instance_type = type;
+	knowledge_item.instance_name = name;
+	
+	knowledge_update_service.request.knowledge = knowledge_item;knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+	if (!update_knowledge_client.call(knowledge_update_service)) {
+		ROS_ERROR("KCL: (ConfigReader) Could not add %s (%s) to the knowledge base.", name.c_str(), type.c_str());
+		return false;
+	}
+	ROS_INFO("KCL: (ConfigReader) Added %s (%s) to the knowledge base.", name.c_str(), type.c_str());
+	return true;
+}
+
+bool ConfigReader::addFunction(const std::string& function, const std::map<std::string, std::string>& parameters, float value)
+{
+	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
+	knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
+	
+	rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
+	knowledge_item.attribute_name = function;
+	knowledge_item.function_value = value;
+	
+	std::stringstream ss;
+	for (std::map<std::string, std::string>::const_iterator ci =  parameters.begin(); ci != parameters.end(); ++ci)
+	{
+		diagnostic_msgs::KeyValue kv;
+		kv.key = ci->first;
+		kv.value = ci->second;
+		knowledge_item.values.push_back(kv);
+		
+		ss << ci->second << "(" << ci->first << ") ";
+	}
+	
+	knowledge_update_service.request.knowledge = knowledge_item;
+	if (!update_knowledge_client.call(knowledge_update_service)) {
+		ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the function %s %s to the knowledge base.", function.c_str(), ss.str().c_str());
+		exit(-1);
+	}
+	ROS_INFO("KCL: (BehaviourAndEmotion) Added %s %s to the knowledge base.", function.c_str(), ss.str().c_str());
 }
 
 bool ConfigReader::processBox(const std::vector<std::string>& tokens, mongodb_store::MessageStoreProxy& ms, const std::string& line)
@@ -139,44 +221,25 @@ bool ConfigReader::processBox(const std::vector<std::string>& tokens, mongodb_st
 	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
 	knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 	
+	// Add the box.
 	std::string box_predicate = tokens[1];
 	geometry_msgs::Pose box_location = transformToPose(tokens[2]);
 	geometry_msgs::Pose near_box = transformToPose(tokens[3]);
 	sendMarker(box_location, box_predicate, 0.25f);
 	{
-		std::stringstream ss;
-		ss << "near_" << box_predicate;
-		sendMarker(near_box, ss.str(), 0.1f);
+		//std::stringstream ss;
+		//ss << "near_" << box_predicate;
+		sendMarker(near_box, "near_" + box_predicate, 0.1f);
 	}
 	
-	// Add the box predicate to the knowledge base.
-	rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+	addInstance("box", box_predicate);
 	
-	knowledge_item.instance_type = "box";
-	knowledge_item.instance_name = box_predicate;
+	// Add waypoints for the boxes.
+	//std::stringstream ss;
+	//ss << box_predicate << "_location";
+	addInstance("waypoint", box_predicate + "_location");
 	
-	knowledge_update_service.request.knowledge = knowledge_item;knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the box %s to the knowledge base.", box_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", box_predicate.c_str());
-
-	// Add waypoints for these boxes.
-	knowledge_item.instance_type = "waypoint";
-	std::stringstream ss;
-	ss << box_predicate << "_location";
-	knowledge_item.instance_name = ss.str();
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ss.str().c_str());
-
 	// Set the actual location of the box waypoints in message store.
-	{
 	geometry_msgs::PoseStamped pose;
 	pose.header.seq = 0;
 	pose.header.stamp = ros::Time::now();
@@ -187,55 +250,26 @@ bool ConfigReader::processBox(const std::vector<std::string>& tokens, mongodb_st
 	pose.pose.orientation.y = 0.0f;
 	pose.pose.orientation.z = 0.0f;
 	pose.pose.orientation.w = 1.0f;
-	std::string near_waypoint_mongodb_id3(ms.insertNamed(ss.str(), pose));
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ss.str().c_str());
-	}
+	std::string near_waypoint_mongodb_id3(ms.insertNamed(box_predicate + "_location", pose));
+	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", (box_predicate + "_location").c_str());
 	
-	// Link the boxes to these waypoints.
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-	knowledge_item.attribute_name = "box_at";
-	knowledge_item.is_negative = false;
+	std::map<std::string, std::string> parameters;
+	parameters["b"] = "box_predicate";
+	parameters["wp"] = box_predicate + "_location";
+	addFact("box_at", parameters, false);
 	
-	diagnostic_msgs::KeyValue kv;
-	kv.key = "b";
-	kv.value = box_predicate;
-	knowledge_item.values.push_back(kv);
+	//ss.str(std::string());
+	//ss << "near_" << box_predicate;
 	
-	kv.key = "wp";
-	kv.value = ss.str();
-	knowledge_item.values.push_back(kv);
+	addInstance("waypoint", "near_" + box_predicate);
 	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the fact (box_at %s %s) to the knowledge base.", box_predicate.c_str(), ss.str().c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added the fact (box_at %s %s) to the knowledge base.", box_predicate.c_str(), ss.str().c_str());
-	knowledge_item.values.clear();
-	
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-	knowledge_item.instance_type = "waypoint";
-	ss.str(std::string());
-	ss << "near_" << box_predicate;
-	knowledge_item.instance_name = ss.str();
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
-		return false;
-	}
-	{
-	geometry_msgs::PoseStamped pose;
-	pose.header.seq = 0;
-	pose.header.stamp = ros::Time::now();
-	pose.header.frame_id = "/map";
 	pose.pose = near_box;
 	
 	float angle = atan2(box_location.position.y - near_box.position.y, box_location.position.x - near_box.position.x);
 	pose.pose.orientation = tf::createQuaternionMsgFromYaw(angle);
-	std::string near_waypoint_mongodb_id3(ms.insertNamed(ss.str(), pose));
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ss.str().c_str());
-	}
+	std::string near_waypoint_mongodb_id4(ms.insertNamed("near_" + box_predicate, pose));
+	
+	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ("near_" + box_predicate).c_str());
 	return true;
 }
 
@@ -255,51 +289,19 @@ bool ConfigReader::processToy(const std::vector<std::string>& tokens, mongodb_st
 	geometry_msgs::Pose toy_location = transformToPose(tokens[3]);
 	geometry_msgs::Pose near_toy = transformToPose(tokens[4]);
 	sendMarker(toy_location, toy_predicate, 0.25f);
-	{
-		std::stringstream ss;
-		ss << "near_" << toy_predicate;
-		sendMarker(near_toy, ss.str(), 0.1f);
-	}
+	sendMarker(near_toy, "near_" + toy_predicate, 0.1f);
 	
 	// Add the box predicate to the knowledge base.
-	rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+	addInstance("object", toy_predicate);
+	addInstance("type", type_predicate);
+	addInstance("waypoint", toy_predicate + "_location");
 	
-	knowledge_item.instance_type = "object";
-	knowledge_item.instance_name = toy_predicate;
+	std::map<std::string, std::string> variables;
+	variables["o"] = toy_predicate;
+	variables["t"] = type_predicate;
+	addFact("is_of_type", variables, false);
 	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the object %s to the knowledge base.", toy_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", toy_predicate.c_str());
-	
-	knowledge_item.instance_type = "type";
-	knowledge_item.instance_name = type_predicate;
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the type %s to the knowledge base.", type_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", type_predicate.c_str());
-
-	// Add waypoints for these boxes.
-	knowledge_item.instance_type = "waypoint";
-	std::stringstream ss;
-	ss << toy_predicate << "_location";
-	knowledge_item.instance_name = ss.str();
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ss.str().c_str());
-
 	// Set the actual location of the toy waypoints in message store.
-	{
 	geometry_msgs::PoseStamped pose;
 	pose.header.seq = 0;
 	pose.header.stamp = ros::Time::now();
@@ -310,103 +312,52 @@ bool ConfigReader::processToy(const std::vector<std::string>& tokens, mongodb_st
 	pose.pose.orientation.y = 0.0f;
 	pose.pose.orientation.z = 0.0f;
 	pose.pose.orientation.w = 1.0f;
-	std::string near_waypoint_mongodb_id3(ms.insertNamed(ss.str(), pose));
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ss.str().c_str());
-	}
+	std::string near_waypoint_mongodb_id3(ms.insertNamed(toy_predicate + "_location", pose));
+	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", (toy_predicate + "_location").c_str());
 	
-	// Link the boxes to these waypoints.
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-	knowledge_item.attribute_name = "object_at";
-	knowledge_item.is_negative = false;
+	variables.clear();
+	variables["o"] = toy_predicate;
+	variables["wp"] = toy_predicate + "_location";
+	addFact("object_at", variables, false);
+	addInstance("waypoint", "near_" + toy_predicate);
 	
-	diagnostic_msgs::KeyValue kv;
-	kv.key = "o";
-	kv.value = toy_predicate;
-	knowledge_item.values.push_back(kv);
-	
-	kv.key = "wp";
-	kv.value = ss.str();
-	knowledge_item.values.push_back(kv);
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the fact (object_at %s %s) to the knowledge base.", toy_predicate.c_str(), ss.str().c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added the fact (object_at %s %s) to the knowledge base.", toy_predicate.c_str(), ss.str().c_str());
-	knowledge_item.values.clear();
-	
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-	knowledge_item.instance_type = "waypoint";
-	ss.str(std::string());
-	ss << "near_" << toy_predicate;
-	knowledge_item.instance_name = ss.str();
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
-		return false;
-	}
-	{
-	geometry_msgs::PoseStamped pose;
-	pose.header.seq = 0;
-	pose.header.stamp = ros::Time::now();
-	pose.header.frame_id = "/map";
 	pose.pose = near_toy;
 	
 	float angle = atan2(toy_location.position.y - near_toy.position.y, toy_location.position.x - near_toy.position.x);
 	pose.pose.orientation = tf::createQuaternionMsgFromYaw(angle);
-	std::string near_waypoint_mongodb_id3(ms.insertNamed(ss.str(), pose));
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ss.str().c_str());
-	}
+	std::string near_waypoint_mongodb_id4(ms.insertNamed("near_" + toy_predicate, pose));
+	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", ("near_" + toy_predicate).c_str());
 	return true;
 }
 
 bool ConfigReader::processWaypoint(const std::vector<std::string>& tokens, mongodb_store::MessageStoreProxy& ms, const std::string& line)
 {
 	if (tokens.size() != 3)
-		{
-			ROS_ERROR("KCL (ConfigReader) Malformed line, expected w WAYPOINT_NAME (f,f,f). Read %s\n", line.c_str());
-			return false;
-		}
-		
-		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		
-		std::string wp_predicate = tokens[1];
-		geometry_msgs::Pose wp_location = transformToPose(tokens[2]);
-		sendMarker(wp_location, wp_predicate, 0.25f);
-		
-		// Add the toy predicate to the knowledge base.
-		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-		
-		knowledge_item.instance_type = "waypoint";
-		knowledge_item.instance_name = wp_predicate;
-		
-		knowledge_update_service.request.knowledge = knowledge_item;
-		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (ConfigReader) Could not add the waypoint %s to the knowledge base.", wp_predicate.c_str());
-			return false;
-		}
-		ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", wp_predicate.c_str());
-
-		// Set the actual location of the toy waypoints in message store.
-		{
-		geometry_msgs::PoseStamped pose;
-		pose.header.seq = 0;
-		pose.header.stamp = ros::Time::now();
-		pose.header.frame_id = "/map";
-		pose.pose = wp_location;
-		
-		pose.pose.orientation.x = 0.0f;
-		pose.pose.orientation.y = 0.0f;
-		pose.pose.orientation.z = 0.0f;
-		pose.pose.orientation.w = 1.0f;
-		std::string near_waypoint_mongodb_id3(ms.insertNamed(wp_predicate, pose));
-		ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", wp_predicate.c_str());
-		}
-		return true;
+	{
+		ROS_ERROR("KCL (ConfigReader) Malformed line, expected w WAYPOINT_NAME (f,f,f). Read %s\n", line.c_str());
+		return false;
+	}
+	
+	std::string wp_predicate = tokens[1];
+	geometry_msgs::Pose wp_location = transformToPose(tokens[2]);
+	sendMarker(wp_location, wp_predicate, 0.25f);
+	
+	addInstance("waypoint", wp_predicate);
+	
+	// Set the actual location of the toy waypoints in message store.
+	geometry_msgs::PoseStamped pose;
+	pose.header.seq = 0;
+	pose.header.stamp = ros::Time::now();
+	pose.header.frame_id = "/map";
+	pose.pose = wp_location;
+	
+	pose.pose.orientation.x = 0.0f;
+	pose.pose.orientation.y = 0.0f;
+	pose.pose.orientation.z = 0.0f;
+	pose.pose.orientation.w = 1.0f;
+	std::string near_waypoint_mongodb_id3(ms.insertNamed(wp_predicate, pose));
+	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", wp_predicate.c_str());
+	return true;
 }
 
 bool ConfigReader::processChild(const std::vector<std::string>& tokens, mongodb_store::MessageStoreProxy& ms, const std::string& line)
@@ -417,82 +368,20 @@ bool ConfigReader::processChild(const std::vector<std::string>& tokens, mongodb_
 		return false;
 	}
 	
-	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-	knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-	
 	std::string child_predicate = tokens[1];
 	float pleasure = ::atof(tokens[2].c_str());
 	float arousal = ::atof(tokens[3].c_str());
 	float dominance = ::atof(tokens[4].c_str());
 	float reciprocity = ::atof(tokens[5].c_str());
 	
-	// Add the toy predicate to the knowledge base.
-	rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
+	addInstance("child", child_predicate);
 	
-	knowledge_item.instance_type = "child";
-	knowledge_item.instance_name = child_predicate;
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the child %s to the knowledge base.", child_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", child_predicate.c_str());
-	
-	// Setup the functions.
-	diagnostic_msgs::KeyValue kv;
-	kv.key = "c";
-	kv.value = child_predicate;
-	knowledge_item.values.push_back(kv);
-	
-	// Pleasure.
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-	knowledge_item.attribute_name = "pleasure";
-	knowledge_item.function_value = pleasure;
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the function (pleasure %s) to the knowledge base.", child_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added (pleasure %s) to the knowledge base.", child_predicate.c_str());
-	
-	// Arousal.
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-	knowledge_item.attribute_name = "arousal";
-	knowledge_item.function_value = arousal;
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the function (arousal %s) to the knowledge base.", child_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added (arousal %s) to the knowledge base.", child_predicate.c_str());
-	
-	// Domain.
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-	knowledge_item.attribute_name = "dominance";
-	knowledge_item.function_value = dominance;
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the function (dominance %s) to the knowledge base.", child_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added (dominance %s) to the knowledge base.", child_predicate.c_str());
-	
-	// Reciprocal.
-	knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
-	knowledge_item.attribute_name = "reciprocal";
-	knowledge_item.function_value = reciprocity;
-	
-	knowledge_update_service.request.knowledge = knowledge_item;
-	if (!update_knowledge_client.call(knowledge_update_service)) {
-		ROS_ERROR("KCL: (ConfigReader) Could not add the function (reciprocal %s) to the knowledge base.", child_predicate.c_str());
-		return false;
-	}
-	ROS_INFO("KCL: (ConfigReader) Added (reciprocal %s) to the knowledge base.", child_predicate.c_str());
+	std::map<std::string, std::string> variables;
+	variables["c"] = child_predicate;
+	addFunction("pleasure", variables, pleasure);
+	addFunction("arousal", variables, arousal);
+	addFunction("dominance", variables, dominance);
+	addFunction("reciprocal", variables, reciprocity);
 	return true;
 }
 
@@ -531,6 +420,19 @@ bool ConfigReader::processObjectToBoxMapping(const std::vector<std::string>& tok
 	}
 	ROS_INFO("KCL: (ConfigReader) Added the goal (in_box %s %s) to the knowledge base.", knowledge_item.values[0].value.c_str(),  object_id.c_str());
 	return true;
+}
+
+bool ConfigReader::processFunction(const std::vector<std::string>& tokens, mongodb_store::MessageStoreProxy& ms, const std::string& line)
+{
+	if (tokens.size() != 3)
+	{
+		ROS_ERROR("KCL (ConfigReader) Malformed line, expected f FUNCTION VALUE. Read %s\n", line.c_str());
+		return false;
+	}
+	
+	std::map<std::string, std::string> variables;
+	variables["r"] = "robot";
+	return addFunction(tokens[1], variables, ::atof(tokens[2].c_str()));
 }
 
 }

@@ -37,7 +37,7 @@
 		<!-- to run the planner -->
 	    <param name="planner_command" value="timeout 1800 $(find rosplan_planning_system)/common/bin/popf3-clp-last DOMAIN PROBLEM" />
             <param name="generate_default_problem" value="true" />
-            <param name="parser" value="popf3" />
+            <param name="parser" value="popf" />
 	</node>
 
 	<!-- standard ROS interfaces -->

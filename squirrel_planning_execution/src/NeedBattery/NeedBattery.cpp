@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
 	std::string problem_path = ss.str();
 	
 	std::string planner_command;
-	nh.getParam("/squirrel_planning_execution/planner_command", planner_command);
+	nh.getParam("/rosplan_planning_system/planner_command", planner_command);
 	
 	rosplan_dispatch_msgs::PlanGoal psrv;
 	psrv.domain_path = domain_path;
