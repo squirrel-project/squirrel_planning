@@ -1,6 +1,6 @@
 (define (domain squirrel_robot_behaviour)
 
-(:requirements :strips :typing :disjunctive-preconditions :negative-preconditions :durative-actions :duration-inequalities :conditional-effects :numeric-fluents)
+(:requirements :strips :typing :disjunctive-preconditions :negative-preconditions :durative-actions :duration-inequalities :conditional-effects :numeric-fluents :equality)
 
 (:types
 	robot
@@ -28,6 +28,7 @@
 	(not_busy)
 	(is_of_type ?o - object ?t - type)
 	(child_has_oxygen ?c - child)
+	(battery_available ?o - object)
 )
 
 (:durative-action goto_waypoint
@@ -47,22 +48,23 @@
 	)
 )
 
-(:durative-action pickup
-	:parameters (?v - robot ?o - object ?wp - waypoint)
+(:durative-action pickup_object
+	:parameters (?v - robot ?robot_wp ?object_wp - waypoint ?o - object)
 	:duration (= ?duration 60)
 	:condition (and
 		(at start (gripper_empty ?v))
-		(over all (robot_at ?v ?wp))
-		(at start (object_at ?o ?wp))
+		(over all (robot_at ?v ?robot_wp))
+		(at start (object_at ?o ?object_wp))
 		(over all (> (power ?v) 0))
 		(at start (not_busy))
+		(over all (= ?robot_wp ?object_wp))
 	)
 	:effect (and
 		(at start (not (not_busy)))
 		(at end (not_busy))
 		(at start (not (gripper_empty ?v)))
 		(at end (holding ?v ?o))
-		(at start (not (object_at ?o ?wp)))
+		(at start (not (object_at ?o ?object_wp)))
 		(at start (decrease (power ?v) (* ?duration 0.05)))
 	)
 )
@@ -76,11 +78,13 @@
 		(over all (is_of_type ?o battery))
 		(at start (not_busy))
 		(over all (child_has_oxygen ?c))
+		(at start (battery_available ?o))
 	)
 	:effect (and 
 		(at start (not (not_busy)))
 		(at end (not_busy))
-		(at end (increase (power ?v) 2))
+		(at start (not (battery_available ?o)))
+		(at end (increase (power ?v) 5))
 	)
 )
 

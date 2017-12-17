@@ -55,10 +55,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the robot robot to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the robot robot to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added robot to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added robot to the knowledge base.");
 	}
 	{
 		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
@@ -78,10 +78,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (robot_at robot kenny_waypoint) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (robot_at robot kenny_waypoint) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (robot_at robot kenny_waypoint) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (robot_at robot kenny_waypoint) to the knowledge base.");
 	}
 	
 	// Robot is not busy initially.
@@ -94,10 +94,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (not_busy) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (not_busy) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (not_busy) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (not_busy) to the knowledge base.");
 	}
 	
 	// Robot is not flashing lights initially.
@@ -110,10 +110,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (not_flashing_lights) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (not_flashing_lights) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (not_flashing_lights) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (not_flashing_lights) to the knowledge base.");
 	}
 	
 	// Robot is not playing sounds initially.
@@ -126,10 +126,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (not_playing_sound) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (not_playing_sound) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (not_playing_sound) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (not_playing_sound) to the knowledge base.");
 	}
 	
 	// Robot is not gazing initially.
@@ -142,10 +142,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (not_gazing) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (not_gazing) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (not_gazing) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (not_gazing) to the knowledge base.");
 	}
 	
 	// Gripper is empty.
@@ -163,10 +163,10 @@ void NeedBattery::initialiseKnowledgeBase()
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (gripper_empty robot) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (gripper_empty robot) to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (gripper_empty robot) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (gripper_empty robot) to the knowledge base.");
 	}
 	
 	// Set initial power.
@@ -184,17 +184,25 @@ void NeedBattery::initialiseKnowledgeBase()
 		
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the function (power %s) = %f to the knowledge base.", kv.value.c_str(), knowledge_item.function_value);
+			ROS_ERROR("KCL: (NeedBattery) Could not add the function (power %s) = %f to the knowledge base.", kv.value.c_str(), knowledge_item.function_value);
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added (power %s) = %f to the knowledge base.", kv.value.c_str(), knowledge_item.function_value);
+		ROS_INFO("KCL: (NeedBattery) Added (power %s) = %f to the knowledge base.", kv.value.c_str(), knowledge_item.function_value);
 	}
 }
 
 void NeedBattery::initialiseGoal()
 {
 	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-	// Set kenny at it's starting waypoint.
+	
+	rosplan_knowledge_msgs::GetInstanceService getInstances;
+	getInstances.request.type_name = "child";
+	if (!get_instance_client_.call(getInstances)) {
+		ROS_ERROR("KCL: (NeedBattery) Failed to get all the child instances.");
+		return;
+	}
+	ROS_INFO("KCL: (NeedBattery) Received all the child instances.");
+	for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
 	{
 		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
 		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
@@ -203,16 +211,16 @@ void NeedBattery::initialiseGoal()
 		
 		diagnostic_msgs::KeyValue kv;
 		kv.key = "c";
-		kv.value = "c1";
+		kv.value = *ci;
 		knowledge_item.values.push_back(kv);
 		
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_GOAL;
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (BehaviourAndEmotion) Could not add the fact (child_has_oxygen c1) to the knowledge base.");
+			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (child_has_oxygen %s) to the knowledge base.", (*ci).c_str());
 			exit(-1);
 		}
-		ROS_INFO("KCL: (BehaviourAndEmotion) Added the fact (child_has_oxygen c1) to the knowledge base.");
+		ROS_INFO("KCL: (NeedBattery) Added the fact (child_has_oxygen %s) to the knowledge base.", (*ci).c_str());
 	}
 }
 

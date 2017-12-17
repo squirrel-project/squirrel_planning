@@ -296,6 +296,13 @@ bool ConfigReader::processToy(const std::vector<std::string>& tokens, mongodb_st
 	addInstance("type", type_predicate);
 	addInstance("waypoint", toy_predicate + "_location");
 	
+	if (type_predicate == "battery")
+	{
+		std::map<std::string, std::string> variables;
+		variables["o"] = toy_predicate;
+		addFact("battery_available", variables, false);
+	}
+	
 	std::map<std::string, std::string> variables;
 	variables["o"] = toy_predicate;
 	variables["t"] = type_predicate;
