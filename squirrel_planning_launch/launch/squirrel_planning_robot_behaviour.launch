@@ -90,6 +90,7 @@
 		<param name="simulate_drop_object" value="true"/>
 		<param name="simulate_child_give_object_to_robot" value="true"/>
 		<param name="simulate_child_pickup" value="true"/>
+		<param name="simulate_give_object" value="true"/>
 	</node>
 
 	<node name="squirrel_interface_mapping" pkg="squirrel_planning_execution" type="needBattery" respawn="false" output="screen">

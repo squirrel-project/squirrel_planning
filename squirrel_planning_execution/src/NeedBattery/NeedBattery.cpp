@@ -1,4 +1,5 @@
 #include "NeedBattery.h"
+#include "PersuadeChild.h"
 #include "squirrel_planning_execution/ConfigReader.h"
 
 #include <actionlib/client/simple_action_client.h>
@@ -19,7 +20,7 @@ namespace KCL_rosplan
 {
 	
 NeedBattery::NeedBattery(ros::NodeHandle& nh)
-	: nh_(nh), message_store_(nh)
+	: nh_(&nh), message_store_(nh)
 {
 	// knowledge interface
 	update_knowledge_client_ = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
@@ -27,6 +28,7 @@ NeedBattery::NeedBattery(ros::NodeHandle& nh)
 	
 	get_instance_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_current_instances");
 	get_attribute_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_current_knowledge");
+	get_current_goals_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_current_goals");
 	
 	
 	// Read and process the configuration file.
@@ -38,7 +40,7 @@ NeedBattery::NeedBattery(ros::NodeHandle& nh)
 	
 	// Initialise the knowledge base and MongoDB for this problem.
 	initialiseKnowledgeBase();
-	initialiseGoal();
+	if (!initialiseGoal()) exit(-1);
 }
 
 void NeedBattery::initialiseKnowledgeBase()
@@ -191,15 +193,34 @@ void NeedBattery::initialiseKnowledgeBase()
 	}
 }
 
-void NeedBattery::initialiseGoal()
-{
-	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
+bool NeedBattery::initialiseGoal()
+{	
+	// Remove all current goals.
+	rosplan_knowledge_msgs::GetAttributeService gat;
+	if (!get_current_goals_client_.call(gat))
+	{
+		ROS_ERROR("KCL: (PersuadeChild) Failed to get all current goals.");
+		return false;
+	}
 	
+	rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
+	knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_GOAL;
+	for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = gat.response.attributes.begin(); ci != gat.response.attributes.end(); ++ci)
+	{
+		knowledge_update_service.request.knowledge = *ci;
+		if (!update_knowledge_client_.call(knowledge_update_service))
+		{
+			ROS_ERROR("KCL: (PersuadeChild) error removing all goals predicate");
+			return false;
+		}
+	}
+	
+	// Add the new goals.
 	rosplan_knowledge_msgs::GetInstanceService getInstances;
 	getInstances.request.type_name = "child";
 	if (!get_instance_client_.call(getInstances)) {
 		ROS_ERROR("KCL: (NeedBattery) Failed to get all the child instances.");
-		return;
+		return false;
 	}
 	ROS_INFO("KCL: (NeedBattery) Received all the child instances.");
 	for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
@@ -218,10 +239,11 @@ void NeedBattery::initialiseGoal()
 		knowledge_update_service.request.knowledge = knowledge_item;
 		if (!update_knowledge_client_.call(knowledge_update_service)) {
 			ROS_ERROR("KCL: (NeedBattery) Could not add the fact (child_has_oxygen %s) to the knowledge base.", (*ci).c_str());
-			exit(-1);
+			return false;
 		}
 		ROS_INFO("KCL: (NeedBattery) Added the fact (child_has_oxygen %s) to the knowledge base.", (*ci).c_str());
 	}
+	return true;
 }
 
 };
@@ -233,6 +255,7 @@ int main(int argc, char **argv) {
 
 	// create PDDL action subscriber
 	KCL_rosplan::NeedBattery need_battery(nh);
+	KCL_rosplan::PersuadeChild persuade_child(nh);
 	
 	// Start the planning process.
 	std::string data_path;

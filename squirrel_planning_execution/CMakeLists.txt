@@ -138,6 +138,8 @@ set(recommenderTester_SOURCES
 set(needBattery_SOURCES
   src/ConfigReader.cpp
   src/NeedBattery/NeedBattery.cpp
+  src/NeedBattery/PersuadeChild.cpp
+  src/pddl_actions/PlannerInstance.cpp
 )
   
 ## planning simulation

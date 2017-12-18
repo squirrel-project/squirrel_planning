@@ -88,8 +88,8 @@
 	)
 )
 
-(:durative-action given-oxygen-to-child
-	:parameters (?v - robot ?c - child ?o - object)
+(:durative-action give_object
+	:parameters (?v - robot ?wp - waypoint ?c - child ?o - object)
 	:duration (= ?duration 60)
 	:condition (and
 		(at start (holding ?v ?o))
@@ -97,6 +97,7 @@
 		(over all (> (power ?v) 0))
 		(over all (is_of_type ?o oxygen))
 		(at start (not_busy))
+		(over all (robot_at ?v ?wp))
 	)
 	:effect (and 
 		(at end (gripper_empty ?v))

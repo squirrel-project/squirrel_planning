@@ -27,9 +27,9 @@ private:
 	/**
 	 * Set the goal.
 	 */
-	void initialiseGoal();
+	bool initialiseGoal();
 	
-	ros::NodeHandle nh_;
+	ros::NodeHandle* nh_;
 	mongodb_store::MessageStoreProxy message_store_;
 	
 	ros::ServiceClient update_knowledge_client_;
@@ -37,6 +37,7 @@ private:
 	
 	ros::ServiceClient get_instance_client_;
 	ros::ServiceClient get_attribute_client_;
+	ros::ServiceClient get_current_goals_client_;
 };
 
 };
