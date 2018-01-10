@@ -25,6 +25,8 @@ ConfigReader::ConfigReader(ros::NodeHandle &nh)
 	
 	get_instance_client = nh.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_current_instances");
 	get_attribute_client = nh.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_current_knowledge");
+	
+	vis_pub = nh.advertise<visualization_msgs::Marker>("/config_viz", 1, false);
 }
 
 void ConfigReader::tokenise(const std::string& s, std::vector<std::string>& tokens)
