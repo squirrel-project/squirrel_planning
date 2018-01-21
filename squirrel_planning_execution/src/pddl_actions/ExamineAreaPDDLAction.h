@@ -6,6 +6,7 @@
 
 namespace KCL_rosplan
 {
+class KnowledgeBase;
 
 /**
  * An instance of this class gets called whenever the PDDL action 'examine_area' (or variants thereof) is
@@ -18,8 +19,9 @@ public:
 	/**
 	 * Constructor.
 	 * @param node_handle An existing and initialised ros node handle.
+	 * @param kb The knowledge base that contains all facts.
 	 */
-	ExamineAreaPDDLAction(ros::NodeHandle& node_handle);
+	ExamineAreaPDDLAction(ros::NodeHandle& node_handle, KCL_rosplan::KnowledgeBase& kb);
 	
 	/**
 	 * Destructor
@@ -43,9 +45,9 @@ private:
 	static std::string g_action_name;            // The action name as specified in PDDL files.
 	
 	ros::NodeHandle* node_handle_;               // The ROS node.
+	KCL_rosplan::KnowledgeBase* knowledge_base_; // The knowledge base.
 	bool is_simulated_;                          // Whether this action is to be simulated.
 	
-	ros::ServiceClient update_knowledge_client_; // Service client to update the knowledge base.
 	ros::ServiceClient get_instance_client_;     // Service client to get instances stored by ROSPlan.
 	ros::ServiceClient get_attribute_client_;    // Service client to get attributes of instances stored by ROSPlan.
 	ros::Publisher action_feedback_pub_;         // Publisher that communicates feedback to ROSPlan.

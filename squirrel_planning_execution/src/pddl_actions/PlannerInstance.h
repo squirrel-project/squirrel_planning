@@ -20,8 +20,9 @@ public:
 	/**
 	 * Create an instance of the ROS Planner.
 	 * @param node_handle A ROS node handle.
+	 * @param parser Should be: "ff", "popf", or "popf3".
 	 */
-	static PlannerInstance& createInstance(ros::NodeHandle& node_handle);
+	static PlannerInstance& createInstance(ros::NodeHandle& node_handle, const std::string& parser);
 	
 	/**
 	 * Destructor

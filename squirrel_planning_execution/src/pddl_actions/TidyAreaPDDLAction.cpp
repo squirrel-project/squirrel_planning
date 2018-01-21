@@ -20,7 +20,8 @@
 
 #include <tf/tf.h>
 
-#include "squirrel_planning_execution/ClassicalTidyPDDLGenerator.h"
+#include <squirrel_planning_execution/ClassicalTidyPDDLGenerator.h>
+#include <squirrel_planning_execution/KnowledgeBase.h>
 
 #include "TidyAreaPDDLAction.h"
 #include "PlannerInstance.h"
@@ -31,11 +32,9 @@ namespace KCL_rosplan {
 
 	std::string TidyAreaPDDLAction::g_action_name = "tidy_area";
 	
-	TidyAreaPDDLAction::TidyAreaPDDLAction(ros::NodeHandle& node_handle)
-		: node_handle_(&node_handle), message_store_(node_handle)
+	TidyAreaPDDLAction::TidyAreaPDDLAction(ros::NodeHandle& node_handle, KCL_rosplan::KnowledgeBase& kb)
+		: node_handle_(&node_handle), knowledge_base_(&kb), message_store_(node_handle)
 	{
-		update_knowledge_client_ = node_handle.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
-		
 		// create the action feedback publisher
 		action_feedback_pub_ = node_handle.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
 		
@@ -74,7 +73,7 @@ namespace KCL_rosplan {
 		
 		ROS_INFO("KCL: (TidyAreaPDDLAction) action recieved %s", action_name.c_str());
 		
-		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_);
+		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff");
 		
 		// Lets start the planning process.
 		std::string data_path;
@@ -247,42 +246,22 @@ namespace KCL_rosplan {
 			
 			std::vector<std::string> waypoints_near_box;
 			
-			rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-			knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			
-			rosplan_knowledge_msgs::KnowledgeItem kenny_knowledge;
-			kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-			
 			waypoints_near_box.push_back(ss.str());
 			
-			kenny_knowledge.instance_type = "waypoint";
-			kenny_knowledge.instance_name = ss.str();
-			
-			knowledge_update_service.request.knowledge = kenny_knowledge;
-			if (!update_knowledge_client_.call(knowledge_update_service)) {
+			if (!knowledge_base_->addInstance("waypoint", ss.str()))
+			{
 				ROS_ERROR("KCL: (TidyAreaPDDLAction) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (TidyAreaPDDLAction) Added %s to the knowledge base.", ss.str().c_str());
 			
-			kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-			kenny_knowledge.attribute_name = "near_for_dropping";
-			kenny_knowledge.is_negative = false;
-			diagnostic_msgs::KeyValue kv;
-			kv.key = "wp1";
-			kv.value = ss.str();
-			kenny_knowledge.values.push_back(kv);
-			kv.key = "wp2";
-			kv.value = box_location_predicate;
-			kenny_knowledge.values.push_back(kv);
-			knowledge_update_service.request.knowledge = kenny_knowledge;
-			if (!update_knowledge_client_.call(knowledge_update_service)) {
+			std::map<std::string, std::string> parameters;
+			parameters["wp1"] = ss.str();
+			parameters["wp2"] = box_location_predicate;
+			if (!knowledge_base_->addFact("near_for_dropping", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE))
+			{
 				ROS_ERROR("KCL: (TidyAreaPDDLAction) Could not add the fact (near %s %s) to the knowledge base.", ss.str().c_str(), box_location_predicate.c_str());
 				exit(-1);
 			}
-			ROS_INFO("KCL: (TidyAreaPDDLAction) Added (near %s %s) to the knowledge base.", ss.str().c_str(), box_location_predicate.c_str());
-			kenny_knowledge.values.clear();
-
 			near_box_location_mapping[box_location_predicate] = waypoints_near_box;
 		}
 		
@@ -444,28 +423,19 @@ namespace KCL_rosplan {
 				geometry_msgs::Pose obj_pose = object_to_pose_mapping[object_predicate];
 				
 				/**
-					* Create a waypoint for grasping.
-					*/
-				rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-				
-				rosplan_knowledge_msgs::KnowledgeItem kenny_knowledge;
-				kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
+				 * Create a waypoint for grasping.
+				 */
 				std::stringstream ss;
 				ss << "near_for_grasping_" << object_predicate;
 				
 				std::vector<std::string> grasping_waypoints;
 				grasping_waypoints.push_back(ss.str());
 				
-				kenny_knowledge.instance_type = "waypoint";
-				kenny_knowledge.instance_name = ss.str();
-				
-				knowledge_update_service.request.knowledge = kenny_knowledge;
-				if (!update_knowledge_client_.call(knowledge_update_service)) {
+				if (!knowledge_base_->addInstance("waypoint", ss.str()))
+				{
 					ROS_ERROR("KCL: (TidyAreaPDDLAction) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
 					exit(-1);
 				}
-				ROS_INFO("KCL: (TidyAreaPDDLAction) Added %s to the knowledge base.", ss.str().c_str());
 				
 				if (!is_simulated_)
 				{
@@ -494,6 +464,15 @@ namespace KCL_rosplan {
 					std::string near_waypoint_mongodb_id(message_store_.insertNamed(ss.str(), near_pose));
 				}
 				
+				std::map<std::string, std::string> parameters;
+				parameters["wp1"] = ss.str();
+				parameters["wp2"] = object_to_location_mapping[object_predicate];
+				if (!knowledge_base_->addFact("near_for_grasping", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE))
+				{
+					ROS_ERROR("KCL: (TidyAreaPDDLAction) Could not add the fact (near %s %s) to the knowledge base.", ss.str().c_str(), object_predicate.c_str());
+					exit(-1);
+				}
+				/*
 				kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
 				kenny_knowledge.attribute_name = "near_for_grasping";
 				kenny_knowledge.is_negative = false;
@@ -511,7 +490,7 @@ namespace KCL_rosplan {
 				}
 				ROS_INFO("KCL: (TidyAreaPDDLAction) Added (near %s %s) to the knowledge base.", ss.str().c_str(), object_predicate.c_str());
 				kenny_knowledge.values.clear();
-
+				*/
 				grasping_waypoint_mappings[object_to_location_mapping[object_predicate]] = grasping_waypoints;
 				
 				/**
@@ -555,6 +534,7 @@ namespace KCL_rosplan {
 				std::vector<std::string> pushing_waypoints;
 				pushing_waypoints.push_back(ss.str());
 				
+				/*
 				kenny_knowledge.instance_type = "waypoint";
 				kenny_knowledge.instance_name = ss.str();
 				
@@ -582,6 +562,22 @@ namespace KCL_rosplan {
 				}
 				ROS_INFO("KCL: (TidyAreaPDDLAction) Added (near %s %s) to the knowledge base.", ss.str().c_str(), object_predicate.c_str());
 				kenny_knowledge.values.clear();
+				*/
+				
+				if (!knowledge_base_->addInstance("waypoint", ss.str()))
+				{
+					ROS_ERROR("KCL: (TidyAreaPDDLAction) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
+					exit(-1);
+				}
+				
+				parameters.clear();
+				parameters["wp1"] = ss.str();
+				parameters["wp2"] = object_to_location_mapping[object_predicate];
+				if (!knowledge_base_->addFact("near_for_grasping", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE))
+				{
+					ROS_ERROR("KCL: (TidyAreaPDDLAction) Could not add the fact (near %s %s) to the knowledge base.", ss.str().c_str(), object_predicate.c_str());
+					exit(-1);
+				}
 
 				pushing_waypoint_mappings[object_to_location_mapping[object_predicate]] = pushing_waypoints;
 			}

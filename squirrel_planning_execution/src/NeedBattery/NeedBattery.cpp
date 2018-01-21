@@ -35,8 +35,8 @@ NeedBattery::NeedBattery(ros::NodeHandle& nh)
 	std::string config_file;
 	nh.getParam("/scenario_setup_file", config_file);
 	
-	ConfigReader reader(nh);
-	reader.readConfigurationFile(config_file, message_store_);
+	ConfigReader reader(nh, message_store_);
+	reader.readConfigurationFile(config_file);
 	
 	// Initialise the knowledge base and MongoDB for this problem.
 	initialiseKnowledgeBase();

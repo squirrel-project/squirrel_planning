@@ -79,7 +79,7 @@ namespace KCL_rosplan {
 		
 		ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) action recieved %s", action_name.c_str());
 		
-		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_);
+		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff");
 		
 		// Lets start the planning process.
 		std::string data_path;

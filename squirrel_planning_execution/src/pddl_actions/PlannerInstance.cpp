@@ -1,12 +1,12 @@
 #include "PlannerInstance.h"
-
+#include <iostream>	 	
 
 namespace KCL_rosplan
 {
 
 unsigned int PlannerInstance::total_planner_instances_ = 0;
 	
-PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle)
+PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle, const std::string& parser)
 {
 	++total_planner_instances_;
 	
@@ -16,6 +16,7 @@ PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle)
 	
 	std::stringstream commandLine;
 	commandLine << "rosrun rosplan_planning_system planner ";
+	commandLine << "parser=" << parser << " ";
 	commandLine << "/rosplan_planning_system:=/" << nspace.str() << "/rosplan_planning_system ";
 	commandLine << "/kcl_rosplan/plan:=/kcl_rosplan/" << nspace.str() << "/plan ";
 	commandLine << "/kcl_rosplan/system_state:=/kcl_rosplan/" << nspace.str() << "/system_state ";
@@ -24,6 +25,7 @@ PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle)
 	commandLine << "/kcl_rosplan/planning_server_params:=/kcl_rosplan/" << nspace.str() << "/planning_server_params ";
 	commandLine << "/kcl_rosplan/start_planning:=/kcl_rosplan/" << nspace.str() << "/start_planning ";
 	commandLine << "&";
+	std::cout << commandLine.str() << std::endl;
 	int return_value = system(commandLine.str().c_str());
 
 	PlannerInstance* planning_instance = new PlannerInstance(node_handle, nspace.str(), total_planner_instances_);

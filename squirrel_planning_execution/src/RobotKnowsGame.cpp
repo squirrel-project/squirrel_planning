@@ -719,7 +719,7 @@ void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg
 	fb.status = "action enabled";
 	action_feedback_pub.publish(fb);
 	
-	KCL_rosplan::PlannerInstance& planner_instance = KCL_rosplan::PlannerInstance::createInstance(*nh);
+	KCL_rosplan::PlannerInstance& planner_instance = KCL_rosplan::PlannerInstance::createInstance(*nh, "ff");
 	
 	// Lets start the planning process.
 	std::string data_path;
