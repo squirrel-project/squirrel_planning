@@ -122,8 +122,7 @@ namespace KCL_rosplan {
 		
 		// Cleanup any waypoints that have been explored.
 		std::vector<rosplan_knowledge_msgs::KnowledgeItem> all_facts;
-		
-		if (!knowledge_base_->getAllFacts(all_facts))
+		if (!knowledge_base_->getFacts(all_facts, "explored"))
 		{
 			ROS_INFO("KCL: (ExploreAreaPDDLAction) Failed to get all actions!");
 			exit(-1);
@@ -133,11 +132,30 @@ namespace KCL_rosplan {
 		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = all_facts.begin(); ci != all_facts.end(); ++ci)
 		{
 			const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
-			if (ki.attribute_name == "explored")
-			{
-				knowledge_base_->removeFact(ki, KnowledgeBase::KB_REMOVE_KNOWLEDGE);
-				//knowledge_base_->removeInstance("waypoint", ki.values[0].value);
-			}
+			knowledge_base_->removeFact(ki, KnowledgeBase::KB_REMOVE_KNOWLEDGE);
+			knowledge_base_->removeInstance("waypoint", ki.values[0].value);
+		}
+		
+		// Reset the robot back to the default waypoint.
+		all_facts.clear();
+		if (!knowledge_base_->getFacts(all_facts, "robot_at"))
+		{
+			ROS_INFO("KCL: (ExploreAreaPDDLAction) Failed to get all actions!");
+			exit(-1);
+		}
+		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = all_facts.begin(); ci != all_facts.end(); ++ci)
+		{
+			const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
+			knowledge_base_->removeFact(ki, KnowledgeBase::KB_REMOVE_KNOWLEDGE);
+		}
+		
+		std::map<std::string, std::string> params;
+		params["v"] = "robot";
+		params["wp"] = "kenny_waypoint";
+		if (!knowledge_base_->addFact("robot_at", params, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE))
+		{
+			ROS_INFO("KCL: (ExploreAreaPDDLAction) Failed to reset the waypoint of the robot!");
+			exit(-1);
 		}
 
 		if(state == actionlib::SimpleClientGoalState::SUCCEEDED)

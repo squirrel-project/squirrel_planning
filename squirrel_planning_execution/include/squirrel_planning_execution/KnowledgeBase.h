@@ -52,6 +52,21 @@ public:
 	bool removeInstance(const std::string& type, const std::string& name);
 	
 	/**
+	 * Get all instances.
+	 * @param store Place to store all found instances.
+	 * @return True if all instances could be found, false otherwise.
+	 */
+	bool getAllInstances(std::vector<std::string>& store);
+	
+	/**
+	 * Get all instances of the given type.
+	 * @param store Place to store all found instances.
+	 * @param type The type we are looking for.
+	 * @return True if the instances could be queried, false otherwise.
+	 */
+	bool getInstances(std::vector<std::string>& store, const std::string& type);
+	
+	/**
 	 * Add a fact to the knowledge base.
 	 * @param predicate The predicate of the new fact.
 	 * @param parameters The parameters of the new fact, they need to match the parameters in the PDDL domain.
@@ -119,6 +134,14 @@ public:
 	bool getAllFacts(std::vector<rosplan_knowledge_msgs::KnowledgeItem>& store);
 	
 	/**
+	 * Get all facts of the given predicate that are in the knowledge base.
+	 * @param store All retreived facts are added to this vector.
+	 * @param predicate The predicate we are looking for.
+	 * @return True if the facts could be retreived, false if something went wrong.
+	 */
+	bool getFacts(std::vector<rosplan_knowledge_msgs::KnowledgeItem>& store, const std::string& predicate);
+	
+	/**
 	 * Check if a fact is true.
 	 * @param predicate The predicate of the fact to be removed.
 	 * @param parameters The parameters of the fact to be removed, they need to match the parameters in the PDDL domain.
@@ -161,6 +184,7 @@ private:
 	ros::ServiceClient query_knowledge_client_;
 	
 	ros::ServiceClient get_domain_predicates_client_;
+	ros::ServiceClient get_domain_types_client_;
 	ros::ServiceClient get_instance_client_;
 	ros::ServiceClient get_attribute_client_;
 	ros::ServiceClient get_current_goals_client_;

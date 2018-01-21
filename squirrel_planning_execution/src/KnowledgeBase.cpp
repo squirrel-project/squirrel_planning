@@ -12,6 +12,7 @@
 #include <rosplan_knowledge_msgs/GetInstanceService.h>
 #include <rosplan_knowledge_msgs/GetAttributeService.h>
 #include <rosplan_knowledge_msgs/GetDomainAttributeService.h>
+#include <rosplan_knowledge_msgs/GetDomainTypeService.h>
 
 namespace KCL_rosplan
 {
@@ -22,6 +23,7 @@ KnowledgeBase::KnowledgeBase(ros::NodeHandle& nh, mongodb_store::MessageStorePro
 	query_knowledge_client_ = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeQueryService>("/kcl_rosplan/query_knowledge_base");
 	
 	get_domain_predicates_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetDomainAttributeService>("/kcl_rosplan/get_domain_predicates");
+	get_domain_types_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetDomainTypeService>("/kcl_rosplan/get_domain_types");
 	get_instance_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_current_instances");
 	get_attribute_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_current_knowledge");
 	get_current_goals_client_ = nh.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_current_goals");
@@ -63,6 +65,41 @@ bool KnowledgeBase::removeInstance(const std::string& type, const std::string& n
 	}
 	ROS_INFO("KCL: (KnowledgeBase) Removed the instance %s of type %s from the knowledge base.", name.c_str(), type.c_str());
 	return true;
+}
+
+bool KnowledgeBase::getAllInstances(std::vector<std::string>& store)
+{
+	ROS_INFO("KCL: (KnowledgeBase) Get all instances.");
+	
+	rosplan_knowledge_msgs::GetDomainTypeService get_domain_type_service;
+	if (!get_domain_types_client_.call(get_domain_type_service))
+	{
+		ROS_ERROR("KCL: (KnowledgeBase) error getting all types.");
+		return false;
+	}
+	
+	for (std::vector<std::string>::const_iterator ci = get_domain_type_service.response.types.begin();
+		  ci != get_domain_type_service.response.types.end(); ++ci)
+	{
+		if (!getInstances(store, *ci))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool KnowledgeBase::getInstances(std::vector< std::string >& store, const std::string& type)
+{
+	rosplan_knowledge_msgs::GetInstanceService getInstances;
+	getInstances.request.type_name = type;
+	if (!get_instance_client_.call(getInstances))
+	{
+		ROS_ERROR("KCL: (KnowledgeBase) Failed to get all the instances of type %s.", type.c_str());
+		return false;
+	}
+	ROS_INFO("KCL: (KnowledgeBase) Received all the instances of type %s.", type.c_str());
+	store.insert(store.end(), getInstances.response.instances.begin(), getInstances.response.instances.end());
 }
 
 bool KnowledgeBase::addFact(const std::string& predicate, const std::map<std::string, std::string>& parameters, bool is_true, AddUpdateTarget target)
@@ -198,21 +235,31 @@ bool KnowledgeBase::getAllFacts(std::vector<rosplan_knowledge_msgs::KnowledgeIte
 		  ci != get_domain_predicates_service.response.items.end(); ++ci)
 	{
 		ROS_INFO("KCL: (KnowledgeBase) Getting all facts with the predicate %s.", ci->name.c_str());
-		rosplan_knowledge_msgs::GetAttributeService get_attribute;
-		get_attribute.request.predicate_name = ci->name;
-		if (!get_attribute_client_.call(get_attribute)) {
-			ROS_ERROR("KCL: (KnowledgeBase) Failed to recieve the attributes of the predicate '%s'", ci->name.c_str());
+		if (!getFacts(store, ci->name))
+		{
 			return false;
 		}
-		store.insert(store.end(), get_attribute.response.attributes.begin(), get_attribute.response.attributes.end());
-		
-		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = get_attribute.response.attributes.begin();
-			  ci != get_attribute.response.attributes.end(); ++ci)
-		{
-			std::string s = toString(*ci);
-			ROS_INFO("KCL: (KnowledgeBase) Found the fact %s.", s.c_str());
-		}
 	}
+	return true;
+}
+
+bool KnowledgeBase::getFacts(std::vector<rosplan_knowledge_msgs::KnowledgeItem>& store, const std::string& predicate)
+{
+	rosplan_knowledge_msgs::GetAttributeService get_attribute;
+	get_attribute.request.predicate_name = predicate;
+	if (!get_attribute_client_.call(get_attribute)) {
+		ROS_ERROR("KCL: (KnowledgeBase) Failed to recieve the attributes of the predicate '%s'", predicate.c_str());
+		return false;
+	}
+	
+	for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = get_attribute.response.attributes.begin();
+			ci != get_attribute.response.attributes.end(); ++ci)
+	{
+		std::string s = toString(*ci);
+		ROS_DEBUG("KCL: (KnowledgeBase) Found the fact %s.", s.c_str());
+	}
+	
+	store.insert(store.end(), get_attribute.response.attributes.begin(), get_attribute.response.attributes.end());
 	return true;
 }
 
