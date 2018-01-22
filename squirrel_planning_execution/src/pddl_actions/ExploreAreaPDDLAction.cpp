@@ -239,10 +239,10 @@ namespace KCL_rosplan {
 				return false;
 			}
 			
-			tf::Vector3 p1(transform.getOrigin().getX() - 1.0f, transform.getOrigin().getY() - 1.0f, 0.00);
-			tf::Vector3 p2(transform.getOrigin().getX() + 1.0f, transform.getOrigin().getY() - 1.0f, 0.00);
-			tf::Vector3 p3(transform.getOrigin().getX() + 1.0f, transform.getOrigin().getY() + 1.0f, 0.00);
-			tf::Vector3 p4(transform.getOrigin().getX() + 1.0f, transform.getOrigin().getY() - 1.0f, 0.00);
+			tf::Vector3 p1(transform.getOrigin().getX() - 5.0f, transform.getOrigin().getY() - 5.0f, 0.00);
+			tf::Vector3 p2(transform.getOrigin().getX() + 5.0f, transform.getOrigin().getY() - 5.0f, 0.00);
+			tf::Vector3 p3(transform.getOrigin().getX() + 5.0f, transform.getOrigin().getY() + 5.0f, 0.00);
+			tf::Vector3 p4(transform.getOrigin().getX() + 5.0f, transform.getOrigin().getY() - 5.0f, 0.00);
 			bounding_box.push_back(p1);
 			bounding_box.push_back(p3);
 			bounding_box.push_back(p4);
