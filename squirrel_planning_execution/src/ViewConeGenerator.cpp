@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <time.h> 
+#define VIEWCONE_DEBUG_ENABLED
 
 namespace KCL_rosplan {
 
@@ -37,7 +38,7 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 	for (int y = 0; y < last_received_occupancy_grid_msgs_.info.height; ++y) {
 		for (int x = 0; x < last_received_occupancy_grid_msgs_.info.width; ++x) {
 			if (last_received_occupancy_grid_msgs_.data[x + y * last_received_occupancy_grid_msgs_.info.width] > occupancy_threshold ||
-			    last_received_occupancy_grid_msgs_.data[x + y * last_received_occupancy_grid_msgs_.info.width] == -1) {
+				last_received_occupancy_grid_msgs_.data[x + y * last_received_occupancy_grid_msgs_.info.width] == -1) {
 				processed_cells[x + y * last_received_occupancy_grid_msgs_.info.width] = true;
 			} else {
 				processed_cells[x + y * last_received_occupancy_grid_msgs_.info.width] = false;
@@ -47,24 +48,52 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 	
 	ROS_INFO("(ViewConeGenerator) Initialised the processed cells.");
 	
+	// Limit the sample range.
+	geometry_msgs::Point min_point;
+	min_point.x = 1000;
+	min_point.y = 1000;
+	min_point.z = 0;
+	geometry_msgs::Point max_point;
+	max_point.x = -1000;
+	max_point.y = -1000;
+	max_point.z = 0;
+
+	for (std::vector<tf::Vector3>::const_iterator ci = bounding_box.begin(); ci != bounding_box.end(); ++ci)
+	{
+		const tf::Vector3& v = *ci;
+		if (v.getX() < min_point.x) min_point.x = v.getX();
+		if (v.getX() > max_point.x) max_point.x = v.getX();
+		if (v.getY() < min_point.y) min_point.y = v.getY();
+		if (v.getY() > max_point.y) max_point.y = v.getY();
+	}
+
+	
+	ROS_INFO("(ViewConeGenerator) Find poses between [%f, %f] [%f, %f]!", min_point.x, max_point.x, min_point.y, max_point.y);
+	
 	for (unsigned int i = 0; i < max_view_cones; ++i) {
 		//ROS_INFO("(ViewConeGenerator) Process view cone: %d.", i);
 		// First we generate a bunch of random view cones and rate them.
 		geometry_msgs::Pose best_pose;
 		std::vector<occupancy_grid_utils::Cell> best_visible_cells;
 		for (unsigned int j = 0; j < sample_size; ++j) {
-			int grid_x = ((float)rand() / (float)RAND_MAX) * last_received_occupancy_grid_msgs_.info.width;
-			int grid_y = ((float)rand() / (float)RAND_MAX) * last_received_occupancy_grid_msgs_.info.height;
+//			int grid_x = ((float)rand() / (float)RAND_MAX) * last_received_occupancy_grid_msgs_.info.width;
+//			int grid_y = ((float)rand() / (float)RAND_MAX) * last_received_occupancy_grid_msgs_.info.height;
+			geometry_msgs::Point p;
+			p.x = ((float)rand() / (float)RAND_MAX) * (max_point.x - min_point.x) + (max_point.x + min_point.x) / 2.0f;
+			p.y = ((float)rand() / (float)RAND_MAX) * (max_point.y - min_point.y) + (max_point.y + min_point.y) / 2.0f;
+			p.z = 0;
 			
-			occupancy_grid_utils::Cell c(grid_x, grid_y);
-			
-			geometry_msgs::Point p = occupancy_grid_utils::cellCenter(last_received_occupancy_grid_msgs_.info, c);
+			occupancy_grid_utils::Cell c = occupancy_grid_utils::pointCell(last_received_occupancy_grid_msgs_.info, p);
+			int grid_x = c.x;
+			int grid_y = c.y;
 			
 			// Check if this cell point is not too close to any obstacles.
 			if (isBlocked(p, safe_distance)) {
+//				  ROS_INFO("(ViewConeGenerator) Blocked!");
 				continue;
 			}
 			
+			/*
 			// Check if this point falls within the bounding box.
 			{
 				bool falls_within_bounded_box = true;
@@ -92,8 +121,13 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 					}
 				}
 				
-				if (!falls_within_bounded_box) continue;
+				if (!falls_within_bounded_box)
+				{
+					ROS_INFO("(ViewConeGenerator) Not within bounding box!");
+					continue;
+				}
 			}
+			*/
 			float yaw = ((float)rand() / (float)RAND_MAX) * 2 * M_PI;
 			
 			//ROS_INFO("(ViewConeGenerator) Sample cone: (%d, %d) %f.", grid_x, grid_y, yaw);
@@ -171,8 +205,8 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 				// If both cross produces have the same sign we are good.
 				bool is_in_triangle = false;
 				if ((cross_v1.z() > 0 && cross_v2.z() > 0 && cross_v3.z() > 0) ||
-				    (cross_v1.z() < 0 && cross_v2.z() < 0 && cross_v3.z() < 0) ||
-				    (cell.x == c.x && cell.y == c.y)) {
+					(cross_v1.z() < 0 && cross_v2.z() < 0 && cross_v3.z() < 0) ||
+					(cell.x == c.x && cell.y == c.y)) {
 					is_in_triangle = true;
 				}
 				
@@ -201,7 +235,7 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 				for (int x = cell.x - 1; x < cell.x + 2; ++x) {
 					for (int y = cell.y - 1; y < cell.y + 2; ++y) {
 						if (x > -1 && x + 1 < last_received_occupancy_grid_msgs_.info.width &&
-						    y > -1 && y + 1 < last_received_occupancy_grid_msgs_.info.height)
+							y > -1 && y + 1 < last_received_occupancy_grid_msgs_.info.height)
 						{
 							new_cell.x = x;
 							new_cell.y = y;
@@ -245,7 +279,7 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 		}
 		
 		if (best_visible_cells.empty()) {
-			ROS_INFO("(ViewConeGenerator) No good poses found!");
+			//ROS_INFO("(ViewConeGenerator) No good poses found!");
 			continue;
 		}
 		
