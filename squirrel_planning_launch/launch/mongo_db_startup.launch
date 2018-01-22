@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node name="rosplan_scene_database" pkg="mongodb_store" type="mongodb_server.py" respawn="false" output="screen">
+		<param name="database_path" value="$(find rosplan_knowledge_base)/common/mongoDB" />
+    </node>
+
+	<node name="rosplan_scene_message_store" pkg="mongodb_store" type="message_store_node.py" respawn="false" output="log" />
+
+</launch>

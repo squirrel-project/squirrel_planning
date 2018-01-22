@@ -480,7 +480,7 @@ namespace KCL_rosplan {
 		ros::NodeHandle nh;
 
 		std::string actionserver;
-		nh.param("action_server", actionserver, std::string("/squirrel_look_for_objects_in_hand"));
+		nh.param("action_server", actionserver, std::string("/squirrel_recognize_objects"));
 
 		// create PDDL action subscriber
 		KCL_rosplan::RPPerceptionAction rppa(nh, actionserver);
