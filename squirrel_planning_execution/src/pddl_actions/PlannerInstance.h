@@ -21,8 +21,9 @@ public:
 	 * Create an instance of the ROS Planner.
 	 * @param node_handle A ROS node handle.
 	 * @param parser Should be: "ff", "popf", or "popf3".
+     * @param generate_default_problem If true then ROSPlan generate its own problem, otherwise it does not.
 	 */
-	static PlannerInstance& createInstance(ros::NodeHandle& node_handle, const std::string& parser);
+	static PlannerInstance& createInstance(ros::NodeHandle& node_handle, const std::string& parser, bool generate_default_problem);
 	
 	/**
 	 * Destructor

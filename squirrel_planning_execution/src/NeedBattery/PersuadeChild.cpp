@@ -101,7 +101,7 @@ void PersuadeChild::dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch
 	ROS_INFO("KCL: (PersuadeChild) Process the action: %s, %s gives %s to %s at %s", normalised_action_name.c_str(), child.c_str(), object.c_str(), robot.c_str(), child_waypoint.c_str());
 	bool actionAchieved = false;
 	
-	PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff");
+	PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff", true);
 	
 	// Lets start the planning process.
 	std::string data_path;

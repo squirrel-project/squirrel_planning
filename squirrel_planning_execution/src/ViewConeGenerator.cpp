@@ -79,8 +79,8 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 //			int grid_x = ((float)rand() / (float)RAND_MAX) * last_received_occupancy_grid_msgs_.info.width;
 //			int grid_y = ((float)rand() / (float)RAND_MAX) * last_received_occupancy_grid_msgs_.info.height;
 			geometry_msgs::Point p;
-			p.x = ((float)rand() / (float)RAND_MAX) * (max_point.x - min_point.x) + (max_point.x + min_point.x) / 2.0f;
-			p.y = ((float)rand() / (float)RAND_MAX) * (max_point.y - min_point.y) + (max_point.y + min_point.y) / 2.0f;
+			p.x = ((float)rand() / (float)RAND_MAX) * (max_point.x - min_point.x) + min_point.x;
+			p.y = ((float)rand() / (float)RAND_MAX) * (max_point.y - min_point.y) + min_point.y;
 			p.z = 0;
 			
 			occupancy_grid_utils::Cell c = occupancy_grid_utils::pointCell(last_received_occupancy_grid_msgs_.info, p);
@@ -304,8 +304,60 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 	visualiseViewCones(poses, view_distance, fov);
 }
 
+void ViewConeGenerator::getNextColour(float& r, float& g, float& b) const
+{
+	static float h_org = 360.0f * ((float)rand() / (float)RAND_MAX);
+	h_org += 0.618033988749895 * 360.0f;
+	h_org = fmod(h_org, 360);
+
+	float h = h_org;
+	float s = 1.0f;
+	float v = 0.75;
+	float p, q, t, fract;
+	(h == 360.) ? (h = 0.) : (h /= 60.);
+	
+	fract = h - floor(h);
+
+	p = v*(1. - s);
+	q = v*(1. - s*fract);
+	t = v*(1. - s*(1. - fract));
+
+	if (0. <= h && h < 1.)
+	{
+		r = v; g = t; b = p;
+	}
+	else if (1. <= h && h < 2.)
+	{
+		r = q; g = v; b = p;
+	}
+	else if (2. <= h && h < 3.)
+	{
+		r = p; g = v; b = t;
+	}
+	else if (3. <= h && h < 4.)
+	{
+		r = p; g = q; b = v;
+	}
+	else if (4. <= h && h < 5.)
+	{
+		r = t; g = p; b = v;
+	}
+	else if (5. <= h && h < 6.)
+	{
+		r = v; g = p; b = q;
+	}
+	else
+	{
+		r = 0; g = 0; b = 0;
+	}
+}
+
 void ViewConeGenerator::visualiseViewCones(const std::vector<geometry_msgs::Pose>& poses, float view_distance, float fov) const
 {
+	// Colours.
+
+
+
 	std::vector<geometry_msgs::Point> waypoints;
 	std::vector<std_msgs::ColorRGBA> waypoint_colours;
 	std::vector<geometry_msgs::Point> triangle_points;
@@ -376,9 +428,7 @@ void ViewConeGenerator::visualiseViewCones(const std::vector<geometry_msgs::Pose
 		triangle_points.push_back(pose_v2);
 		
 		std_msgs::ColorRGBA colour;
-		colour.r = (float)rand() / (float)RAND_MAX;
-		colour.b = (float)rand() / (float)RAND_MAX;
-		colour.g = (float)rand() / (float)RAND_MAX;
+		getNextColour(colour.r, colour.b, colour.g);
 		colour.a = 1.0f;
 		triangle_colours.push_back(colour);
 		triangle_colours.push_back(colour);

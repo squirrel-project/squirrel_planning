@@ -1,6 +1,8 @@
 #ifndef SQUIRRELPLANNINGEXECUTION_PDDLACTIONS_EXPLOREAREAPDDLCOMMAND_H
 #define SQUIRRELPLANNINGEXECUTION_PDDLACTIONS_EXPLOREAREAPDDLCOMMAND_H
 
+#include <map>
+
 #include <ros/ros.h>
 #include <rosplan_dispatch_msgs/ActionDispatch.h>
 
@@ -60,6 +62,7 @@ private:
 	mongodb_store::MessageStoreProxy message_store_; // The message store proxy.
 	
 	ViewConeGenerator* view_cone_generator_;      // View point generator.
+	std::map<std::string, std::string> db_name_map_; // Mapping between waypoints and MongoDB ids.
 };
 
 };

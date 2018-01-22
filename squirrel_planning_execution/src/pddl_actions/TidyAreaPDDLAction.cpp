@@ -73,7 +73,7 @@ namespace KCL_rosplan {
 		
 		ROS_INFO("KCL: (TidyAreaPDDLAction) action recieved %s", action_name.c_str());
 		
-		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff");
+		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff", true);
 		
 		// Lets start the planning process.
 		std::string data_path;

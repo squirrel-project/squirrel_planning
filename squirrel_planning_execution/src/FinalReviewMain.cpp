@@ -35,6 +35,7 @@
 #include "pddl_actions/TidyAreaPDDLAction.h"
 #include "pddl_actions/FinaliseClassificationPDDLAction.h"
 #include "pddl_actions/ObserveClassifiableOnAttemptPDDLAction.h"
+#include "pddl_actions/ClearObjectPDDLAction.h"
 
 // Note: Part of code in https://github.com/Morloth1274/squirrel_planning/blob/edith-exploration-2017/squirrel_planning_execution/src/RPSquirrelRecursion.cpp
 bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy& message_store)
@@ -42,7 +43,11 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 	std::vector< boost::shared_ptr<squirrel_object_perception_msgs::SceneObject> > sceneObjects_results;
 	message_store.query<squirrel_object_perception_msgs::SceneObject>(sceneObjects_results);
 	bool found_lumps = false;
-	
+/*
+	// Check if this fact actually exists, or is a leftover (this is bad!).
+	std::vector<rosplan_knowledge_msgs::KnowledgeItem> all_facts;
+	kb.getFacts(all_facts, "object_at");
+*/
 	for (std::vector< boost::shared_ptr<squirrel_object_perception_msgs::SceneObject> >::const_iterator ci = sceneObjects_results.begin(); ci != sceneObjects_results.end(); ++ci)
 	{
 		const squirrel_object_perception_msgs::SceneObject& lump = **ci;
@@ -50,18 +55,40 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 		
 		std::map<std::string, std::string> parameters;
 		parameters["o"] = lump_name;
+/*
+		bool exists = false;
+		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = all_facts.begin(); ci != all_facts.end(); ++ci)
+		{
+			const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
+			if (ki.values[0].value == lump_name)
+			{
+				exists = true;
+				break;
+			}
+		}
+		
+		if (!exists) continue;
+*/
+
 		bool is_examined = kb.isFactTrue("examined", parameters, true);
 		bool is_not_examined = kb.isFactTrue("examined", parameters, false);
 		
 		if (!is_examined || is_not_examined)
 		{
 			// Add a goal to explore this lump.
-			std::map<std::string, std::string> parameters;
-			parameters["o"] = lump_name;
-			kb.addFact("examined", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
+//			std::map<std::string, std::string> parameters;
+//			parameters["o"] = lump_name;
+//			kb.addFact("examined", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
 			
 			found_lumps = true;
+			break;
 		}
+	}
+
+	if (found_lumps)
+	{
+		std::map<std::string, std::string> parameters;
+		kb.addFact("examined_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
 	}
 	
 	return found_lumps;
@@ -212,7 +239,7 @@ void startPlanning(ros::NodeHandle& nh)
 	
 	ros::Rate rate(1.0f);
 	while (plan_action_client.getState() == actionlib::SimpleClientGoalState::ACTIVE ||
-	       plan_action_client.getState() == actionlib::SimpleClientGoalState::PENDING)
+		   plan_action_client.getState() == actionlib::SimpleClientGoalState::PENDING)
 	{
 		rate.sleep();
 		ros::spinOnce();
@@ -262,6 +289,7 @@ int main(int argc, char **argv) {
 	KCL_rosplan::TidyAreaPDDLAction tidy_area_action(nh, knowledge_base);
 	KCL_rosplan::FinaliseClassificationPDDLAction finalise_classification_action(nh);
 	KCL_rosplan::ObserveClassifiableOnAttemptPDDLAction observe_classifiable_on_attempt_action(nh);
+	KCL_rosplan::ClearObjectPDDLAction clear_object_action(nh);
 	
 	initialiseKnowledgeBase(knowledge_base);
 	

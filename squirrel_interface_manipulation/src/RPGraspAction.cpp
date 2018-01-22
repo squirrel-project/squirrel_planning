@@ -1,15 +1,15 @@
 #include "squirrel_interface_manipulation/RPGraspAction.h"
+#include <squirrel_manipulation_msgs/ManipulationAction.h>
 #include <std_srvs/Empty.h>
 
 /* The implementation of RPGraspAction.h */
 namespace KCL_rosplan {
 
 	/* constructor */
-	RPGraspAction::RPGraspAction(ros::NodeHandle &nh, std::string &blindGraspActionServer)
-	 : message_store(nh), blind_grasp_action_client(blindGraspActionServer, true), putDownActionClient("metahand_place_server", true), kclhandGraspActionClient("hand_controller/actuate_hand", true), ptpActionClient("/joint_ptp", true)
+	RPGraspAction::RPGraspAction(ros::NodeHandle &nh, const std::string &object_manipulation_topic)
+	 : message_store(nh), object_manipulation_client_(object_manipulation_topic, true)
 
 	{
-
 		// Read the parameter if real placement is selected or only dropping
 		nh.param("/squirrel_interface_manipulation/placement", do_placement, false);
 		if (!do_placement)
@@ -17,14 +17,11 @@ namespace KCL_rosplan {
 		else
 		    ROS_INFO("KCL: (GraspAction) placement is selected");
 
-		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", blindGraspActionServer.c_str());
-		ROS_INFO("KCL: (GraspAction) action servers found");
+		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", object_manipulation_topic.c_str());
 
 		// Wait for the action servers.
-        	kclhandGraspActionClient.waitForServer();
-		putDownActionClient.waitForServer();
-		ptpActionClient.waitForServer();
-		ROS_INFO("KCL: (GraspAction) all action servers found!");
+        object_manipulation_client_.waitForServer();
+		ROS_INFO("KCL: (GraspAction) action server found!");
 		
 
 		// create the action feedback publisher
@@ -112,16 +109,15 @@ namespace KCL_rosplan {
 		}
 
 		// Call action to open hand
-		kclhand_control::ActuateHandActionGoal open_hand_goal;
-		open_hand_goal.goal.command = 0;
-		open_hand_goal.goal.force_limit = 1.0;
-		kclhandGraspActionClient.sendGoal(open_hand_goal.goal);
+        squirrel_manipulation_msgs::ManipulationActionGoal open_hand_goal;
+        open_hand_goal.manipulation_type = "open";
+
+		object_manipulation_client_.sendGoal(open_hand_goal.goal);
 		ROS_INFO("KCL: sent the goal, waiting for the result");
-		kclhandGraspActionClient.waitForResult();
-		actionlib::SimpleClientGoalState state = kclhandGraspActionClient.getState();
-		sleep(1.0);
-		kclhandGraspActionClient.sendGoal(open_hand_goal.goal);
+		object_manipulation_client_.waitForResult();
+		actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
 		ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
+
 		if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
 		{
 			// gripper_empty fact
@@ -234,7 +230,17 @@ namespace KCL_rosplan {
 		float angle = atan2(objPose.pose.position.y - nearPose.pose.position.y, objPose.pose.position.x - nearPose.pose.position.x);
 		
 		// Call action to move arm to put down location
-		squirrel_manipulation_msgs::PutDownActionGoal put_down_goal;
+		squirrel_manipulation_msgs::ManipulationActionGoal put_down_goal;
+        put_down_goal.manipulation_type = "place";
+        put_down_goal.object_id = boxID;
+        put_down_goal.pose = results[0]->pose;
+
+		object_manipulation_client_.sendGoal(put_down_goal.goal);
+		ROS_INFO("KCL: sent the goal, waiting for the result");
+		object_manipulation_client_.waitForResult();
+		actionlib::SimpleClientGoalState state_put_down = object_manipulation_client_.getState();
+		ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
+/*
 		put_down_goal.goal.destination_id = "box";
 		put_down_goal.goal.destPoseSE2.header.frame_id = "map";
 		put_down_goal.goal.destPoseSE2.pose = results[0]->pose;
@@ -248,12 +254,21 @@ namespace KCL_rosplan {
 		putDownActionClient.sendGoal(put_down_goal.goal);
 		actionlib::SimpleClientGoalState state_put_down = putDownActionClient.getState();
 		ROS_INFO("KCL: (DropActionCorrect) action finished: %s", state_put_down.toString().c_str());
+*/
 
 		//retractArm(); // moved to after open hand (for failure case)
 
 		if (state_put_down != actionlib::SimpleClientGoalState::SUCCEEDED) {
 			ROS_WARN("KCL (DropActionCorrect) failed to put down, but that is not catastrophic so proceeding with opening hand");
 			// Call action to open hand
+            put_down_goal.manipulation_type = "open";
+
+    		object_manipulation_client_.sendGoal(put_down_goal.goal);
+    		ROS_INFO("KCL: sent the goal, waiting for the result");
+    		object_manipulation_client_.waitForResult();
+    		actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
+    		ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
+/*
 			kclhand_control::ActuateHandActionGoal open_hand_goal;
 			open_hand_goal.goal.command = 0;
 			open_hand_goal.goal.force_limit = 1.0;
@@ -263,7 +278,7 @@ namespace KCL_rosplan {
 			kclhandGraspActionClient.waitForResult();
 			actionlib::SimpleClientGoalState state = kclhandGraspActionClient.getState();
 			ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
-                
+ */               
 			if (state != actionlib::SimpleClientGoalState::SUCCEEDED)
 				success = false;
 		}
@@ -360,20 +375,16 @@ namespace KCL_rosplan {
 		data_arm.data[6] = -1.7;
 		data_arm.data[7] = -1.8;
 
-		squirrel_manipulation_msgs::JointPtpActionGoal armEndGoal;
-		armEndGoal.goal.joints = data_arm;
+		squirrel_manipulation_msgs::ManipulationActionGoal retract_arm_goal;
+        put_down_goal.manipulation_type = "joints";
+        put_down_goal.joints = data_arm;
 
-		ptpActionClient.sendGoal(armEndGoal.goal);
-		ROS_INFO("KCL: (RPGraspAction) Goal sent\n");
-		ptpActionClient.waitForResult(ros::Duration(30.0));
-		ROS_INFO("KCL: (RPGraspAction) Waiting form arm to finish moving...\n");
-		sleep(1.0);
-		ptpActionClient.sendGoal(armEndGoal.goal);
+		object_manipulation_client_.sendGoal(retract_arm_goal.goal);
+		ROS_INFO("KCL: sent the goal, waiting for the result");
+		object_manipulation_client_.waitForResult();
+		actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
 
-		waitForArm(data_arm, 0.05f);
-		return true;
-
-		if (ptpActionClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
 			ROS_INFO("KCL: (RPGraspAction) Arm moved \n");
 			return true;
 		}else{
@@ -455,12 +466,26 @@ namespace KCL_rosplan {
 			geometry_msgs::PoseStamped &object_wp = *object_results[0];
 
 			// dispatch Grasp action
+	    	squirrel_manipulation_msgs::ManipulationActionGoal put_down_goal;
+            put_down_goal.manipulation_type = "grasp";
+            put_down_goal.object_id = objectID;
+            put_down_goal.pose = poseMap;
+            put_down_goal.object_bounding_cylinder = results[0]->bounding_cylinder;
+		    object_manipulation_client_.sendGoal(put_down_goal.goal);
+		    ROS_INFO("KCL: sent the goal, waiting for the result");
+		    object_manipulation_client_.waitForResult();
+		    actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
+		    ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
+
+
+/*
 			squirrel_manipulation_msgs::BlindGraspGoal goal;
 			goal.heap_center_pose = poseMap;
 			goal.heap_center_pose_static = object_wp;
 			goal.heap_bounding_cylinder = results[0]->bounding_cylinder;
 			goal.heap_point_cloud = results[0]->cloud;
 			actionlib::SimpleClientGoalState state = actionlib::SimpleClientGoalState::PENDING;
+*/
 			
 			while (ros::ok() && state != actionlib::SimpleClientGoalState::SUCCEEDED && state != actionlib::SimpleClientGoalState::ACTIVE)
 			{
@@ -468,8 +493,8 @@ namespace KCL_rosplan {
 				ROS_INFO("KCL: (GraspAction) goal sent, waiting for result");
 				
 				// bool finished_before_timeout = false;
-				blind_grasp_action_client.waitForResult(ros::Duration(150));
-				state = blind_grasp_action_client.getState();
+				object_manipulation_client_.waitForResult(ros::Duration(150));
+				state = object_manipulation_client_.getState();
 
 				
 				ROS_INFO("KCL: (GraspAction) Returned state: %s (%s)", state.getText().c_str(), state.toString().c_str());
@@ -548,26 +573,27 @@ namespace KCL_rosplan {
 	}
 } // close namespace
 
-	/*-------------*/
-	/* Main method */
-	/*-------------*/
+/*-------------*/
+/* Main method */
+/*-------------*/
 
-	int main(int argc, char **argv) {
+int main(int argc, char **argv) {
 
-		ros::init(argc, argv, "rosplan_interface_grasping");
-		ros::NodeHandle nh;
+    ros::init(argc, argv, "rosplan_interface_grasping");
+    ros::NodeHandle nh;
 
 
-		std::string GraspActionserver, blindGraspActionServer;
-		nh.param("blind_grasp_action_server", blindGraspActionServer, std::string("/metahand_grasp_server"));
+    std::string manipulation_server = "/squirrel_object_manipulation_server";
+    nh.param("manipulation_action_server", manipulation_server, std::string("/manipulation_server"));
 
-		// create PDDL action subscriber
-		KCL_rosplan::RPGraspAction rpga(nh, blindGraspActionServer);
-	
-		// listen for action dispatch
-		ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPGraspAction::dispatchCallback, &rpga);
-		ROS_INFO("KCL: (GraspAction) Ready to receive");
+    // create PDDL action subscriber
+    KCL_rosplan::RPGraspAction rpga(nh, manipulation_server);
 
-		ros::spin();
-		return 0;
-	}
+    // listen for action dispatch
+    ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPGraspAction::dispatchCallback, &rpga);
+    ROS_INFO("KCL: (GraspAction) Ready to receive");
+
+    ros::spin();
+    return 0;
+}
+

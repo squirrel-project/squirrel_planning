@@ -21,11 +21,7 @@
 
 #include "geometry_msgs/PoseStamped.h"
 #include "squirrel_object_perception_msgs/SceneObject.h"
-#include "squirrel_manipulation_msgs/BlindGraspAction.h"
-#include "squirrel_manipulation_msgs/PutDownAction.h"
-#include "squirrel_manipulation_msgs/PtpAction.h"
-//#include "kclhand_control/graspPreparation.h"
-#include "kclhand_control/ActuateHandAction.h"
+#include "squirrel_manipulation_msgs/ManipulationAction.h"
 
 
 #ifndef KCL_graspaction
@@ -45,10 +41,8 @@ namespace KCL_rosplan {
 	private:
 
 		mongodb_store::MessageStoreProxy message_store;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::BlindGraspAction> blind_grasp_action_client;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::PutDownAction> putDownActionClient;
-		actionlib::SimpleActionClient<kclhand_control::ActuateHandAction> kclhandGraspActionClient;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::JointPtpAction> ptpActionClient;
+		actionlib::SimpleActionClient<squirrel_manipulation_msgs::ManipulationAction> object_manipulation_client_;
+
 		ros::Publisher action_feedback_pub;
 		ros::ServiceClient update_knowledge_client;
 		ros::ServiceClient clear_cost_map_client;

@@ -42,10 +42,9 @@ namespace KCL_rosplan {
 		recognise_action_client.waitForServer();
 		ROS_INFO("KCL: (PerceptionAction) action server found!");
 
-
-		ROS_INFO("KCL: (PerceptionAction) waiting for ptp server to start...");
-		ptpActionClient.waitForServer();
-		ROS_INFO("KCL: (PerceptionAction) ptp server found!");
+		//ROS_INFO("KCL: (PerceptionAction) waiting for ptp server to start...");
+		//ptpActionClient.waitForServer();
+		//ROS_INFO("KCL: (PerceptionAction) ptp server found!");
 		
 		// create the action feedback publisher
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -768,7 +767,7 @@ namespace KCL_rosplan {
 				if (std::abs(goal_state.data[i] - last_joint_state.position[i]) > error)
 				{
 					std::cout << i << std::endl;
-					ROS_INFO("KCL (RPPerceptionAction) Joint #%zd is %f off target, not done yet!", i, std::abs(goal_state.data[i] - last_joint_state.position[i]));
+					ROS_INFO("KCL (RPPerceptionAction) Joint #%u is %f off target, not done yet!", i, std::abs(goal_state.data[i] - last_joint_state.position[i]));
 					done = false;
 					break;
 				}

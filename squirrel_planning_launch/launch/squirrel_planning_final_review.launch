@@ -77,6 +77,10 @@
 		<param name="push_action_server" value="/push" />
 		<param name="smash_action_server" value="/smash" />
 	</node>
+    
+    <node name="squirrel_interface_grasping" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
+        <param name="manipulation_action_server" value="/squirrel_object_manipulation_server" />
+    </node>
 
 	<!-- simulation acitons (ALL TRUE) -->
 	<node name="simulated_actions" pkg="squirrel_planning_execution" type="simulatedPDDLActionsNode" output="screen" if="$(arg simulated)">

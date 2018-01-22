@@ -74,7 +74,7 @@ namespace KCL_rosplan {
 		
 		ROS_INFO("KCL: (ExploreAreaPDDLAction) action recieved %s", action_name.c_str());
 		
-		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff");
+		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff", true);
 		
 		// Lets start the planning process.
 		std::string data_path;
@@ -134,7 +134,11 @@ namespace KCL_rosplan {
 			const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
 			knowledge_base_->removeFact(ki, KnowledgeBase::KB_REMOVE_KNOWLEDGE);
 			knowledge_base_->removeInstance("waypoint", ki.values[0].value);
+
+			// Also remove from mongodb.
+			message_store_.deleteID(db_name_map_[ki.values[0].value]);
 		}
+		db_name_map_.clear();
 		
 		// Reset the robot back to the default waypoint.
 		all_facts.clear();
@@ -247,7 +251,7 @@ namespace KCL_rosplan {
 			bounding_box.push_back(p3);
 			bounding_box.push_back(p4);
 			bounding_box.push_back(p2);
-			view_cone_generator_->createViewCones(view_poses, bounding_box, 3, 5, 30.0f, 2.0f, 100, 0.35f);
+			view_cone_generator_->createViewCones(view_poses, bounding_box, 3, 5, 30.0f, 2.0f, 20, 0.5f);
 		}
 		else
 		{
@@ -278,6 +282,7 @@ namespace KCL_rosplan {
 			pose.header.frame_id = "/map";
 			pose.pose = *ci;
 			std::string id(message_store_.insertNamed(ss.str(), pose));
+			db_name_map_[ss.str()] = id;
 			
 			std::map<std::string, std::string> parameters;
 			parameters["wp"] = ss.str();

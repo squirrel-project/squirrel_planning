@@ -61,8 +61,9 @@ namespace KCL_rosplan {
 		bool actionAchieved = false;
 		
 		ROS_INFO("KCL: (ExamineAreaPDDLAction) action recieved %s", action_name.c_str());
-		
-		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff");
+		ros::ServiceServer pddl_generation_service = node_handle_->advertiseService("/kcl_rosplan/generate_planning_problem", &ExamineAreaPDDLAction::generatePDDLProblemFile, this);
+
+		PlannerInstance& planner_instance = PlannerInstance::createInstance(*node_handle_, "ff", false);
 		
 		// Lets start the planning process.
 		std::string data_path;
@@ -82,14 +83,14 @@ namespace KCL_rosplan {
 		ss.str(std::string());
 		ss << "timeout 180 " << planner_path << "ff -o DOMAIN -f PROBLEM";
 		std::string planner_command = ss.str();
-		
+	  /* 
 		// Before calling the planner we create the domain so it can be parsed.
-		if (!createDomain())
+		if (!createPDDL())
 		{
 			ROS_ERROR("KCL: (ExamineAreaPDDLAction) failed to produce a domain at %s for action name %s.", domain_name.c_str(), action_name.c_str());
 			return;
 		}
-		
+		*/
 		planner_instance.startPlanner(domain_name, problem_name, data_path, planner_command);
 		
 		// publish feedback (enabled)
@@ -104,6 +105,8 @@ namespace KCL_rosplan {
 			ros::spinOnce();
 			loop_rate.sleep();
 		}
+		pddl_generation_service.shutdown();
+
 
 		actionlib::SimpleClientGoalState state = planner_instance.getState();
 		ROS_INFO("KCL: (ExamineAreaPDDLAction) action finished: %s, %s", action_name.c_str(), state.toString().c_str());
@@ -165,7 +168,7 @@ namespace KCL_rosplan {
 	/* problem generation */
 	/*--------------------*/
 	
-	bool ExamineAreaPDDLAction::createDomain()
+	bool ExamineAreaPDDLAction::generatePDDLProblemFile(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res)
 	{
 		ROS_INFO("KCL: (ExamineAreaPDDLAction) Create domain for action %s.", g_action_name.c_str());
 		// Lets start the planning process.
