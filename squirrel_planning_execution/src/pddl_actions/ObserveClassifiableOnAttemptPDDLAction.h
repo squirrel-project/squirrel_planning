@@ -8,7 +8,7 @@
 
 namespace KCL_rosplan
 {
-
+class KnowledgeBase;
 /**
  * An instance of this class gets called whenever the PDDL action 'observe-classifiable_on_attempt' (or variants thereof) is
  * dispatched. It is an action that makes the robot examine all objects in the given area.
@@ -48,16 +48,13 @@ private:
 	ros::NodeHandle* node_handle_;                       // The ROS node.
 	bool is_simulated_;                                  // Whether this action is to be simulated.
 	
-	ros::ServiceClient update_knowledge_client_;         // Service client to update the knowledge base.
-	ros::ServiceClient get_instance_client_;             // Service client to get instances stored by ROSPlan.
-	ros::ServiceClient get_attribute_client_;            // Service client to get attributes of instances stored by ROSPlan.
 	ros::Publisher action_feedback_pub_;                 // Publisher that communicates feedback to ROSPlan.
 	ros::Subscriber dispatch_sub_;                       // Subscriber to the dispatch topic of ROSPlan.
-	ros::ServiceClient query_knowledge_client_;          // Service client to quiry the knowledge base.
 	
 	ros::ServiceClient classify_object_waypoint_client_; // waypoint request services
 	
 	mongodb_store::MessageStoreProxy message_store_;     // The message store proxy.
+    KnowledgeBase knowledge_base_;                       // Knowledge base.
 };
 
 };

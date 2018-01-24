@@ -21,8 +21,10 @@
   <build_depend>rosplan_knowledge_msgs</build_depend>
   <build_depend>rosplan_dispatch_msgs</build_depend>
   <build_depend>squirrel_object_perception_msgs</build_depend>
+  <build_depend>squirrel_manipulation_msgs</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>squirrel_planning_knowledge_msgs</build_depend>
+  <build_depend>squirrel_planning_execution</build_depend>
  
   <run_depend>rospy</run_depend>
   <run_depend>roscpp</run_depend>
@@ -36,8 +38,10 @@
   <run_depend>rosplan_knowledge_msgs</run_depend>
   <run_depend>rosplan_dispatch_msgs</run_depend>
   <run_depend>squirrel_object_perception_msgs</run_depend>
+  <run_depend>squirrel_manipulation_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>squirrel_planning_knowledge_msgs</run_depend>
+  <run_depend>squirrel_planning_execution</run_depend>
 
   <export></export>
 </package>

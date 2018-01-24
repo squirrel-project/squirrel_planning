@@ -280,8 +280,6 @@ bool KnowledgeBase::isFactTrue(const std::string& predicate, const std::map<std:
 		ROS_ERROR("KCL: (KnowledgeBase) Could not call the query knowledge server to check whether %s is true.", s.c_str());
 		return false;
 	}
-	
-	ROS_ERROR("KCL: (KnowledgeBase) %s is %s.", s.c_str(), knowledge_query.response.all_true ? "true" : "false");
 	return knowledge_query.response.all_true;
 }
 

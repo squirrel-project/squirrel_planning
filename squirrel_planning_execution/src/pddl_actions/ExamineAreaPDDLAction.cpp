@@ -28,9 +28,6 @@ namespace KCL_rosplan {
 		// create the action feedback publisher
 		action_feedback_pub_ = node_handle.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
 		
-		get_instance_client_ = node_handle.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_current_instances");
-		get_attribute_client_ = node_handle.serviceClient<rosplan_knowledge_msgs::GetAttributeService>("/kcl_rosplan/get_current_knowledge");
-		
 		dispatch_sub_ = node_handle.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::ExamineAreaPDDLAction::dispatchCallback, this);
 		
 		node_handle.getParam("/squirrel_planning_execution/simulated", is_simulated_);
@@ -115,10 +112,7 @@ namespace KCL_rosplan {
 		if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 		{
 			// Update the knowledge base with what has been achieved.
-			const std::string& robot = msg->parameters[0].value;
-			const std::string& area = msg->parameters[1].value;
-			
-			ROS_INFO("KCL: (ExamineAreaPDDLAction) Process the action: %s, Examine %s by %s", action_name.c_str(), area.c_str(), robot.c_str());
+			ROS_INFO("KCL: (ExamineAreaPDDLAction) Process the action: %s, Examined the room.", action_name.c_str());
 			
 			std::map<std::string, std::string> parameters;
 			if (!knowledge_base_->addFact("examined_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE))
@@ -200,17 +194,25 @@ namespace KCL_rosplan {
 		ss.str(std::string());
 		
 		// Fetch all the objects.
+        std::vector<rosplan_knowledge_msgs::KnowledgeItem> objects;
+        if (!knowledge_base_->getFacts(objects, "object_at"))
+        {
+			ROS_ERROR("KCL: (ExamineAreaPDDLAction) Failed to recieve the attributes of the predicate 'object_at'");
+			return false;
+        }
+        /*
 		rosplan_knowledge_msgs::GetAttributeService get_attribute;
 		get_attribute.request.predicate_name = "object_at";
 		if (!get_attribute_client_.call(get_attribute)) {
 			ROS_ERROR("KCL: (ExamineAreaPDDLAction) Failed to recieve the attributes of the predicate 'object_at'");
 			return false;
 		}
+        */
 		
 		std::map<std::string, std::string> object_to_location_mappings;
 		std::map<std::string, std::vector<std::string> > near_waypoint_mappings;
 		int max_objects = 0;
-		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = get_attribute.response.attributes.begin(); ci != get_attribute.response.attributes.end(); ++ci) {
+		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = objects.begin(); ci != objects.end(); ++ci) {
 
 			if(max_objects > 3) break;
 
@@ -231,7 +233,8 @@ namespace KCL_rosplan {
 
 			max_objects++;
 			object_to_location_mappings[object_predicate] = location_predicate;
-			
+           
+            /** TEST
 			// Find waypoints that are near this waypoint, these waypoints are used by the 
 			// robot to pickup or push this object.
 			std::vector<std::string> near_waypoints;
@@ -257,6 +260,7 @@ namespace KCL_rosplan {
 				}
 			}
 			near_waypoint_mappings[location_predicate] = near_waypoints;
+            */
 		}
 		std_msgs::Int8 nr_objects;
 		nr_objects.data = object_to_location_mappings.size();
@@ -265,14 +269,22 @@ namespace KCL_rosplan {
 		if (object_to_location_mappings.size() == 0) return false;
 		
 		// Get the location of kenny.
+        std::vector<rosplan_knowledge_msgs::KnowledgeItem> robot_locations;
+        if (!knowledge_base_->getFacts(robot_locations, "robot_at") || robot_locations.size() != 1)
+        {
+			ROS_ERROR("KCL: (ExamineAreaPDDLAction) Failed to recieve the attributes of the predicate 'robot_at'");
+			return false;
+        }
+        /*
 		get_attribute.request.predicate_name = "robot_at";
 		if (!get_attribute_client_.call(get_attribute)) {// || get_attribute.response.attributes.size() != 3) {
 			ROS_ERROR("KCL: (ExamineAreaPDDLAction) Failed to recieve the attributes of the predicate 'robot_at'");
 			return false;
 		}
+        */
 		
 		std::string robot_location;
-		for (std::vector<diagnostic_msgs::KeyValue>::const_iterator ci = get_attribute.response.attributes[0].values.begin(); ci != get_attribute.response.attributes[0].values.end(); ++ci) {
+		for (std::vector<diagnostic_msgs::KeyValue>::const_iterator ci = robot_locations[0].values.begin(); ci != robot_locations[0].values.end(); ++ci) {
 			const diagnostic_msgs::KeyValue& knowledge_item = *ci;
 			
 			ROS_INFO("KCL: (ExamineAreaPDDLAction) Process robot_at attribute: %s %s", knowledge_item.key.c_str(), knowledge_item.value.c_str());
@@ -290,13 +302,20 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (ExamineAreaPDDLAction) Kenny is at waypoint: %s", robot_location.c_str());
 		
 		// Check which objects have already been classified.
+        std::vector<rosplan_knowledge_msgs::KnowledgeItem> type_associations;
+        if (!knowledge_base_->getFacts(type_associations, "is_of_type"))
+        {
+			ROS_ERROR("KCL: (ExamineAreaPDDLAction) Failed to recieve the attributes of the predicate 'is_of_type'");
+			return false;
+        }
+        /*
 		get_attribute.request.predicate_name = "is_of_type";
 		if (!get_attribute_client_.call(get_attribute)) {
 			ROS_ERROR("KCL: (ExamineAreaPDDLAction) Failed to recieve the attributes of the predicate 'is_of_type'");
 			return false;
 		}
-		
-		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = get_attribute.response.attributes.begin(); ci != get_attribute.response.attributes.end(); ++ci) {
+	    */	
+		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = type_associations.begin(); ci != type_associations.end(); ++ci) {
 			const rosplan_knowledge_msgs::KnowledgeItem& knowledge_item = *ci;
 			std::string object_predicate;
 			std::string type_predicate;

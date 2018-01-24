@@ -9,7 +9,8 @@
 #include "squirrel_planning_knowledge_msgs/AddObjectService.h"
 #include "move_base_msgs/MoveBaseAction.h"
 #include "mongodb_store/message_store.h"
-#include <squirrel_manipulation_msgs/JointPtpAction.h>
+#include <squirrel_manipulation_msgs/ManipulationAction.h>
+#include "squirrel_planning_execution/KnowledgeBase.h"
 
 #ifndef KCL_perception
 #define KCL_perception
@@ -29,13 +30,12 @@ namespace KCL_rosplan {
 
 		actionlib::SimpleActionClient<squirrel_object_perception_msgs::LookForObjectsAction> examine_action_client;
 		actionlib::SimpleActionClient<squirrel_object_perception_msgs::RecognizeObjectsAction> recognise_action_client;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::JointPtpAction> ptpActionClient;
+		actionlib::SimpleActionClient<squirrel_manipulation_msgs::ManipulationAction> object_manipulation_client_;
 
 		ros::ServiceClient find_dynamic_objects_client;
 		ros::ServiceClient add_object_client;
 		ros::ServiceClient update_knowledge_client;
 		ros::ServiceClient get_instance_client;
-		ros::ServiceClient examine_action_service;
 		ros::ServiceClient knowledge_query_client;
 		ros::Publisher action_feedback_pub;
 
@@ -68,11 +68,12 @@ namespace KCL_rosplan {
 
 		void jointCallback(const sensor_msgs::JointStateConstPtr& msg);
 		sensor_msgs::JointState last_joint_state;
+        KnowledgeBase knowledge_base_;
 
 	public:
 
 		/* constructor */
-		RPPerceptionAction(ros::NodeHandle &nh, const std::string &actionserver, const std::string& recogniseserver);
+		RPPerceptionAction(ros::NodeHandle &nh, const std::string &actionserver, const std::string& recogniseserver, const std::string& object_manipulation_topic);
 
 		/* listen to and process action_dispatch topic */
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);

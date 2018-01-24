@@ -20,9 +20,9 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", object_manipulation_topic.c_str());
 
 		// Wait for the action servers.
+		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", object_manipulation_topic.c_str());
 		object_manipulation_client_.waitForServer();
 		ROS_INFO("KCL: (GraspAction) action server found!");
-		
 
 		// create the action feedback publisher
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -94,11 +94,11 @@ namespace KCL_rosplan {
 		std::string robotID, objectID, wpID;
 		bool foundObject = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
-			if(0==msg->parameters[i].key.compare("wp"))
+			if(msg->parameters[i].key == "wp")
 				wpID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("r"))
+			if(msg->parameters[i].key == "v")
 				robotID = msg->parameters[i].value;
-				if(0==msg->parameters[i].key.substr(0,1).compare("o")) {
+			if(msg->parameters[i].key == "o") {
 				objectID = msg->parameters[i].value;
 				foundObject = true;
 			}
@@ -126,7 +126,7 @@ namespace KCL_rosplan {
 			knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
 			knowledge_update_service.request.knowledge.attribute_name = "gripper_empty";
 			diagnostic_msgs::KeyValue kv;
-			kv.key = "v";
+			kv.key = "r";
 			kv.value = robotID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
@@ -164,27 +164,23 @@ namespace KCL_rosplan {
 
 	bool RPGraspAction::dispatchDropActionCorrect(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg) {
 
-			ROS_INFO("KCL: (DropActionCorrect) placing the object on the ground");
+		ROS_INFO("KCL: (DropActionCorrect) placing the object on the ground");
 
-			// get object ID from action dispatch
+		// get object ID from action dispatch
 		std::string boxID, robotID, wpID, objectID;
-		bool foundBox = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
 			std::cout << msg->parameters[i].key << std::endl;
-			if(0==msg->parameters[i].key.compare("b"))
-			{
+			if(msg->parameters[i].key == "o")
 				boxID = msg->parameters[i].value;
-				foundBox = true;
-			}
-			if (msg->parameters[i].key == "v")
+			if (msg->parameters[i].key == "r")
 				robotID = msg->parameters[i].value;
-			if (msg->parameters[i].key == "o1")
+			if (msg->parameters[i].key == "o")
 				objectID = msg->parameters[i].value;
 			if (msg->parameters[i].key == "wp")
 				wpID = msg->parameters[i].value;
 		}
-		if(!foundBox) {
-		ROS_INFO("KCL: (DropActionCorrect) aborting action dispatch; malformed parameters");
+		if(boxID == "" || objectID == "" || robotID == "" || wpID == "") {
+    		ROS_INFO("KCL: (DropActionCorrect) aborting action dispatch; malformed parameters");
 			return false;
 		}
 
@@ -313,13 +309,13 @@ namespace KCL_rosplan {
 
 			// object_at fact
 			knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			knowledge_update_service.request.knowledge.attribute_name = "object_at";
+			knowledge_update_service.request.knowledge.attribute_name = "in_box";
 			knowledge_update_service.request.knowledge.values.clear();
 			kv.key = "o";
 			kv.value = objectID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
-			kv.key = "wp";
-			kv.value = wpID;
+			kv.key = "b";
+			kv.value = boxID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
 				ROS_ERROR("KCL: (DropActionCorrect) Could not remove object_at predicate to the knowledge base.");
@@ -446,6 +442,7 @@ namespace KCL_rosplan {
 				return false;
 			}
 */
+            /*
 			// Get the object pose.
 			std::stringstream ss;
 			ss << objectID << "_wp";
@@ -464,6 +461,7 @@ namespace KCL_rosplan {
 
 			// request manipulation waypoints for object
 			geometry_msgs::PoseStamped &object_wp = *object_results[0];
+            */
 
 			// dispatch Grasp action
 			squirrel_manipulation_msgs::ManipulationGoal grasp_goal;
@@ -584,7 +582,7 @@ int main(int argc, char **argv) {
 
 
 	std::string manipulation_server = "/squirrel_object_manipulation_server";
-	nh.param("manipulation_action_server", manipulation_server, std::string("/manipulation_server"));
+	nh.param("manipulation_action_server", manipulation_server, std::string("/squirrel_object_manipulation_server"));
 
 	// create PDDL action subscriber
 	KCL_rosplan::RPGraspAction rpga(nh, manipulation_server);

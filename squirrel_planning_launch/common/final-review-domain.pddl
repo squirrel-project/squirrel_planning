@@ -8,6 +8,7 @@
 	waypoint
 	object
 	type
+    box
 )
 
 ;; Emotions range from [-1,1]. None of the emotions are alowed to fall above 0.
@@ -23,6 +24,7 @@
 (:predicates
 	(robot_at ?v - robot ?wp - waypoint)
 	(object_at ?o - object ?wp - waypoint)
+	(box_at ?b - box ?wp - waypoint)
 	(holding ?v - robot ?o - object)
 	(gripper_empty ?v - robot)
 	(not_busy)
@@ -30,6 +32,9 @@
 	(child_has_oxygen ?c - child)
 	(battery_available ?o - object)
 	(explored ?wp - waypoint)
+	(belongs_in ?o - object ?b - box)
+	(in_box ?o - object ?b - box)
+	(near ?wp1 ?wp2 - waypoint)
 
 	;; Tidy room predicates, we only assume there is a single area.
 	(explored_room)
@@ -63,7 +68,7 @@
 		(at start (object_at ?o ?object_wp))
 		(over all (> (power ?v) 0))
 		(at start (not_busy))
-		(over all (= ?robot_wp ?object_wp))
+		(over all (near ?robot_wp ?object_wp))
 	)
 	:effect (and
 		(at start (not (not_busy)))
@@ -113,6 +118,22 @@
 		(at end (not_busy))
 		(at start (decrease (power ?v) (* ?duration 0.01)))
 	)
+)
+
+(:action put_object_in_box
+    :parameters (?v - robot ?wp ?near_wp - waypoint ?o - object ?b - box)
+    :precondition (and"
+        (box_at ?b ?wp)
+        (robot_at ?v ?near_wp)
+        (near ?near_wp ?wp)
+        (holding ?v ?o)
+        (belongs_in ?o ?b)
+    )
+    :effect (and
+        (not (holding ?v ?o))
+        (gripper_empty ?v)
+        (in_box ?o ?b)
+    )
 )
 
 ;; Tidy room actions.

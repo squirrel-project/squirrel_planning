@@ -39,7 +39,7 @@
 #include "pddl_actions/ShedKnowledgePDDLAction.h"
 #include "pddl_actions/FinaliseClassificationPDDLAction.h"
 
-// Note: Part of code in https://github.com/Morloth1274/squirrel_planning/blob/edith-exploration-2017/squirrel_planning_execution/src/RPSquirrelRecursion.cpp
+// Note: Part of code in https://github.com/Morloth1274/squirrel_planning/blob/edith-exploration-2017/squirrel_planning_execution/src/FinalReview.cpp
 bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy& message_store)
 {
 	std::vector< boost::shared_ptr<squirrel_object_perception_msgs::SceneObject> > sceneObjects_results;
@@ -89,6 +89,11 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 	{
 		std::map<std::string, std::string> parameters;
 		kb.addFact("examined_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
+		if (!kb.removeFact("examined_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE))
+		{
+			ROS_ERROR("KCL: (SetupGoals) Failed to remove the predicate (examined_room)!");
+			exit(-1);
+		}
 	}
 	
 	return found_lumps;
@@ -133,6 +138,7 @@ bool setupToysToTidy(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStore
 				}
 			}
 			
+			ROS_INFO("KCL: (SetupGoals) %s belongs in %s.", object.c_str(), box.c_str());
 			object_tidy_locations[object] = box;
 		}
 	}
@@ -142,6 +148,7 @@ bool setupToysToTidy(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStore
 	for (std::vector<std::string>::const_iterator ci = objects_to_tidy.begin(); ci != objects_to_tidy.end(); ++ci)
 	{
 		const std::string& object = *ci;
+		ROS_INFO("KCL: (SetupGoals) Do know where %s belongs?", object.c_str());
 		if (object_tidy_locations.find(object) == object_tidy_locations.end())
 		{
 			ROS_INFO("KCL: (SetupGoals) Do not know where to tidy %s, ask someone for help!.", object.c_str());
@@ -189,7 +196,13 @@ void setupGoals(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 		std::map<std::string, std::string> parameters;
 		if (!kb.removeFact("explored_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE))
 		{
-			ROS_ERROR("KCL: (SetupGoals) Failed to remove the predicate (explored)!");
+			ROS_ERROR("KCL: (SetupGoals) Failed to remove the predicate (explored_roomn)!");
+			exit(-1);
+		}
+
+		if (!kb.removeFact("examined_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE))
+		{
+			ROS_ERROR("KCL: (SetupGoals) Failed to remove the predicate (examined_room)!");
 			exit(-1);
 		}
 		
@@ -227,15 +240,15 @@ void startPlanning(ros::NodeHandle& nh)
 	psrv.planner_command = planner_command;
 	psrv.start_action_id = 0;
 
-	ROS_INFO("KCL: (RPSquirrelRecursion) Start plan action");
+	ROS_INFO("KCL: (FinalReview) Start plan action");
 	actionlib::SimpleActionClient<rosplan_dispatch_msgs::PlanAction> plan_action_client("/kcl_rosplan/start_planning", true);
 
 	plan_action_client.waitForServer();
-	ROS_INFO("KCL: (RPSquirrelRecursion) Start planning server found");
+	ROS_INFO("KCL: (FinalReview) Start planning server found");
 	
 	// send goal
 	plan_action_client.sendGoal(psrv);
-	ROS_INFO("KCL: (RPSquirrelRecursion) Goal sent");
+	ROS_INFO("KCL: (FinalReview) Goal sent");
 	
 	ros::Rate rate(1.0f);
 	while (plan_action_client.getState() == actionlib::SimpleClientGoalState::ACTIVE ||
@@ -263,7 +276,6 @@ void initialiseKnowledgeBase(KCL_rosplan::KnowledgeBase& kb)
 	
 	params["v"] = "robot";
 	kb.addFact("gripper_empty", params, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE);
-	kb.addFunction("power", params, 4.5f, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE);
 }
 
 int main(int argc, char **argv) {

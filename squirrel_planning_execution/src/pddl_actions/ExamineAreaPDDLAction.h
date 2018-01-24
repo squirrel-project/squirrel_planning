@@ -51,8 +51,6 @@ private:
 	KCL_rosplan::KnowledgeBase* knowledge_base_; // The knowledge base.
 	bool is_simulated_;							 // Whether this action is to be simulated.
 	
-	ros::ServiceClient get_instance_client_;	 // Service client to get instances stored by ROSPlan.
-	ros::ServiceClient get_attribute_client_;	 // Service client to get attributes of instances stored by ROSPlan.
 	ros::Publisher action_feedback_pub_;		 // Publisher that communicates feedback to ROSPlan.
 	ros::Subscriber dispatch_sub_;				 // Subscriber to the dispatch topic of ROSPlan.
 

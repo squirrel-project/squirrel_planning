@@ -177,14 +177,16 @@ bool ConfigReader::processBox(const std::vector<std::string>& tokens, const std:
 	ROS_INFO("KCL: (ConfigReader) Added %s to the knowledge base.", (box_predicate + "_location").c_str());
 	
 	std::map<std::string, std::string> parameters;
-	parameters["b"] = "box_predicate";
+	parameters["b"] = box_predicate;
 	parameters["wp"] = box_predicate + "_location";
 	knowledge_base_.addFact("box_at", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE);
 	
-	//ss.str(std::string());
-	//ss << "near_" << box_predicate;
-	
 	knowledge_base_.addInstance("waypoint", "near_" + box_predicate);
+
+    parameters.clear();
+    parameters["wp1"] = "near_" + box_predicate;
+    parameters["wp2"] = box_predicate + "_location";
+	knowledge_base_.addFact("near", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE);
 	
 	pose.pose = near_box;
 	
@@ -198,9 +200,10 @@ bool ConfigReader::processBox(const std::vector<std::string>& tokens, const std:
 
 bool ConfigReader::processToy(const std::vector<std::string>& tokens, const std::string& line)
 {
-	if (tokens.size() != 5)
+	if (tokens.size() != 5 && tokens.size() != 3)
 	{
 		ROS_ERROR("KCL (ConfigReader) Malformed line, expected t OBJECT_NAME OBJECT_TYPE (f,f,f) (f,f,f). Read %s\n", line.c_str());
+		ROS_ERROR("KCL (ConfigReader) Malformed line, expected t OBJECT_NAME OBJECT_TYPE. Read %s\n", line.c_str());
 		return false;
 	}
 	
@@ -209,27 +212,33 @@ bool ConfigReader::processToy(const std::vector<std::string>& tokens, const std:
 	
 	std::string toy_predicate = tokens[1];
 	std::string type_predicate = tokens[2];
+
+	if (!knowledge_base_.addInstance("object", toy_predicate)) return false;
+	if (!knowledge_base_.addInstance("type", type_predicate)) return false;
+
+	std::map<std::string, std::string> variables;
+	variables["o"] = toy_predicate;
+	variables["t"] = type_predicate;
+	if (!knowledge_base_.addFact("is_of_type", variables, true, KnowledgeBase::KB_ADD_KNOWLEDGE)) return false;
+
+    if (tokens.size() == 3) return true;
+
 	geometry_msgs::Pose toy_location = transformToPose(tokens[3]);
 	geometry_msgs::Pose near_toy = transformToPose(tokens[4]);
 	sendMarker(toy_location, toy_predicate, 0.25f);
 	sendMarker(near_toy, "near_" + toy_predicate, 0.1f);
 	
-	// Add the box predicate to the knowledge base.
-	if (!knowledge_base_.addInstance("object", toy_predicate)) return false;
-	if (!knowledge_base_.addInstance("type", type_predicate)) return false;
 	if (!knowledge_base_.addInstance("waypoint", toy_predicate + "_location")) return false;
 	
+    /*
 	if (type_predicate == "battery")
 	{
 		std::map<std::string, std::string> variables;
 		variables["o"] = toy_predicate;
 		if (!knowledge_base_.addFact("battery_available", variables, true, KnowledgeBase::KB_ADD_KNOWLEDGE)) return false;
 	}
+    */
 	
-	std::map<std::string, std::string> variables;
-	variables["o"] = toy_predicate;
-	variables["t"] = type_predicate;
-	if (!knowledge_base_.addFact("is_of_type", variables, true, KnowledgeBase::KB_ADD_KNOWLEDGE)) return false;
 	
 	// Set the actual location of the toy waypoints in message store.
 	geometry_msgs::PoseStamped pose;

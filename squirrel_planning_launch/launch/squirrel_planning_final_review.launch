@@ -46,6 +46,7 @@
 		<param name="pddl_action_name" value="goto_waypoint" />
 	</node>
 
+    <!--
 	<node name="rosplan_interface_mapping" pkg="rosplan_interface_mapping" type="rproadmapServer" respawn="false" output="screen">
 		<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
 		<param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
@@ -54,33 +55,34 @@
 		<param name="use_static_map" value="false" />
 		<param name="static_map_service" value="/static_map" />
 	</node>
+    -->
 
 	<!-- SQUIRREL interfaces -->
-	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen"></node>
+	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen" unless="$(arg simulated)"></node>
 	<!--
 	<node name="squirrel_social_behaviour" pkg="squirrel_interface_hri" type="PerformSocialBehaviour" respawn="false" output="screen"></node>
 	-->
 
-	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" respawn="false" output="screen">
+	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" respawn="false" output="screen" unless="$(arg simulated)">
 		<!-- set "true" if you want to fake object perception completely -->
 		<param name="simulate_perception" value="false" />
 		<param name="use_dynamic_object_finding" value="true" />
 	</node>
 
-	<node name="squirrel_interface_camera" pkg="squirrel_interface_perception" type="rpCameraControl" respawn="false" output="screen">
+	<node name="squirrel_interface_camera" pkg="squirrel_interface_perception" type="rpCameraControl" respawn="false" output="screen" unless="$(arg simulated)">
 		<!-- set "true" if you want to fake object perception completely -->
 		<param name="camera_control_topic" value="/tilt_controller/command" />
 		<param name="default_camera_angle" value="0.5" />
 	</node>
-
+    <!--
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rppushServer" respawn="false" output="screen">
-		<!-- set "true" if you want to simply move instead of pushing -->
 		<param name="simulate_pushing" type="bool" value="false" />
 		<param name="push_action_server" value="/push" />
 		<param name="smash_action_server" value="/smash" />
 	</node>
+    -->
 	
-	<node name="squirrel_interface_grasping" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
+	<node name="squirrel_interface_grasping" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen" unless="$(arg simulated)">
 		<param name="manipulation_action_server" value="/squirrel_object_manipulation_server" />
 	</node>
 

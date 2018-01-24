@@ -29,10 +29,9 @@
 namespace KCL_rosplan {
 
 	/* constructor */
-	RPPerceptionAction::RPPerceptionAction(ros::NodeHandle &nh, const std::string &actionserver, const std::string& recogniseserver)
-	 : message_store(nh), examine_action_client(actionserver, true), recognise_action_client(recogniseserver, true), ptpActionClient("/joint_ptp", true)
+	RPPerceptionAction::RPPerceptionAction(ros::NodeHandle &nh, const std::string &actionserver, const std::string& recogniseserver, const std::string& object_manipulation_topic)
+	 : message_store(nh), examine_action_client(actionserver, true), recognise_action_client(recogniseserver, true), object_manipulation_client_(object_manipulation_topic, true), knowledge_base_(nh, message_store)
 	{
-
 		// create the action clients
 		ROS_INFO("KCL: (PerceptionAction) waiting for action server to start on %s", actionserver.c_str());
 		examine_action_client.waitForServer();
@@ -42,9 +41,11 @@ namespace KCL_rosplan {
 		recognise_action_client.waitForServer();
 		ROS_INFO("KCL: (PerceptionAction) action server found!");
 
-		//ROS_INFO("KCL: (PerceptionAction) waiting for ptp server to start...");
-		//ptpActionClient.waitForServer();
-		//ROS_INFO("KCL: (PerceptionAction) ptp server found!");
+        /*
+		ROS_INFO("KCL: (PerceptionAction) waiting for manipulation server to start on %s", object_manipulation_topic.c_str());
+		object_manipulation_client_.waitForServer();
+		ROS_INFO("KCL: (PerceptionAction) manipulation server found!");
+        */
 		
 		// create the action feedback publisher
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -52,7 +53,6 @@ namespace KCL_rosplan {
 		find_dynamic_objects_client = nh.serviceClient<squirrel_object_perception_msgs::FindDynamicObjects>("/squirrel_find_dynamic_objects");
 		get_instance_client = nh.serviceClient<rosplan_knowledge_msgs::GetInstanceService>("/kcl_rosplan/get_current_instances");
 
-		examine_action_service = nh.serviceClient<squirrel_object_perception_msgs::Recognize>("/squirrel_recognizer/squirrel_recognize_objects");
 		knowledge_query_client = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeQueryService>("/kcl_rosplan/query_knowledge_base");
 
 		joint_state_sub = nh.subscribe("/real/robotino/joint_control/get_state", 10, &RPPerceptionAction::jointCallback, this);
@@ -120,6 +120,13 @@ namespace KCL_rosplan {
 		}
 
 		// add the new knowledge
+        std::map<std::string, std::string> parameters;
+        parameters["wp"] = explored_waypoint;
+        if (!knowledge_base_.addFact("explored", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
+        {
+            exit(-1);
+        }
+        /*
 		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		rosplan_knowledge_msgs::KnowledgeItem knowledge;
@@ -134,6 +141,7 @@ namespace KCL_rosplan {
 		if (!update_knowledge_client.call(knowledge_update_service)) {
 			ROS_ERROR("KCL: (PerceptionAction) Could not add the explored predicate to the knowledge base.");
 		}
+        */
 
 		// report this action is achieved
 		publishFeedback(msg->action_id,"action achieved");
@@ -266,7 +274,16 @@ namespace KCL_rosplan {
 		std::string closest_box;
 		geometry_msgs::PoseStamped closest_box_pose;
 		float min_distance_from_robot = std::numeric_limits<float>::max();
+
+        std::vector<std::string> boxes;
+        if (!knowledge_base_.getInstances(boxes, "box"))
+        {
+			ROS_ERROR("KCL: (PerceptionAction) Failed to get all the box instances.");
+			publishFeedback(msg->action_id, "action failed");
+			return;
+        }
 		
+        /*
 		// Get all boxes and their poses, pick the one that is closest.
 		rosplan_knowledge_msgs::GetInstanceService getInstances;
 		getInstances.request.type_name = "box";
@@ -278,6 +295,8 @@ namespace KCL_rosplan {
 
 		ROS_INFO("KCL: (PerceptionAction) Received all the box instances %zd.", getInstances.response.instances.size());
 		for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
+        */
+		for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
 		{
 			// fetch position of the box from message store
 			std::stringstream ss;
@@ -357,18 +376,15 @@ namespace KCL_rosplan {
 
 		// get waypoint ID from action dispatch
 		std::string objectID, wpID, fromID;
-		bool foundObject = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
 			if(0==msg->parameters[i].key.compare("view"))
 				wpID = msg->parameters[i].value;
 			if(0==msg->parameters[i].key.compare("from"))
 				fromID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("o")) {
+			if(0==msg->parameters[i].key.compare("o"))
 				objectID = msg->parameters[i].value;
-				foundObject = true;
-			}
 		}
-		if(!foundObject) {
+		if(wpID == "" || objectID == "" || fromID == "") {
 			ROS_INFO("KCL: (PerceptionAction) aborting action dispatch; malformed parameters");
 			return;
 		}
@@ -393,6 +409,19 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (PerceptionAction) check object finished: %s", state.toString().c_str());
 
 		// update classifiable_from in the knowledge base .
+        std::map<std::string, std::string> parameters;
+        parameters["from"] = fromID;
+        parameters["view"] = wpID;
+        parameters["o"] = objectID;
+
+        if (!knowledge_base_.addFact("classifiable_from", parameters, success, KnowledgeBase::KB_ADD_KNOWLEDGE) ||
+            !knowledge_base_.removeFact("classifiable_from", parameters, !success, KnowledgeBase::KB_REMOVE_KNOWLEDGE))
+        {
+			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not add the classifiable_from predicate to the knowledge base.");
+			exit(-1);
+        }
+
+/*
 		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
@@ -431,6 +460,7 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (ClassifyObjectPDDLAction) Removed %s (classifiable_from %s %s %s) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "", fromID.c_str(), wpID.c_str(), objectID.c_str());
 	
 		knowledge_item.values.clear();
+*/
 
 		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
 
@@ -574,7 +604,11 @@ namespace KCL_rosplan {
 	void RPPerceptionAction::updateType(const std::string& object_id, const std::string& object_rec_name)
 	{
 		ROS_INFO("KCL: (PerceptionAction) Update where %s belongs.", object_id.c_str());
+
+        std::vector<std::string> boxes;
+        knowledge_base_.getInstances(boxes, "box");
 		
+        /*
 		// is_of_type fact
 		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
@@ -590,11 +624,26 @@ namespace KCL_rosplan {
 			return;
 		}
 		ROS_INFO("KCL: (PerceptionAction) Received %zd box instances.", getInstances.response.instances.size());
+        */
 		
 		std::string found_box;
-		for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
+		for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
 		{
 			const std::string& box = *ci;
+
+            std::map<std::string, std::string> parameters;
+            parameters["o"] = object_rec_name;
+            parameters["b"] = box;
+            if (knowledge_base_.isFactTrue("belongs_in", parameters, true))
+            {
+				ROS_INFO("KCL: (PerceptionAction) %s belongs in %s", object_rec_name.c_str(), box.c_str());
+				found_box = box;
+            }
+            else
+            {
+				ROS_INFO("KCL: (PerceptionAction) %s does not belong in %s", object_rec_name.c_str(), box.c_str());
+            }
+/*
 			rosplan_knowledge_msgs::KnowledgeQueryService knowledge_query;
 			rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
 			
@@ -626,11 +675,25 @@ namespace KCL_rosplan {
 				found_box = box;
 				ROS_INFO("KCL: (PerceptionAction) %s belongs in %s", object_rec_name.c_str(), box.c_str());
 			}
+*/
 		}
 		
 		// Add new type, if necessary.
 		if (found_box != "")
 		{
+            for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
+            {
+				const std::string& box = *ci;
+                std::map<std::string, std::string> parameters;
+                parameters["o"] = object_id;
+                parameters["b"] = box;
+                if (!knowledge_base_.addFact("belongs_in", parameters, box == found_box, KnowledgeBase::KB_ADD_KNOWLEDGE) ||
+                    !knowledge_base_.addFact("belongs_in", parameters, box != found_box, KnowledgeBase::KB_ADD_KNOWLEDGE))
+                {
+                    exit(-1);
+                }
+            }
+            /*
 			for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
 			{
 				const std::string& box = *ci;
@@ -670,6 +733,7 @@ namespace KCL_rosplan {
 				ROS_ERROR("KCL: (PerceptionAction) Remove %s (belongs_in %s %s) predicate from the knowledge base.", knowledge_update_service.request.knowledge.is_negative ? "NOT" : "", object_id.c_str(), box.c_str());
 				knowledge_update_service.request.knowledge.values.clear();
 			}
+            */
 		}
 	}
 	
@@ -684,8 +748,19 @@ namespace KCL_rosplan {
 	}
 
 	void RPPerceptionAction::updateObject(squirrel_object_perception_msgs::SceneObject &object, std::string newWaypoint) {
+        
+        if (object.id == "") return;
 
 		// add the new object
+        if (!knowledge_base_.addInstance("object", object.id)) return;
+        if (!knowledge_base_.addInstance("waypoint", newWaypoint)) return;
+        
+        std::map<std::string, std::string> parameters;
+        parameters["o"] = object.id;
+        parameters["wp"] = newWaypoint;
+        if (!knowledge_base_.addFact("object_at", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE)) return;
+
+        /*
 		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
@@ -720,6 +795,7 @@ namespace KCL_rosplan {
 		if (!update_knowledge_client.call(knowledge_update_service)) {
 			ROS_ERROR("KCL: (PerceptionAction) Could not add object_at predicate to the knowledge base.");
 		}
+        */
 
 		// Add the opposite to the knowledge base.
 
@@ -733,12 +809,15 @@ namespace KCL_rosplan {
 
 	void RPPerceptionAction::removeObject(squirrel_object_perception_msgs::SceneObject &object) {
 
+        knowledge_base_.removeInstance("object", object.id);
+/*
 			rosplan_knowledge_msgs::KnowledgeUpdateService updateSrv;
 			updateSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
 			updateSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
 			updateSrv.request.knowledge.instance_type = "object";
 			updateSrv.request.knowledge.instance_name = object.id;
 			update_knowledge_client.call(updateSrv);
+*/
 
 			//data
 			message_store.deleteID(db_name_map[object.id]);
@@ -761,8 +840,6 @@ namespace KCL_rosplan {
 			ROS_INFO("KCL (RPGraspAction) Goal state and last_joint_state have the same sized array! %zd %zd", goal_state.data.size(), last_joint_state.position.size());
 			for (unsigned int i = 3; i < std::min(goal_state.data.size(), last_joint_state.position.size()); ++i)
 			{
-
-
 				if (i > goal_state.data.size()) continue;
 				if (std::abs(goal_state.data[i] - last_joint_state.position[i]) > error)
 				{
@@ -790,20 +867,15 @@ namespace KCL_rosplan {
 		data_arm.data[6] = -1.6;
 		data_arm.data[7] = -1.8;
 
-		squirrel_manipulation_msgs::JointPtpActionGoal armEndGoal;
-		armEndGoal.goal.joints = data_arm;
+		squirrel_manipulation_msgs::ManipulationGoal retract_arm_goal;
+		retract_arm_goal.manipulation_type = "joints";
+		retract_arm_goal.joints = data_arm.data;
 
-		ptpActionClient.sendGoal(armEndGoal.goal);
+		object_manipulation_client_.sendGoal(retract_arm_goal);
 		ROS_INFO("KCL: (RPPerceptionAction) Goal sent\n");
-		ptpActionClient.waitForResult(ros::Duration(30.0));
-		ROS_INFO("KCL: (RPPerceptionAction) Waiting form arm to finish moving...\n");
-		sleep(1.0);
-		ptpActionClient.sendGoal(armEndGoal.goal);
+		object_manipulation_client_.waitForResult();
 
-		waitForArm(data_arm, 0.05f);
-		return true;
-
-		if (ptpActionClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+		if (object_manipulation_client_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
 			ROS_INFO("KCL: (RPPerceptionAction) Arm moved \n");
 			return true;
 		}else{
@@ -823,21 +895,16 @@ namespace KCL_rosplan {
 		data_arm.data[6] = -1.7;
 		data_arm.data[7] = -1.8;
 
-		squirrel_manipulation_msgs::JointPtpActionGoal armEndGoal;
-		armEndGoal.goal.joints = data_arm;
+		squirrel_manipulation_msgs::ManipulationGoal retract_arm_goal;
+		retract_arm_goal.manipulation_type = "joints";
+		retract_arm_goal.joints = data_arm.data;
 
-
-		ptpActionClient.sendGoal(armEndGoal.goal);
+		object_manipulation_client_.sendGoal(retract_arm_goal);
 		ROS_INFO("KCL: (RPPerceptionAction) Goal sent\n");
-		ptpActionClient.waitForResult(ros::Duration(30.0));
+		object_manipulation_client_.waitForResult();
 		ROS_INFO("KCL: (RPPerceptionAction) Waiting form arm to finish moving...\n");
-		sleep(1.0);
-		ptpActionClient.sendGoal(armEndGoal.goal);
 
-		waitForArm(data_arm, 0.05f);
-		return true;
-
-		if (ptpActionClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+		if (object_manipulation_client_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
 			ROS_INFO("KCL: (RPPerceptionAction) Arm moved \n");
 			return true;
 		}else{
@@ -852,27 +919,29 @@ namespace KCL_rosplan {
 	}
 } // close namespace
 
-	/*-------------*/
-	/* Main method */
-	/*-------------*/
+/*-------------*/
+/* Main method */
+/*-------------*/
 
-	int main(int argc, char **argv) {
+int main(int argc, char **argv) {
 
-		ros::init(argc, argv, "rosplan_interface_perception");
-		ros::NodeHandle nh;
+	ros::init(argc, argv, "rosplan_interface_perception");
+	ros::NodeHandle nh;
 
-		std::string actionserver, recogniseserver;
-		nh.param("action_server", actionserver, std::string("/squirrel_recognize_objects"));
-		nh.param("recognise_server", recogniseserver, std::string("/squirrel_recognize_objects"));
+	std::string actionserver, recogniseserver;
+	nh.param("action_server", actionserver, std::string("/squirrel_recognize_objects"));
+	nh.param("recognise_server", recogniseserver, std::string("/squirrel_recognize_objects"));
+	std::string manipulation_server = "/squirrel_object_manipulation_server";
+	nh.param("manipulation_action_server", manipulation_server, std::string("/manipulation_server"));
 
-		// create PDDL action subscriber
-		KCL_rosplan::RPPerceptionAction rppa(nh, actionserver, recogniseserver);
-	
-		// listen for action dispatch
-		ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPPerceptionAction::dispatchCallback, &rppa);
-		ROS_INFO("KCL: (PerceptionAction) Ready to receive");
+	// create PDDL action subscriber
+	KCL_rosplan::RPPerceptionAction rppa(nh, actionserver, recogniseserver, manipulation_server);
 
-		while(ros::ok() && ros::master::check()){ros::spinOnce();}
-		return 0;
-	}
+	// listen for action dispatch
+	ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPPerceptionAction::dispatchCallback, &rppa);
+	ROS_INFO("KCL: (PerceptionAction) Ready to receive");
+
+	while(ros::ok() && ros::master::check()){ros::spinOnce();}
+	return 0;
+}
 
