@@ -71,7 +71,7 @@ namespace KCL_rosplan {
 	public:
 
 		/* constructor */
-		RPGraspAction(ros::NodeHandle &nh, std::string &blindGraspActionServer);
+		RPGraspAction(ros::NodeHandle &nh, const std::string &blindGraspActionServer);
 
 		/* listen to and process action_dispatch topic */
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
