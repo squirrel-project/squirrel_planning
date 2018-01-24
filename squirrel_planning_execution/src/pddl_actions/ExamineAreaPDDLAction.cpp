@@ -57,6 +57,7 @@ namespace KCL_rosplan {
 		{
 			return;
 		}
+		objects_to_examine_.clear();
 
 		bool actionAchieved = false;
 		
@@ -83,14 +84,14 @@ namespace KCL_rosplan {
 		ss.str(std::string());
 		ss << "timeout 180 " << planner_path << "ff -o DOMAIN -f PROBLEM";
 		std::string planner_command = ss.str();
-	  /* 
+		//
 		// Before calling the planner we create the domain so it can be parsed.
 		if (!createPDDL())
 		{
 			ROS_ERROR("KCL: (ExamineAreaPDDLAction) failed to produce a domain at %s for action name %s.", domain_name.c_str(), action_name.c_str());
 			return;
 		}
-		*/
+
 		planner_instance.startPlanner(domain_name, problem_name, data_path, planner_command);
 		
 		// publish feedback (enabled)
@@ -105,7 +106,7 @@ namespace KCL_rosplan {
 			ros::spinOnce();
 			loop_rate.sleep();
 		}
-		pddl_generation_service.shutdown();
+//		pddl_generation_service.shutdown();
 
 
 		actionlib::SimpleClientGoalState state = planner_instance.getState();
@@ -126,28 +127,6 @@ namespace KCL_rosplan {
 				exit(-1);
 			}
 			
-			/*
-			// Remove the old knowledge.
-			rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-			knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			rosplan_knowledge_msgs::KnowledgeItem kenny_knowledge;
-			kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-			kenny_knowledge.attribute_name = "examined_room";
-			kenny_knowledge.is_negative = false;
-			
-			diagnostic_msgs::KeyValue kv;
-			kv.key = "a";
-			kv.value = area;
-			kenny_knowledge.values.push_back(kv);
-			
-			knowledge_update_service.request.knowledge = kenny_knowledge;
-			if (!update_knowledge_client_.call(knowledge_update_service)) {
-				ROS_ERROR("KCL: (ExamineAreaPDDLAction) Could not add the (examined %s) predicate to the knowledge base.", area.c_str());
-				exit(-1);
-			}
-			ROS_INFO("KCL: (ExamineAreaPDDLAction) Added the action (examined %s) predicate to the knowledge base.", area.c_str());
-			kenny_knowledge.values.clear();
-			*/
 			// publish feedback (achieved)
 			rosplan_dispatch_msgs::ActionFeedback fb;
 			fb.action_id = msg->action_id;
@@ -156,10 +135,32 @@ namespace KCL_rosplan {
 		}
 		else
 		{
-			// publish feedback (failed)
+			// Remove all the old knowledge, all lumps, etc.
+			for (std::set<std::string>::const_iterator ci = objects_to_examine_.begin(); ci != objects_to_examine_.end(); ++ci)
+			{
+				const std::string& object = *ci;
+				ROS_INFO("KCL: (ExamineAreaPDDLAction) Process object: %s.", object.c_str());
+				knowledge_base_->removeInstance("object", object);
+			}
+
+			std::vector<rosplan_knowledge_msgs::KnowledgeItem> facts;
+			knowledge_base_->getFacts(facts, "object_at");
+			for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = facts.begin(); ci != facts.end(); ++ci)
+			{
+				const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
+				std::string s = knowledge_base_->toString(ki);
+				ROS_INFO("KCL: (ExamineAreaPDDLAction) Process fact: %s.", s.c_str());
+				ROS_INFO("KCL: (ExamineAreaPDDLAction) Compare %s.", ki.values[0].value.c_str());
+				if (objects_to_examine_.count(ki.values[0].value) != 0)
+				{
+					knowledge_base_->removeFact(ki, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE);
+				}
+			}
+
+			// publish feedback (aborted, do not try again!)
 			rosplan_dispatch_msgs::ActionFeedback fb;
 			fb.action_id = msg->action_id;
-			fb.status = "action failed";
+			fb.status = "action aborted";
 			action_feedback_pub_.publish(fb);
 		}
 	}
@@ -169,6 +170,11 @@ namespace KCL_rosplan {
 	/*--------------------*/
 	
 	bool ExamineAreaPDDLAction::generatePDDLProblemFile(rosplan_knowledge_msgs::GenerateProblemService::Request &req, rosplan_knowledge_msgs::GenerateProblemService::Response &res)
+	{
+		return true;
+	}
+
+	bool ExamineAreaPDDLAction::createPDDL()
 	{
 		ROS_INFO("KCL: (ExamineAreaPDDLAction) Create domain for action %s.", g_action_name.c_str());
 		// Lets start the planning process.
@@ -206,7 +212,6 @@ namespace KCL_rosplan {
 		int max_objects = 0;
 		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = get_attribute.response.attributes.begin(); ci != get_attribute.response.attributes.end(); ++ci) {
 
-			max_objects++;
 			if(max_objects > 3) break;
 
 			const rosplan_knowledge_msgs::KnowledgeItem& knowledge_item = *ci;
@@ -222,22 +227,16 @@ namespace KCL_rosplan {
 					location_predicate = key_value.value;
 				}
 			}
-			
+			if (objects_to_examine_.count(object_predicate) != 0) continue;
+
+			max_objects++;
 			object_to_location_mappings[object_predicate] = location_predicate;
 			
 			// Find waypoints that are near this waypoint, these waypoints are used by the 
 			// robot to pickup or push this object.
-			///rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-			///knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			
 			std::vector<std::string> near_waypoints;
 			for (unsigned int i = 0; i < 1; ++i)
 			{
-				//rosplan_knowledge_msgs::KnowledgeItem kenny_knowledge;
-				//kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-				
-				
-				
 				std::stringstream ss;
 				ss << "near_" << location_predicate << "_" << i;
 				near_waypoints.push_back(ss.str());
@@ -256,42 +255,14 @@ namespace KCL_rosplan {
 					ROS_ERROR("KCL: (ExamineAreaPDDLAction) Could not add the fact (near %s %s) to the knowledge base.", ss.str().c_str(), location_predicate.c_str());
 					exit(-1);
 				}
-				
-				/*
-				kenny_knowledge.instance_type = "waypoint";
-				kenny_knowledge.instance_name = ss.str();
-				
-				knowledge_update_service.request.knowledge = kenny_knowledge;
-				if (!update_knowledge_client_.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (ExamineAreaPDDLAction) Could not add the waypoint %s to the knowledge base.", ss.str().c_str());
-					exit(-1);
-				}
-				ROS_INFO("KCL: (ExamineAreaPDDLAction) Added %s to the knowledge base.", ss.str().c_str());
-				
-				kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-				kenny_knowledge.attribute_name = "near";
-				kenny_knowledge.is_negative = false;
-				diagnostic_msgs::KeyValue kv;
-				kv.key = "wp1";
-				kv.value = ss.str();
-				kenny_knowledge.values.push_back(kv);
-				kv.key = "wp2";
-				kv.value = location_predicate;
-				kenny_knowledge.values.push_back(kv);
-				knowledge_update_service.request.knowledge = kenny_knowledge;
-				if (!update_knowledge_client_.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (ExamineAreaPDDLAction) Could not add the fact (near %s %s) to the knowledge base.", ss.str().c_str(), location_predicate.c_str());
-					exit(-1);
-				}
-				ROS_INFO("KCL: (ExamineAreaPDDLAction) Added (near %s %s) to the knowledge base.", ss.str().c_str(), location_predicate.c_str());
-				kenny_knowledge.values.clear();
-				*/
 			}
 			near_waypoint_mappings[location_predicate] = near_waypoints;
 		}
 		std_msgs::Int8 nr_objects;
 		nr_objects.data = object_to_location_mappings.size();
 		ROS_INFO("KCL: (ExamineAreaPDDLAction) Found %d objects to eximine.", nr_objects.data);
+
+		if (object_to_location_mappings.size() == 0) return false;
 		
 		// Get the location of kenny.
 		get_attribute.request.predicate_name = "robot_at";
@@ -350,9 +321,15 @@ namespace KCL_rosplan {
 		if (object_to_location_mappings.empty())
 		{
 			ROS_INFO("KCL: (ExamineAreaPDDLAction) All objects are all ready classified (or we found none!)");
+			return false;
 		}
 		else
 		{
+			for (std::map<std::string, std::string>::const_iterator ci = object_to_location_mappings.begin(); ci != object_to_location_mappings.end(); ++ci)
+			{
+				objects_to_examine_.insert(ci->first);
+			}
+
 			ContingentStrategicClassifyPDDLGenerator::createPDDL(data_path, domain_name, problem_name, robot_location, object_to_location_mappings, near_waypoint_mappings, 3);
 		}
 		return true;

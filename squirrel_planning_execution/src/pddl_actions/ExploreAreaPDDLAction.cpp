@@ -184,7 +184,7 @@ namespace KCL_rosplan {
 			// publish feedback (failed)
 			rosplan_dispatch_msgs::ActionFeedback fb;
 			fb.action_id = msg->action_id;
-			fb.status = "action failed";
+			fb.status = "action aborted";
 			action_feedback_pub_.publish(fb);
 		}
 	}
@@ -251,7 +251,7 @@ namespace KCL_rosplan {
 			bounding_box.push_back(p3);
 			bounding_box.push_back(p4);
 			bounding_box.push_back(p2);
-			view_cone_generator_->createViewCones(view_poses, bounding_box, 3, 5, 30.0f, 2.0f, 20, 0.5f);
+			view_cone_generator_->createViewCones(view_poses, bounding_box, 1, 5, 30.0f, 2.0f, 100, 0.5f);
 		}
 		else
 		{

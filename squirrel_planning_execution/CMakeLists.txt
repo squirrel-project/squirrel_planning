@@ -154,6 +154,8 @@ set(finalReview_SOURCES
   src/pddl_actions/TidyAreaPDDLAction.cpp
   src/pddl_actions/ObserveClassifiableOnAttemptPDDLAction.cpp
   src/pddl_actions/ClearObjectPDDLAction.cpp
+  src/pddl_actions/ShedKnowledgePDDLAction.cpp
+  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
   src/ContingentTacticalClassifyPDDLGenerator.cpp
   src/ContingentStrategicClassifyPDDLGenerator.cpp
   src/ClassicalTidyPDDLGenerator.cpp

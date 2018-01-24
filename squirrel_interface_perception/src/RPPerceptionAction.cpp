@@ -197,7 +197,7 @@ namespace KCL_rosplan {
 
 		recognise_action_client.waitForResult();
 		actionlib::SimpleClientGoalState state = recognise_action_client.getState();
-		bool success =  (state == actionlib::SimpleClientGoalState::SUCCEEDED) && recognise_action_client.getResult()->objects_added.size() + recognise_action_client.getResult()->objects_updated.size() > 0;
+		bool success =	(state == actionlib::SimpleClientGoalState::SUCCEEDED) && recognise_action_client.getResult()->objects_added.size() + recognise_action_client.getResult()->objects_updated.size() > 0;
 		ROS_INFO("KCL: (PerceptionAction) check object finished: %s", state.toString().c_str());
 
 		if (success) {
@@ -300,7 +300,7 @@ namespace KCL_rosplan {
 			// request manipulation waypoints for object
 			geometry_msgs::PoseStamped &box_pose = *results[0];
 			float distance = (box_pose.pose.position.x - transform.getOrigin().getX()) * (box_pose.pose.position.x - transform.getOrigin().getX()) +
-			                 (box_pose.pose.position.y - transform.getOrigin().getY()) * (box_pose.pose.position.y - transform.getOrigin().getY());
+							 (box_pose.pose.position.y - transform.getOrigin().getY()) * (box_pose.pose.position.y - transform.getOrigin().getY());
 			
 			if (distance < min_distance_from_robot)
 			{
@@ -319,7 +319,7 @@ namespace KCL_rosplan {
 
 		recognise_action_client.waitForResult();
 		actionlib::SimpleClientGoalState state = recognise_action_client.getState();
-		bool success =  (state == actionlib::SimpleClientGoalState::SUCCEEDED) && recognise_action_client.getResult()->objects_added.size() + recognise_action_client.getResult()->objects_updated.size() > 0;
+		bool success =	(state == actionlib::SimpleClientGoalState::SUCCEEDED) && recognise_action_client.getResult()->objects_added.size() + recognise_action_client.getResult()->objects_updated.size() > 0;
 		ROS_INFO("KCL: (PerceptionAction) check object finished: %s", state.toString().c_str());
 
 		if (success) {
@@ -389,7 +389,7 @@ namespace KCL_rosplan {
 
 		examine_action_client.waitForResult();
 		actionlib::SimpleClientGoalState state = examine_action_client.getState();
-		bool success =  (state == actionlib::SimpleClientGoalState::SUCCEEDED) && examine_action_client.getResult()->objects_added.size() + examine_action_client.getResult()->objects_updated.size() > 0;
+		bool success =	(state == actionlib::SimpleClientGoalState::SUCCEEDED) && examine_action_client.getResult()->objects_added.size() + examine_action_client.getResult()->objects_updated.size() > 0;
 		ROS_INFO("KCL: (PerceptionAction) check object finished: %s", state.toString().c_str());
 
 		// update classifiable_from in the knowledge base .
@@ -419,7 +419,7 @@ namespace KCL_rosplan {
 			exit(-1);
 		}
 		ROS_INFO("KCL: (ClassifyObjectPDDLAction) Added %s (classifiable_from %s %s %s) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "", fromID.c_str(), wpID.c_str(), objectID.c_str());
-       
+	   
 		// Remove the opposite option from the knowledge base.
 		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
 		knowledge_item.is_negative = !knowledge_item.is_negative;
@@ -432,7 +432,7 @@ namespace KCL_rosplan {
 	
 		knowledge_item.values.clear();
 
-		if (success) {
+		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
 
 			ROS_INFO("KCL: (PerceptionAction) Found %zd objects!", (examine_action_client.getResult()->objects_added.size() + examine_action_client.getResult()->objects_updated.size()));
 			for (std::vector<squirrel_object_perception_msgs::SceneObject>::const_iterator ci = examine_action_client.getResult()->objects_added.begin(); ci != examine_action_client.getResult()->objects_added.end(); ++ci)
@@ -469,7 +469,7 @@ namespace KCL_rosplan {
 			}
 
 		} else if (state != actionlib::SimpleClientGoalState::SUCCEEDED)  {
-			ROS_INFO("KCL: (PerceptionAction) action failed");
+			ROS_WARN("KCL: (PerceptionAction) action failed");
 			publishFeedback(msg->action_id, "action failed");
 			return;
 		}
@@ -522,7 +522,7 @@ namespace KCL_rosplan {
 
 		examine_action_client.waitForResult();
 		actionlib::SimpleClientGoalState state = examine_action_client.getState();
-		bool success =  (state == actionlib::SimpleClientGoalState::SUCCEEDED) && examine_action_client.getResult()->objects_added.size() + examine_action_client.getResult()->objects_updated.size() > 0;
+		bool success =	(state == actionlib::SimpleClientGoalState::SUCCEEDED) && examine_action_client.getResult()->objects_added.size() + examine_action_client.getResult()->objects_updated.size() > 0;
 		ROS_INFO("KCL: (PerceptionAction) check object finished: %s", state.toString().c_str());
 
 		if (success) {
@@ -862,7 +862,7 @@ namespace KCL_rosplan {
 		ros::NodeHandle nh;
 
 		std::string actionserver, recogniseserver;
-		nh.param("action_server", actionserver, std::string("/squirrel_look_for_objects_in_hand"));
+		nh.param("action_server", actionserver, std::string("/squirrel_recognize_objects"));
 		nh.param("recognise_server", recogniseserver, std::string("/squirrel_recognize_objects"));
 
 		// create PDDL action subscriber

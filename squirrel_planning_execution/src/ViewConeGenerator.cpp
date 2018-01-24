@@ -278,7 +278,7 @@ void ViewConeGenerator::createViewCones(std::vector<geometry_msgs::Pose>& poses,
 			}
 		}
 		
-		if (best_visible_cells.empty()) {
+		if (best_visible_cells.size() < 100) {
 			//ROS_INFO("(ViewConeGenerator) No good poses found!");
 			continue;
 		}
@@ -541,7 +541,7 @@ bool ViewConeGenerator::isBlocked(const geometry_msgs::Point& point, float min_d
 				continue;
 			}
 			
-			if (last_received_occupancy_grid_msgs_.data[cell.x + cell.y * last_received_occupancy_grid_msgs_.info.width] > 0)
+			if (last_received_occupancy_grid_msgs_.data[cell.x + cell.y * last_received_occupancy_grid_msgs_.info.width] != 0)
 			{
 				return true;
 			}

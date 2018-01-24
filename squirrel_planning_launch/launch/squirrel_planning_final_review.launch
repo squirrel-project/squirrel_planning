@@ -23,7 +23,7 @@
 
 	<!-- scene database (MongoDB) -->
 	<node name="rosplan_scene_database" pkg="mongodb_store" type="mongodb_server.py" respawn="false" output="log">
-	    <param name="database_path" value="$(find rosplan_knowledge_base)/common/mongoDB" />
+		<param name="database_path" value="$(find rosplan_knowledge_base)/common/mongoDB" />
 	</node>
 	<node name="rosplan_scene_message_store" pkg="mongodb_store" type="message_store_node.py" respawn="false" output="log">
 	</node>
@@ -31,13 +31,13 @@
 	<!-- planning system -->
 	<node name="rosplan_planning_system" pkg="rosplan_planning_system" type="planner" respawn="false" output="screen">
 		<!-- directory for generated files -->
-	    <param name="data_path" value="$(find squirrel_planning_launch)/common/" />
-	    <param name="problem_path" value="$(find squirrel_planning_launch)/common/problem.pddl" />
-            <param name="strl_file_path" value="$(find squirrel_planning_launch)/common/plan.strl" />
+		<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+		<param name="problem_path" value="$(find squirrel_planning_launch)/common/problem.pddl" />
+		<param name="strl_file_path" value="$(find squirrel_planning_launch)/common/plan.strl" />
 		<!-- to run the planner -->
-	    <param name="planner_command" value="timeout 1800 $(find rosplan_planning_system)/common/bin/popf3-clp-last DOMAIN PROBLEM" />
-            <param name="generate_default_problem" value="true" />
-            <param name="parser" value="popf" />
+		<param name="planner_command" value="timeout 1800 $(find rosplan_planning_system)/common/bin/popf3-clp-last DOMAIN PROBLEM" />
+		<param name="generate_default_problem" value="true" />
+		<param name="parser" value="popf" />
 	</node>
 
 	<!-- standard ROS interfaces -->
@@ -47,17 +47,19 @@
 	</node>
 
 	<node name="rosplan_interface_mapping" pkg="rosplan_interface_mapping" type="rproadmapServer" respawn="false" output="screen">
-	    <param name="data_path" value="$(find squirrel_planning_launch)/common/" />
-	    <param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
-	    <param name="cost_map_update_topic" value="/move_base/global_costmap/costmap_updates" />
-	    <param name="odom_topic" value="/odom" />
-	    <param name="use_static_map" value="false" />
-	    <param name="static_map_service" value="/static_map" />
+		<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+		<param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
+		<param name="cost_map_update_topic" value="/move_base/global_costmap/costmap_updates" />
+		<param name="odom_topic" value="/odom" />
+		<param name="use_static_map" value="false" />
+		<param name="static_map_service" value="/static_map" />
 	</node>
 
 	<!-- SQUIRREL interfaces -->
 	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen"></node>
+	<!--
 	<node name="squirrel_social_behaviour" pkg="squirrel_interface_hri" type="PerformSocialBehaviour" respawn="false" output="screen"></node>
+	-->
 
 	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" respawn="false" output="screen">
 		<!-- set "true" if you want to fake object perception completely -->
@@ -77,10 +79,10 @@
 		<param name="push_action_server" value="/push" />
 		<param name="smash_action_server" value="/smash" />
 	</node>
-    
-    <node name="squirrel_interface_grasping" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
-        <param name="manipulation_action_server" value="/squirrel_object_manipulation_server" />
-    </node>
+	
+	<node name="squirrel_interface_grasping" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
+		<param name="manipulation_action_server" value="/squirrel_object_manipulation_server" />
+	</node>
 
 	<!-- simulation acitons (ALL TRUE) -->
 	<node name="simulated_actions" pkg="squirrel_planning_execution" type="simulatedPDDLActionsNode" output="screen" if="$(arg simulated)">
@@ -98,13 +100,13 @@
 	</node>
 
 	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="finalReview" respawn="false" output="screen">
-	    <param name="data_path" value="$(find squirrel_planning_launch)/common/" />
-	    <param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
-	    <param name="cost_map_update_topic" value="/move_base/global_costmap/costmap_updates" />
-	    <param name="use_static_map" value="false" type="bool" />
-	    <param name="static_map_service" value="/static_map" />
-	    <param name="occupancy_threshold" value="20" />
-	    <param name="manipulation_service_topic" value="/squirrel_manipulation/waypoint_request" />
-	    <param name="simulated" value="$(arg simulated)" />
+		<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+		<param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
+		<param name="cost_map_update_topic" value="/move_base/global_costmap/costmap_updates" />
+		<param name="use_static_map" value="false" type="bool" />
+		<param name="static_map_service" value="/static_map" />
+		<param name="occupancy_threshold" value="20" />
+		<param name="manipulation_service_topic" value="/squirrel_manipulation/waypoint_request" />
+		<param name="simulated" value="$(arg simulated)" />
 	</node>
 </launch>
