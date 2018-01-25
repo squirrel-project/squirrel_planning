@@ -429,7 +429,7 @@ void ViewConeGenerator::visualiseViewCones(const std::vector<geometry_msgs::Pose
 		
 		std_msgs::ColorRGBA colour;
 		getNextColour(colour.r, colour.b, colour.g);
-		colour.a = 1.0f;
+		colour.a = 0.3f;
 		triangle_colours.push_back(colour);
 		triangle_colours.push_back(colour);
 		triangle_colours.push_back(colour);

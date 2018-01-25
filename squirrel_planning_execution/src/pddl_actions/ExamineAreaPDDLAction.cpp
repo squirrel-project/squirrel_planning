@@ -349,7 +349,7 @@ namespace KCL_rosplan {
 				objects_to_examine_.insert(ci->first);
 			}
 
-			ContingentStrategicClassifyPDDLGenerator::createPDDL(data_path, domain_name, problem_name, robot_location, object_to_location_mappings, near_waypoint_mappings, 3);
+			ContingentStrategicClassifyPDDLGenerator::createPDDL(data_path, domain_name, problem_name, robot_location, object_to_location_mappings, near_waypoint_mappings, 1);
 		}
 		return true;
 	}

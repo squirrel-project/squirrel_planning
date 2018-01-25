@@ -172,7 +172,7 @@ namespace KCL_rosplan {
 			std::cout << msg->parameters[i].key << std::endl;
 			if(msg->parameters[i].key == "o")
 				boxID = msg->parameters[i].value;
-			if (msg->parameters[i].key == "r")
+			if (msg->parameters[i].key == "v")
 				robotID = msg->parameters[i].value;
 			if (msg->parameters[i].key == "o")
 				objectID = msg->parameters[i].value;
@@ -405,21 +405,19 @@ namespace KCL_rosplan {
 		// get object ID from action dispatch
 		std::string robotID;
 		std::string objectID;
-		bool foundObject = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
 			if(0==msg->parameters[i].key.compare("v"))
 				robotID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("o")) {
+			if(0==msg->parameters[i].key.compare("o"))
 				objectID = msg->parameters[i].value;
-				foundObject = true;
-			}
 		}
-		if(!foundObject) {
-			ROS_INFO("KCL: (GraspAction) aborting action dispatch; malformed parameters");
+		if(objectID == "" || robotID == "") {
+			ROS_INFO("KCL: (GraspAction) aborting action dispatch; malformed parameters. Found object %s, robot %s", objectID.c_str(), robotID.c_str());
 			return false;
 		}
 		
 		// get details from message store
+		ROS_INFO("KCL: (GraspAction) Find the scene object %s", objectID.c_str());
 		std::vector< boost::shared_ptr<squirrel_object_perception_msgs::SceneObject> > results;
 		if(message_store.queryNamed<squirrel_object_perception_msgs::SceneObject>(objectID, results)) {
 			if(results.size()<1) {
@@ -465,7 +463,7 @@ namespace KCL_rosplan {
 
 			// dispatch Grasp action
 			squirrel_manipulation_msgs::ManipulationGoal grasp_goal;
-			grasp_goal.manipulation_type = "grasp";
+			grasp_goal.manipulation_type = "pick";
 			grasp_goal.object_id = objectID;
 			grasp_goal.pose = poseMap;
 			grasp_goal.object_bounding_cylinder = results[0]->bounding_cylinder;

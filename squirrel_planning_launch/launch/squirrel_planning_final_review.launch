@@ -84,6 +84,7 @@
 	
 	<node name="squirrel_interface_grasping" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen" unless="$(arg simulated)">
 		<param name="manipulation_action_server" value="/squirrel_object_manipulation_server" />
+		<param name="placement" value="true" />
 	</node>
 
 	<!-- simulation acitons (ALL TRUE) -->

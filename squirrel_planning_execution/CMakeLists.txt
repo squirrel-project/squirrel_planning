@@ -161,6 +161,12 @@ set(finalReview_SOURCES
   src/ClassicalTidyPDDLGenerator.cpp
   src/ViewConeGenerator.cpp
 )
+
+set(graspTest_SOURCES
+  src/TestGrasping.cpp
+  src/ConfigReader.cpp
+  src/KnowledgeBase.cpp
+)
   
 ## planning simulation
 #set(planSim_SOURCES
@@ -188,6 +194,7 @@ set(finalReview_SOURCES
 #add_executable(behaviour ${behaviour_SOURCES})
 add_executable(needBattery ${needBattery_SOURCES})
 add_executable(finalReview ${finalReview_SOURCES})
+add_executable(graspTest ${graspTest_SOURCES})
 
 #add_dependencies(tidyroom ${catkin_EXPORTED_TARGETS})
 #add_dependencies(simpledemo ${catkin_EXPORTED_TARGETS})
@@ -202,6 +209,7 @@ add_executable(finalReview ${finalReview_SOURCES})
 #add_dependencies(behaviour ${catkin_EXPORTED_TARGETS})
 add_dependencies(needBattery ${catkin_EXPORTED_TARGETS})
 add_dependencies(finalReview ${catkin_EXPORTED_TARGETS})
+add_dependencies(graspTest ${catkin_EXPORTED_TARGETS})
 
 #target_link_libraries(tidyroom ${catkin_LIBRARIES})
 #target_link_libraries(simpledemo ${catkin_LIBRARIES})
@@ -216,6 +224,7 @@ add_dependencies(finalReview ${catkin_EXPORTED_TARGETS})
 #target_link_libraries(behaviour ${catkin_LIBRARIES})
 target_link_libraries(needBattery ${catkin_LIBRARIES})
 target_link_libraries(finalReview ${catkin_LIBRARIES})
+target_link_libraries(graspTest ${catkin_LIBRARIES})
 
 ##########
 ## Test ##
