@@ -27,7 +27,6 @@ PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle, c
 	commandLine << "/kcl_rosplan/planning_server_params:=/kcl_rosplan/" << nspace.str() << "/planning_server_params ";
 	commandLine << "/kcl_rosplan/start_planning:=/kcl_rosplan/" << nspace.str() << "/start_planning ";
 	commandLine << "&";
-	std::cout << commandLine.str() << std::endl;
 	int return_value = system(commandLine.str().c_str());
 
 	PlannerInstance* planning_instance = new PlannerInstance(node_handle, nspace.str(), total_planner_instances_);

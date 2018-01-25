@@ -130,29 +130,9 @@ namespace KCL_rosplan {
 			const std::string& object = msg->parameters[0].value;
 			const std::string& counter = msg->parameters[1].value;
 			
-            /*
-			// Add the new knowledge.
-			rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-			knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			rosplan_knowledge_msgs::KnowledgeItem kenny_knowledge;
-			kenny_knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-			kenny_knowledge.attribute_name = "classifiable_on_attempt";
-			
-			// Check if this object has been classified or not.
-			rosplan_knowledge_msgs::GetInstanceService get_instance;
-			get_instance.request.type_name = "waypoint";
-			
-			if (!get_instance_client_.call(get_instance))
-			{
-				ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Could not get the instances of type 'waypoint'.");
-				exit(1);
-			}
-			
-			//rosplan_knowledge_msgs::KnowledgeQueryService knowledge_query;
-            */
-            std::vector<std::string> waypoints;
-            knowledge_base_.getInstances(waypoints, "waypoint");
-            bool object_is_classified = false;
+			std::vector<std::string> waypoints;
+			knowledge_base_.getInstances(waypoints, "waypoint");
+			bool object_is_classified = false;
 			
 			// Find if this object has been classified at any location.
 			for (std::vector<std::string>::const_iterator ci = waypoints.begin(); ci != waypoints.end(); ++ci)
@@ -161,108 +141,37 @@ namespace KCL_rosplan {
 				for (std::vector<std::string>::const_iterator ci = waypoints.begin(); ci != waypoints.end(); ++ci)
 				{
 					const std::string& wp2 = *ci;
-                    std::map<std::string, std::string> parameters;
-                    parameters["from"] = wp1;
-                    parameters["view"] = wp2;
-                    parameters["o"] = object;
-                    if (knowledge_base_.isFactTrue("classifiable_from", parameters, true))
-                    {
-        				ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) %s (at %s) is classifiable from %s.", object.c_str(), wp1.c_str(), wp2.c_str());
-                        object_is_classified = true;
-                        break;
-                    }
-                            
-					
-                    /*
-					rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-					knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-					knowledge_item.attribute_name = "classifiable_from";
-					
-					diagnostic_msgs::KeyValue kv;
-					kv.key = "from";
-					kv.value = wp1;
-					knowledge_item.values.push_back(kv);
-					
-					kv.key = "view";
-					kv.value = wp2;
-					knowledge_item.values.push_back(kv);
-					
-					kv.key = "o";
-					kv.value = object;
-					knowledge_item.values.push_back(kv);
-					knowledge_item.is_negative = false;
-					
-					knowledge_query.request.knowledge.push_back(knowledge_item);
-                    */
+					std::map<std::string, std::string> parameters;
+					parameters["from"] = wp1;
+					parameters["view"] = wp2;
+					parameters["o"] = object;
+					if (knowledge_base_.isFactTrue("classifiable_from", parameters, true))
+					{
+						ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) %s (at %s) is classifiable from %s.", object.c_str(), wp1.c_str(), wp2.c_str());
+						object_is_classified = true;
+						break;
+					}
 				}
-                if (object_is_classified) break;
+				if (object_is_classified) break;
 			}
-			
-            /*
-			// Check if any of these facts are true.
-			if (!query_knowledge_client_.call(knowledge_query))
-			{
-				ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Could not call the query knowledge server.");
-				exit(1);
-			}
-			
-			bool object_is_classified = false;
-			for (std::vector<unsigned char>::const_iterator ci = knowledge_query.response.results.begin(); ci != knowledge_query.response.results.end(); ci++)
-			{
-				if (*ci == 1)
-				{
-					object_is_classified = true;
-					break;
-				}
-			}
-            */
 
-            std::map<std::string, std::string> parameters;
-            parameters["o"] = object;
-            parameters["c"] = counter;
-            if (!knowledge_base_.addFact("classifiable_on_attempt", parameters, object_is_classified, KnowledgeBase::KB_ADD_KNOWLEDGE))
-            {
-				ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Could not add the classifiable_on_attempt predicate to the knowledge base.");
-				exit(-1);
-            }
-			
-            /*
-			kenny_knowledge.is_negative = !object_is_classified;
-			if (kenny_knowledge.is_negative)
+			std::map<std::string, std::string> parameters;
+			parameters["o"] = object;
+			parameters["c"] = counter;
+			if (!knowledge_base_.addFact("classifiable_on_attempt", parameters, object_is_classified, KnowledgeBase::KB_ADD_KNOWLEDGE))
 			{
-				ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) %s was not classified on the %sth attempt.", object.c_str(), counter.c_str());
-			}
-			else
-			{
-				ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) %s was classified on the %sth attempt!", object.c_str(), counter.c_str());
-			}
-			
-			diagnostic_msgs::KeyValue kv;
-			kv.key = "o";
-			kv.value = object;
-			kenny_knowledge.values.push_back(kv);
-			
-			kv.key = "c";
-			kv.value = counter;
-			kenny_knowledge.values.push_back(kv);
-			
-			knowledge_update_service.request.knowledge = kenny_knowledge;
-			if (!update_knowledge_client_.call(knowledge_update_service)) {
 				ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Could not add the classifiable_on_attempt predicate to the knowledge base.");
 				exit(-1);
 			}
-			ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) Added classifiable_on_attempt predicate to the knowledge base.");
-			kenny_knowledge.values.clear();
-            */
 
-            // Make this object classified.
-            parameters.clear();
-            parameters["o"] = object;
-            if (!knowledge_base_.addFact("examined", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
-            {
-                ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Could not add (examined %s) to the knowledge base.", object.c_str());
-                exit(-1);
-            }
+			// Make this object classified.
+			parameters.clear();
+			parameters["o"] = object;
+			if (!knowledge_base_.addFact("examined", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
+			{
+					ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Could not add (examined %s) to the knowledge base.", object.c_str());
+					exit(-1);
+			}
 			
 			// publish feedback (achieved)
 			rosplan_dispatch_msgs::ActionFeedback fb;
@@ -379,17 +288,15 @@ namespace KCL_rosplan {
 			if (!classify_object_waypoint_client_.call(getTaskPose)) {
 				ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Failed to recieve classification waypoints for %s.", object_name.c_str());
 
-                // Remove this object, as we cannot get to it!
-                std::map<std::string, std::string> parameters;
-                parameters["o"] = object_name;
-                parameters["wp"] = object_location;
-                if (!knowledge_base_.removeFact("object_at", parameters, true, KnowledgeBase::KB_REMOVE_KNOWLEDGE))
-                {
-				    ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Failed to remove (object_at %s %s) from the knowledge base!", object_name.c_str(), object_location.c_str());
-                    exit(-1);
-                }
-
-
+				// Remove this object, as we cannot get to it!
+				std::map<std::string, std::string> parameters;
+				parameters["o"] = object_name;
+				parameters["wp"] = object_location;
+				if (!knowledge_base_.removeFact("object_at", parameters, true, KnowledgeBase::KB_REMOVE_KNOWLEDGE))
+				{
+				ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Failed to remove (object_at %s %s) from the knowledge base!", object_name.c_str(), object_location.c_str());
+					exit(-1);
+				}
 				return false;
 			}
 
@@ -414,21 +321,12 @@ namespace KCL_rosplan {
 			ss << object_name << "_observation_wp" << i;
 			
 			ROS_INFO("KCL: (ObserveClassifiableOnAttemptPDDLAction) Process observation pose: %s", ss.str().c_str());
-            knowledge_base_.addInstance("waypoint", ss.str());
+			knowledge_base_.addInstance("waypoint", ss.str());
 
-            std::map<std::string, std::string> parameters;
-            parameters["wp1"] = ss.str();
-            parameters["wp2"] = object_location;
-            knowledge_base_.addFact("near", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE);
-			
-            /*
-			rosplan_knowledge_msgs::KnowledgeUpdateService updateSrv;
-			updateSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			updateSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-			updateSrv.request.knowledge.instance_type = "waypoint";
-			updateSrv.request.knowledge.instance_name = ss.str();
-			update_knowledge_client_.call(updateSrv);
-            */
+			std::map<std::string, std::string> parameters;
+			parameters["wp1"] = ss.str();
+			parameters["wp2"] = object_location;
+			knowledge_base_.addFact("near", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE);
 			
 			// Store the waypoint in mongo DB.
 			if (!is_simulated_)
@@ -448,9 +346,9 @@ namespace KCL_rosplan {
 		observation_location_predicates.push_back("nowhere");
 		
 		// Get the location of kenny.
-        std::vector<rosplan_knowledge_msgs::KnowledgeItem> robot_locations;
-        if (!knowledge_base_.getFacts(robot_locations, "robot_at") || robot_locations.size() != 1)
-        {
+		std::vector<rosplan_knowledge_msgs::KnowledgeItem> robot_locations;
+		if (!knowledge_base_.getFacts(robot_locations, "robot_at") || robot_locations.size() != 1)
+		{
 			ROS_ERROR("KCL: (ObserveClassifiableOnAttemptPDDLAction) Failed to recieve the attributes of the predicate 'robot_at'");
 			return false;
 		}

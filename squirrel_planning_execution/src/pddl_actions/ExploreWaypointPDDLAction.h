@@ -3,10 +3,11 @@
 
 #include <ros/ros.h>
 #include <rosplan_dispatch_msgs/ActionDispatch.h>
+#include <mongodb_store/message_store.h>
 
 namespace KCL_rosplan
 {
-
+class KnowledgeBase;
 /**
  * An instance of this class gets called whenever the PDDL action 'goto' (or variants thereof) is
  * dispatched. It is an action that makes the robot move to a certain location.
@@ -18,8 +19,10 @@ public:
 	/**
 	 * Constructor.
 	 * @param node_handle An existing and initialised ros node handle.
+	 * @param message_store The message_store.
+	 * @param knowledge_base The knowledge base interface.
 	 */
-	ExploreWaypointPDDLAction(ros::NodeHandle& node_handle);
+	ExploreWaypointPDDLAction(ros::NodeHandle& node_handle, mongodb_store::MessageStoreProxy& message_store, KnowledgeBase& knowledge_base);
 	
 	/**
 	 * Destructor
@@ -34,9 +37,9 @@ public:
 	void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 	
 private:
-	ros::ServiceClient update_knowledge_client_; // Service client to update the knowledge base.
-	ros::ServiceClient get_instance_client_;     // Service client to get instances stored by ROSPlan.
-	ros::ServiceClient get_attribute_client_;    // Service client to get attributes of instances stored by ROSPlan.
+	mongodb_store::MessageStoreProxy* message_store_;
+	KnowledgeBase* knowledge_base_;
+	
 	ros::Publisher action_feedback_pub_;         // Publisher that communicates feedback to ROSPlan.
 	ros::Subscriber dispatch_sub_;               // Subscriber to the dispatch topic of ROSPlan.
 };

@@ -1,4 +1,6 @@
 #include <ros/ros.h>
+#include <mongodb_store/message_store.h>
+#include <squirrel_planning_execution/KnowledgeBase.h>
 
 #include "pddl_actions/GotoPDDLAction.h"
 #include "pddl_actions/ExploreWaypointPDDLAction.h"
@@ -23,6 +25,8 @@ int main(int argc, char **argv) {
 
 	ros::init(argc, argv, "rosplan_interface_SimluatedPDDLActionsNode");
 	ros::NodeHandle nh("~");
+	mongodb_store::MessageStoreProxy message_store(nh);
+	KCL_rosplan::KnowledgeBase knowledge_base(nh, message_store);
 
 	bool goto_waypoint,
 	     explore_waypoint,
@@ -79,7 +83,7 @@ int main(int argc, char **argv) {
 
 	if(explore_waypoint) {
 		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: explore_waypoint");
-		explore_waypoint_action = new KCL_rosplan::ExploreWaypointPDDLAction(nh);
+		explore_waypoint_action = new KCL_rosplan::ExploreWaypointPDDLAction(nh, message_store, knowledge_base);
 	}
 	if(clear_object) {
 		ROS_INFO("KCL: (SimulatedPDDLActionsNode) Simulating: clear_object");

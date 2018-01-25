@@ -90,6 +90,7 @@ include_directories(
   
 set(simulatedPDDLActionsNode_SOURCES
   src/SimulatedPDDLActionsNode.cpp
+  src/KnowledgeBase.cpp
   src/pddl_actions/PlannerInstance.cpp
   src/pddl_actions/GotoPDDLAction.cpp
   src/pddl_actions/PushObjectPDDLAction.cpp
@@ -162,6 +163,16 @@ set(finalReview_SOURCES
   src/ViewConeGenerator.cpp
 )
 
+set(finalReviewRedux_SOURCES
+  src/FinalReviewRedux.cpp
+  src/ConfigReader.cpp
+  src/KnowledgeBase.cpp
+  src/pddl_actions/AttemptToExamineObjectPDDLAction.cpp
+  src/pddl_actions/PlannerInstance.cpp
+  src/pddl_actions/ExploreAreaPDDLAction.cpp
+  src/ViewConeGenerator.cpp
+)
+
 set(graspTest_SOURCES
   src/TestGrasping.cpp
   src/ConfigReader.cpp
@@ -185,7 +196,7 @@ set(graspTest_SOURCES
 #add_executable(simpledemo src/TidyRoomGrasping.cpp)
 #add_executable(rpsquirrelRoadmap ${rpsquirrelroadmap_SOURCES})
 #add_executable(rpsquirrelRecursion ${rpsquirrelRecursion_SOURCES})
-#add_executable(simulatedPDDLActionsNode ${simulatedPDDLActionsNode_SOURCES})
+add_executable(simulatedPDDLActionsNode ${simulatedPDDLActionsNode_SOURCES})
 #add_executable(sortingGame ${sortingGame_SOURCES})
 #add_executable(speechSimulator ${speechSimulator_SOURCES})
 #add_executable(viewConeTester ${viewConeTester_SOURCES})
@@ -194,13 +205,14 @@ set(graspTest_SOURCES
 #add_executable(behaviour ${behaviour_SOURCES})
 add_executable(needBattery ${needBattery_SOURCES})
 add_executable(finalReview ${finalReview_SOURCES})
+add_executable(finalReviewRedux ${finalReviewRedux_SOURCES})
 add_executable(graspTest ${graspTest_SOURCES})
 
 #add_dependencies(tidyroom ${catkin_EXPORTED_TARGETS})
 #add_dependencies(simpledemo ${catkin_EXPORTED_TARGETS})
 #add_dependencies(rpsquirrelRoadmap ${catkin_EXPORTED_TARGETS})
 #add_dependencies(rpsquirrelRecursion ${catkin_EXPORTED_TARGETS})
-#add_dependencies(simulatedPDDLActionsNode ${catkin_EXPORTED_TARGETS})
+add_dependencies(simulatedPDDLActionsNode ${catkin_EXPORTED_TARGETS})
 #add_dependencies(sortingGame ${catkin_EXPORTED_TARGETS})
 #add_dependencies(speechSimulator ${catkin_EXPORTED_TARGETS})
 #add_dependencies(viewConeTester ${catkin_EXPORTED_TARGETS})
@@ -209,13 +221,14 @@ add_executable(graspTest ${graspTest_SOURCES})
 #add_dependencies(behaviour ${catkin_EXPORTED_TARGETS})
 add_dependencies(needBattery ${catkin_EXPORTED_TARGETS})
 add_dependencies(finalReview ${catkin_EXPORTED_TARGETS})
+add_dependencies(finalReviewRedux ${catkin_EXPORTED_TARGETS})
 add_dependencies(graspTest ${catkin_EXPORTED_TARGETS})
 
 #target_link_libraries(tidyroom ${catkin_LIBRARIES})
 #target_link_libraries(simpledemo ${catkin_LIBRARIES})
 #target_link_libraries(rpsquirrelRoadmap ${catkin_LIBRARIES})
 #target_link_libraries(rpsquirrelRecursion ${catkin_LIBRARIES})
-#target_link_libraries(simulatedPDDLActionsNode ${catkin_LIBRARIES})
+target_link_libraries(simulatedPDDLActionsNode ${catkin_LIBRARIES})
 #target_link_libraries(sortingGame ${catkin_LIBRARIES})
 #target_link_libraries(speechSimulator ${catkin_LIBRARIES})
 #target_link_libraries(viewConeTester ${catkin_LIBRARIES})
@@ -224,6 +237,7 @@ add_dependencies(graspTest ${catkin_EXPORTED_TARGETS})
 #target_link_libraries(behaviour ${catkin_LIBRARIES})
 target_link_libraries(needBattery ${catkin_LIBRARIES})
 target_link_libraries(finalReview ${catkin_LIBRARIES})
+target_link_libraries(finalReviewRedux ${catkin_LIBRARIES})
 target_link_libraries(graspTest ${catkin_LIBRARIES})
 
 ##########

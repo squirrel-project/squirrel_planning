@@ -120,29 +120,12 @@ namespace KCL_rosplan {
 		}
 
 		// add the new knowledge
-        std::map<std::string, std::string> parameters;
-        parameters["wp"] = explored_waypoint;
-        if (!knowledge_base_.addFact("explored", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
-        {
-            exit(-1);
-        }
-        /*
-		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		rosplan_knowledge_msgs::KnowledgeItem knowledge;
-		knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-		knowledge.attribute_name = "explored";
-		diagnostic_msgs::KeyValue kv;
-		kv.key = "wp";
-		kv.value = explored_waypoint;
-		knowledge.values.push_back(kv);
-
-		knowledge_update_service.request.knowledge = knowledge;
-		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (PerceptionAction) Could not add the explored predicate to the knowledge base.");
+		std::map<std::string, std::string> parameters;
+		parameters["wp"] = explored_waypoint;
+		if (!knowledge_base_.addFact("explored", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
+		{
+			exit(-1);
 		}
-        */
-
 		// report this action is achieved
 		publishFeedback(msg->action_id,"action achieved");
 	}
@@ -275,27 +258,14 @@ namespace KCL_rosplan {
 		geometry_msgs::PoseStamped closest_box_pose;
 		float min_distance_from_robot = std::numeric_limits<float>::max();
 
-        std::vector<std::string> boxes;
-        if (!knowledge_base_.getInstances(boxes, "box"))
-        {
-			ROS_ERROR("KCL: (PerceptionAction) Failed to get all the box instances.");
-			publishFeedback(msg->action_id, "action failed");
-			return;
-        }
-		
-        /*
-		// Get all boxes and their poses, pick the one that is closest.
-		rosplan_knowledge_msgs::GetInstanceService getInstances;
-		getInstances.request.type_name = "box";
-		if (!get_instance_client.call(getInstances)) {
-			ROS_ERROR("KCL: (PerceptionAction) Failed to get all the box instances.");
-			publishFeedback(msg->action_id, "action failed");
-			return;
+		std::vector<std::string> boxes;
+		if (!knowledge_base_.getInstances(boxes, "box"))
+		{
+				ROS_ERROR("KCL: (PerceptionAction) Failed to get all the box instances.");
+				publishFeedback(msg->action_id, "action failed");
+				return;
 		}
-
-		ROS_INFO("KCL: (PerceptionAction) Received all the box instances %zd.", getInstances.response.instances.size());
-		for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
-        */
+		
 		for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
 		{
 			// fetch position of the box from message store
@@ -319,7 +289,7 @@ namespace KCL_rosplan {
 			// request manipulation waypoints for object
 			geometry_msgs::PoseStamped &box_pose = *results[0];
 			float distance = (box_pose.pose.position.x - transform.getOrigin().getX()) * (box_pose.pose.position.x - transform.getOrigin().getX()) +
-							 (box_pose.pose.position.y - transform.getOrigin().getY()) * (box_pose.pose.position.y - transform.getOrigin().getY());
+			                 (box_pose.pose.position.y - transform.getOrigin().getY()) * (box_pose.pose.position.y - transform.getOrigin().getY());
 			
 			if (distance < min_distance_from_robot)
 			{
@@ -409,58 +379,17 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (PerceptionAction) check object finished: %s", state.toString().c_str());
 
 		// update classifiable_from in the knowledge base .
-        std::map<std::string, std::string> parameters;
-        parameters["from"] = fromID;
-        parameters["view"] = wpID;
-        parameters["o"] = objectID;
+		std::map<std::string, std::string> parameters;
+		parameters["from"] = fromID;
+		parameters["view"] = wpID;
+		parameters["o"] = objectID;
 
-        if (!knowledge_base_.addFact("classifiable_from", parameters, success, KnowledgeBase::KB_ADD_KNOWLEDGE) ||
-            !knowledge_base_.removeFact("classifiable_from", parameters, !success, KnowledgeBase::KB_REMOVE_KNOWLEDGE))
-        {
-			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not add the classifiable_from predicate to the knowledge base.");
-			exit(-1);
-        }
-
-/*
-		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-		knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-		knowledge_item.attribute_name = "classifiable_from";
-		knowledge_item.is_negative = !success;
-
-		diagnostic_msgs::KeyValue kv;
-		kv.key = "from";
-		kv.value = fromID;
-		knowledge_item.values.push_back(kv);
-	
-		kv.key = "view";
-		kv.value = wpID;
-		knowledge_item.values.push_back(kv);
-	
-		kv.key = "o";
-		kv.value = objectID;
-		knowledge_item.values.push_back(kv);
-
-		knowledge_update_service.request.knowledge = knowledge_item;
-		if (!update_knowledge_client.call(knowledge_update_service)) {
+		if (!knowledge_base_.addFact("classifiable_from", parameters, success, KnowledgeBase::KB_ADD_KNOWLEDGE) ||
+			!knowledge_base_.removeFact("classifiable_from", parameters, !success, KnowledgeBase::KB_REMOVE_KNOWLEDGE))
+		{
 			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not add the classifiable_from predicate to the knowledge base.");
 			exit(-1);
 		}
-		ROS_INFO("KCL: (ClassifyObjectPDDLAction) Added %s (classifiable_from %s %s %s) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "", fromID.c_str(), wpID.c_str(), objectID.c_str());
-	   
-		// Remove the opposite option from the knowledge base.
-		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
-		knowledge_item.is_negative = !knowledge_item.is_negative;
-		knowledge_update_service.request.knowledge = knowledge_item;
-		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not remove the classifiable_from predicate to the knowledge base.");
-			exit(-1);
-		}
-		ROS_INFO("KCL: (ClassifyObjectPDDLAction) Removed %s (classifiable_from %s %s %s) to the knowledge base.", knowledge_item.is_negative ? "NOT" : "", fromID.c_str(), wpID.c_str(), objectID.c_str());
-	
-		knowledge_item.values.clear();
-*/
 
 		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
 
@@ -605,135 +534,42 @@ namespace KCL_rosplan {
 	{
 		ROS_INFO("KCL: (PerceptionAction) Update where %s belongs.", object_id.c_str());
 
-        std::vector<std::string> boxes;
-        knowledge_base_.getInstances(boxes, "box");
-		
-        /*
-		// is_of_type fact
-		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-		
-		diagnostic_msgs::KeyValue kv;
-		
-		// First we get all the possible types of toys that we can encounter.
-		rosplan_knowledge_msgs::GetInstanceService getInstances;
-		getInstances.request.type_name = "box";
-		if (!get_instance_client.call(getInstances)) {
-			ROS_ERROR("KCL: (PerceptionAction) Failed to get all the box instances.");
-			return;
-		}
-		ROS_INFO("KCL: (PerceptionAction) Received %zd box instances.", getInstances.response.instances.size());
-        */
-		
+		std::vector<std::string> boxes;
+		knowledge_base_.getInstances(boxes, "box");
+	
 		std::string found_box;
 		for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
 		{
 			const std::string& box = *ci;
-
-            std::map<std::string, std::string> parameters;
-            parameters["o"] = object_rec_name;
-            parameters["b"] = box;
-            if (knowledge_base_.isFactTrue("belongs_in", parameters, true))
-            {
+			std::map<std::string, std::string> parameters;
+			parameters["o"] = object_rec_name;
+			parameters["b"] = box;
+			if (knowledge_base_.isFactTrue("belongs_in", parameters, true))
+			{
 				ROS_INFO("KCL: (PerceptionAction) %s belongs in %s", object_rec_name.c_str(), box.c_str());
 				found_box = box;
-            }
-            else
-            {
-				ROS_INFO("KCL: (PerceptionAction) %s does not belong in %s", object_rec_name.c_str(), box.c_str());
-            }
-/*
-			rosplan_knowledge_msgs::KnowledgeQueryService knowledge_query;
-			rosplan_knowledge_msgs::KnowledgeItem knowledge_item;
-			
-			knowledge_item.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-			knowledge_item.attribute_name = "belongs_in";
-			kv.key = "o";
-			kv.value = object_rec_name;
-			knowledge_item.values.push_back(kv);
-			kv.key = "b";
-			kv.value = box;
-			knowledge_item.values.push_back(kv);
-			knowledge_item.is_negative = false;
-
-			// Check if this fact is true.
-			knowledge_query.request.knowledge.push_back(knowledge_item);
-
-			if (!knowledge_query_client.call(knowledge_query))
-			{
-				ROS_INFO("KCL: (PerceptionAction) Could not query the knowledge base.");
-				exit(1);
-			}
-
-			if (knowledge_query.response.results[0] != 1)
-			{
-				ROS_INFO("KCL: (PerceptionAction) %s does not belong in %s", object_rec_name.c_str(), box.c_str());
 			}
 			else
 			{
-				found_box = box;
-				ROS_INFO("KCL: (PerceptionAction) %s belongs in %s", object_rec_name.c_str(), box.c_str());
+				ROS_INFO("KCL: (PerceptionAction) %s does not belong in %s", object_rec_name.c_str(), box.c_str());
 			}
-*/
 		}
 		
 		// Add new type, if necessary.
 		if (found_box != "")
 		{
-            for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
-            {
-				const std::string& box = *ci;
-                std::map<std::string, std::string> parameters;
-                parameters["o"] = object_id;
-                parameters["b"] = box;
-                if (!knowledge_base_.addFact("belongs_in", parameters, box == found_box, KnowledgeBase::KB_ADD_KNOWLEDGE) ||
-                    !knowledge_base_.addFact("belongs_in", parameters, box != found_box, KnowledgeBase::KB_ADD_KNOWLEDGE))
-                {
-                    exit(-1);
-                }
-            }
-            /*
-			for (std::vector<std::string>::const_iterator ci = getInstances.response.instances.begin(); ci != getInstances.response.instances.end(); ++ci)
+			for (std::vector<std::string>::const_iterator ci = boxes.begin(); ci != boxes.end(); ++ci)
 			{
-				const std::string& box = *ci;
-
-				// Make if of that type.
-				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-				knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-				knowledge_update_service.request.knowledge.attribute_name = "belongs_in";
-				kv.key = "o";
-				kv.value = object_id;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				kv.key = "b";
-				kv.value = box;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				knowledge_update_service.request.knowledge.is_negative = box != found_box;
-
-				if (!update_knowledge_client.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (PerceptionAction) Could not add belongs_in predicate to the knowledge base.");
-				}
-				ROS_ERROR("KCL: (PerceptionAction) Add %s (belongs_in %s %s) predicate to the knowledge base.", knowledge_update_service.request.knowledge.is_negative ? "NOT" : "", object_id.c_str(), box.c_str());
-				knowledge_update_service.request.knowledge.values.clear();
-
-				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
-				knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-				knowledge_update_service.request.knowledge.attribute_name = "belongs_in";
-				kv.key = "o";
-				kv.value = object_id;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				kv.key = "b";
-				kv.value = box;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				knowledge_update_service.request.knowledge.is_negative = box == found_box;
-
-				if (!update_knowledge_client.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (PerceptionAction) Could not add belongs_in predicate to the knowledge base.");
-				}
-				ROS_ERROR("KCL: (PerceptionAction) Remove %s (belongs_in %s %s) predicate from the knowledge base.", knowledge_update_service.request.knowledge.is_negative ? "NOT" : "", object_id.c_str(), box.c_str());
-				knowledge_update_service.request.knowledge.values.clear();
+			const std::string& box = *ci;
+					std::map<std::string, std::string> parameters;
+					parameters["o"] = object_id;
+					parameters["b"] = box;
+					if (!knowledge_base_.addFact("belongs_in", parameters, box == found_box, KnowledgeBase::KB_ADD_KNOWLEDGE) ||
+						!knowledge_base_.addFact("belongs_in", parameters, box != found_box, KnowledgeBase::KB_ADD_KNOWLEDGE))
+					{
+						exit(-1);
+					}
 			}
-            */
 		}
 	}
 	
@@ -749,57 +585,17 @@ namespace KCL_rosplan {
 
 	void RPPerceptionAction::updateObject(squirrel_object_perception_msgs::SceneObject &object, std::string newWaypoint) {
         
-        if (object.id == "") return;
+		if (object.id == "") return;
 
-		// add the new object
-        if (!knowledge_base_.addInstance("object", object.id)) return;
-        if (!knowledge_base_.addInstance("waypoint", newWaypoint)) return;
-        
-        std::map<std::string, std::string> parameters;
-        parameters["o"] = object.id;
-        parameters["wp"] = newWaypoint;
-        if (!knowledge_base_.addFact("object_at", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE)) return;
-
-        /*
-		rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-		knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-		knowledge_update_service.request.knowledge.instance_type = "object";
-		knowledge_update_service.request.knowledge.instance_name = object.id;
-		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (PerceptionAction) Could not add the object %s to the knowledge base.", object.id.c_str());
-		}
-		ROS_ERROR("KCL: (PerceptionAction) Added the object %s to the knowledge base.", object.id.c_str());
+	// add the new object
+		if (!knowledge_base_.addInstance("object", object.id)) return;
+		if (!knowledge_base_.addInstance("waypoint", newWaypoint)) return;
 		
+		std::map<std::string, std::string> parameters;
+		parameters["o"] = object.id;
+		parameters["wp"] = newWaypoint;
+		if (!knowledge_base_.addFact("object_at", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE)) return;
 
-		// add the new object's waypoint
-		knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-		knowledge_update_service.request.knowledge.instance_type = "waypoint";
-		knowledge_update_service.request.knowledge.instance_name = newWaypoint;
-		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (PerceptionAction) Could not add the object %s to the knowledge base.", newWaypoint.c_str());
-		}
-		ROS_ERROR("KCL: (PerceptionAction) Added the waypoint %s to the knowledge base.", newWaypoint.c_str());
-
-		// object_at fact	
-		knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-		knowledge_update_service.request.knowledge.attribute_name = "object_at";
-		knowledge_update_service.request.knowledge.is_negative = false;
-		diagnostic_msgs::KeyValue kv;
-		kv.key = "o";
-		kv.value = object.id;
-		knowledge_update_service.request.knowledge.values.push_back(kv);
-		kv.key = "wp";
-		kv.value = newWaypoint;
-		knowledge_update_service.request.knowledge.values.push_back(kv);
-		if (!update_knowledge_client.call(knowledge_update_service)) {
-			ROS_ERROR("KCL: (PerceptionAction) Could not add object_at predicate to the knowledge base.");
-		}
-        */
-
-		// Add the opposite to the knowledge base.
-
-		//data
 		geometry_msgs::PoseStamped ps;
 		ps.header = object.header;
 		ps.pose = object.pose;
@@ -808,18 +604,7 @@ namespace KCL_rosplan {
 	}
 
 	void RPPerceptionAction::removeObject(squirrel_object_perception_msgs::SceneObject &object) {
-
-        knowledge_base_.removeInstance("object", object.id);
-/*
-			rosplan_knowledge_msgs::KnowledgeUpdateService updateSrv;
-			updateSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
-			updateSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::INSTANCE;
-			updateSrv.request.knowledge.instance_type = "object";
-			updateSrv.request.knowledge.instance_name = object.id;
-			update_knowledge_client.call(updateSrv);
-*/
-
-			//data
+			knowledge_base_.removeInstance("object", object.id);
 			message_store.deleteID(db_name_map[object.id]);
 	}
 
