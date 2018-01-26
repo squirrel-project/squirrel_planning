@@ -4,7 +4,7 @@
 	* "true" = simulated
 	* "false" = on real robot
 	-->
-	<arg name="simulated" value="true" />
+	<arg name="simulated" value="false" />
 
 	<!-- domain file -->
 	<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
@@ -14,7 +14,7 @@
 	<param name="/scenario_setup_file" value="$(find squirrel_planning_execution)/conf/final-review.conf" />
 
 	<!-- domain file -->
-	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/final-review-domain.pddl" />
+	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/final-review-redux-domain.pddl" />
 
 
 	<!-- knowledge base -->
@@ -26,7 +26,7 @@
 		<param name="database_path" value="$(find rosplan_knowledge_base)/common/mongoDB" />
 	</node>
 	<node name="rosplan_scene_message_store" pkg="mongodb_store" type="message_store_node.py" respawn="false" output="log">
-	</node>
+	</node>domai
 
 	<!-- planning system -->
 	<node name="rosplan_planning_system" pkg="rosplan_planning_system" type="planner" respawn="false" output="screen">
@@ -57,9 +57,10 @@
 	</node>
     -->
 
-	<!-- SQUIRREL interfaces -->
+	<!-- SQUIRREL interfaces 
 	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen" unless="$(arg simulated)"></node>
-	<!--
+	-->	
+<!--
 	<node name="squirrel_social_behaviour" pkg="squirrel_interface_hri" type="PerformSocialBehaviour" respawn="false" output="screen"></node>
 	-->
 

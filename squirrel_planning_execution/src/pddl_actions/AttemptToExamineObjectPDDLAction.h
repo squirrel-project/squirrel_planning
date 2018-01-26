@@ -48,10 +48,10 @@ private:
 	
 	KnowledgeBase* knowledge_base_;              // The knowledge base interface.
 	ros::Publisher action_feedback_pub_;         // Publisher that communicates feedback to ROSPlan.
-	ros::Publisher dispatch_pub_;                // Publisher of dummy actions.
 	ros::Subscriber dispatch_sub_;               // Subscriber to the dispatch topic of ROSPlan.
 	
 	ros::ServiceClient clear_costmaps_client;    // Clear up the costmap before moving.
+	ros::ServiceClient call_examine_action_client_; // USed to call the perception service.
 	actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> action_client_;
 	mongodb_store::MessageStoreProxy* message_store_;
 };

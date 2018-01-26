@@ -8,7 +8,7 @@
 	waypoint
 	object
 	type
-    box
+	box
 )
 
 ;; Emotions range from [-1,1]. None of the emotions are alowed to fall above 0.
@@ -127,7 +127,7 @@
 	:duration (= ?duration 60)
 	:condition (and
 		(over all (> (power ?v) 0))
-		(over all (near ?view  ?from))
+		(over all (near ?from ?view))
 		(over all (robot_at ?v ?from))
 		(over all (object_at ?o ?view))
 	)
@@ -162,26 +162,6 @@
 	)
 	:effect (and
 		(explored_room)
-	)
-)
-
-(:action examine_area
-	:parameters ()
-	:precondition (and
-		(explored_room)
-	)
-	:effect (and
-		(examined_room)
-	)
-)
-
-(:action tidy_area
-	:parameters ()
-	:precondition (and
-		(examined_room)
-	)
-	:effect (and
-		(tidy_room)
 	)
 )
 )

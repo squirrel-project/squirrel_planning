@@ -2,6 +2,7 @@
 #include <complex>
 
 #include <cstdlib>
+#include <vector>
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -11,6 +12,8 @@
 #include <rosplan_knowledge_msgs/KnowledgeQueryService.h>
 #include <rosplan_dispatch_msgs/ActionFeedback.h>
 #include <std_srvs/Empty.h>
+#include <rosplan_knowledge_msgs/KnowledgeItem.h>
+#include <squirrel_planning_msgs/CallAction.h>
 
 #include <diagnostic_msgs/KeyValue.h>
 
@@ -27,9 +30,9 @@ AttemptToExamineObjectPDDLAction::AttemptToExamineObjectPDDLAction(ros::NodeHand
 	
 	// Subscribe to the action feedback topic.
 	dispatch_sub_ = node_handle.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::AttemptToExamineObjectPDDLAction::dispatchCallback, this);
-	dispatch_pub_ = node_handle.advertise<rosplan_dispatch_msgs::ActionDispatch>("/kcl_rosplan/action_dispatch", 1000);
 	
 	clear_costmaps_client = node_handle.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+	call_examine_action_client_ = node_handle.serviceClient<squirrel_planning_msgs::CallAction>("/perception_action_examine_action");
 }
 
 AttemptToExamineObjectPDDLAction::~AttemptToExamineObjectPDDLAction()
@@ -129,22 +132,37 @@ void AttemptToExamineObjectPDDLAction::dispatchCallback(const rosplan_dispatch_m
 	
 	// If the object has not yet been examined then we need to drive towards it and then examine it.
 	// This movement is allowed to fail, so simply return 'action achieved' so the planner can continue.
-	if (moveTo(from))
+	if (true || moveTo(from))
 	{
+		// Update the robot's location.
+		std::vector<rosplan_knowledge_msgs::KnowledgeItem> store;
+		knowledge_base_->getFacts(store, "robot_at");
+		for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = store.begin(); ci != store.end(); ++ci)
+		{
+			knowledge_base_->removeFact(*ci, KnowledgeBase::KB_REMOVE_KNOWLEDGE);
+		}
+		
+		std::map<std::string, std::string> parameters;
+		parameters["v"] = robot;
+		parameters["wp"] = from;
+		knowledge_base_->addFact("robot_at", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE);
+		
 		// After moving to the location, call the perception server.
-		rosplan_dispatch_msgs::ActionDispatch perception_action;
-		perception_action.name = "observe-classifiable_from";
+		squirrel_planning_msgs::CallAction examine_action;
 		
 		diagnostic_msgs::KeyValue kv;
 		kv.key = "view"; kv.value = view;
-		perception_action.parameters.push_back(kv);
+		examine_action.request.parameters.push_back(kv);
 		kv.key = "from"; kv.value = from;
-		perception_action.parameters.push_back(kv);
+		examine_action.request.parameters.push_back(kv);
 		kv.key = "o"; kv.value = object;
-		perception_action.parameters.push_back(kv);
-		perception_action.action_id = -1;
+		examine_action.request.parameters.push_back(kv);
 		
-		dispatch_pub_.publish(perception_action);
+		if (!call_examine_action_client_.call(examine_action))
+		{
+			ROS_ERROR("KCL: (AttemptToExamineObjectPDDLAction) Failed to call the examine action server!");
+			exit(-1);
+		}
 	}
 	
 	fb.action_id = msg->action_id;

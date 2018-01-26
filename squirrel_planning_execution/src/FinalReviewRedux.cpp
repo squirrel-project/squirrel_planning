@@ -141,18 +141,19 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 			parameters["wp1"] = ss.str();
 			parameters["wp2"] = lump_waypoint;
 			kb.addFact("near", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE);
-			const geometry_msgs::PoseWithCovarianceStamped& pwcs = getTaskPose.response.poses[i];
+			
+			//const geometry_msgs::PoseWithCovarianceStamped& pwcs = getTaskPose.response.poses[i];
 			geometry_msgs::PoseStamped ps;
-			ps.header= pwcs.header;
+			//ps.header= pwcs.header;
 			ps.header.frame_id = "/map";
-			ps.pose = pwcs.pose.pose;
+			//ps.pose = pwcs.pose.pose;
 			std::string near_waypoint_mongodb_id(message_store.insertNamed(ss.str(), ps));
 			
 			// Add as goal to examine this object from each possible waypoint.
 			parameters.clear();
 			parameters["o"] = lump_name;
 			parameters["wp"] = ss.str();
-			kb.addFact("obsered-from", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
+			kb.addFact("observed-from", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
 			found_lumps = true;
 		}
 	}
@@ -282,7 +283,7 @@ void startPlanning(ros::NodeHandle& nh)
 	nh.getParam("/rosplan/domain_path", domain_path);
 	
 	std::stringstream ss;
-	ss << data_path << "final-review_problem.pddl";
+	ss << data_path << "final-review_redux_problem.pddl";
 	std::string problem_path = ss.str();
 	
 	std::string planner_command;

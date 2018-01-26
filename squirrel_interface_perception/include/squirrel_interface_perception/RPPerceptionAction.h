@@ -11,6 +11,7 @@
 #include "mongodb_store/message_store.h"
 #include <squirrel_manipulation_msgs/ManipulationAction.h>
 #include "squirrel_planning_execution/KnowledgeBase.h"
+#include <squirrel_planning_msgs/CallAction.h>
 
 #ifndef KCL_perception
 #define KCL_perception
@@ -39,6 +40,8 @@ namespace KCL_rosplan {
 		ros::ServiceClient knowledge_query_client;
 		ros::Publisher action_feedback_pub;
 
+		ros::ServiceServer examine_action_service_;
+		
 		ros::Subscriber joint_state_sub;
 
 		std::map<std::string,std::string> db_name_map;
@@ -68,7 +71,7 @@ namespace KCL_rosplan {
 
 		void jointCallback(const sensor_msgs::JointStateConstPtr& msg);
 		sensor_msgs::JointState last_joint_state;
-        KnowledgeBase knowledge_base_;
+		KnowledgeBase knowledge_base_;
 
 	public:
 
@@ -77,6 +80,9 @@ namespace KCL_rosplan {
 
 		/* listen to and process action_dispatch topic */
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+		
+		bool examineAction(squirrel_planning_msgs::CallAction::Request& req,
+		                   squirrel_planning_msgs::CallAction::Response& res);
 	};
 }
 #endif
