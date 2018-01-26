@@ -170,7 +170,6 @@ set(finalReviewRedux_SOURCES
   src/KnowledgeBase.cpp
   src/pddl_actions/AttemptToExamineObjectPDDLAction.cpp
   src/pddl_actions/PlannerInstance.cpp
-  src/pddl_actions/ExploreAreaPDDLAction.cpp
   src/ViewConeGenerator.cpp
 )
 

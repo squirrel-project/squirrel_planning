@@ -33,7 +33,7 @@ namespace KCL_rosplan {
 	private:
 		
 		// Scene database
-		mongodb_store::MessageStoreProxy message_store;
+//		mongodb_store::MessageStoreProxy message_store;
 
 		// Knowledge base
 		ros::ServiceClient knowledgeInterface;
@@ -70,7 +70,7 @@ namespace KCL_rosplan {
 		float current_arousal;
 		
 		// Movebase action lib.
-		actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> action_client;
+//		actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> action_client;
 		void getArousal(const std_msgs::Float32::ConstPtr& msg);
 
 
@@ -84,19 +84,21 @@ namespace KCL_rosplan {
 		// Push an object away from a child.
 		void PushToDeny();
 
-		/**
-		 * Display light show.
-		 * @param delay The delay before the lights move on.
-		 * @param duration How long the lights should be displayed.
-		 */
-		void displayRainbow(float delay, float duration);
+
+
+	public:
 
 		/**
 		 * Set the colours to a certain value.
 		 */
 		void displayLights(unsigned int r, unsigned int g, unsigned int b);
 
-	public:
+		/**
+		 * Display light show.
+		 * @param delay The delay before the lights move on.
+		 * @param duration How long the lights should be displayed.
+		 */
+		void displayRainbow(float delay, float duration);
 
 		/* constructor */
 		PerformSocialBehaviour(ros::NodeHandle &nh, const std::string& move_base_action_name);

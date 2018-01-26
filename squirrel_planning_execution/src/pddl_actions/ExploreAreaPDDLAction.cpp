@@ -120,7 +120,6 @@ namespace KCL_rosplan {
 		actionlib::SimpleClientGoalState state = planner_instance.getState();
 		ROS_INFO("KCL: (ExploreAreaPDDLAction) action finished: %s, %s", action_name.c_str(), state.toString().c_str());
 		
-		// Cleanup any waypoints that have been explored.
 		std::vector<rosplan_knowledge_msgs::KnowledgeItem> all_facts;
 		if (!knowledge_base_->getFacts(all_facts, "explored"))
 		{
@@ -133,11 +132,14 @@ namespace KCL_rosplan {
 		{
 			const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
 			knowledge_base_->removeFact(ki, KnowledgeBase::KB_REMOVE_KNOWLEDGE);
-			knowledge_base_->removeInstance("waypoint", ki.values[0].value);
-
-			// Also remove from mongodb.
-			message_store_.deleteID(db_name_map_[ki.values[0].value]);
 		}
+        
+		// Cleanup any previous waypoints from MongoDB.
+        for (std::map<std::string, std::string>::const_iterator ci = db_name_map_.begin(); ci != db_name_map_.end(); ++ci)
+        {
+			knowledge_base_->removeInstance("waypoint", ci->first);
+			message_store_.deleteID(db_name_map_[ci->second]);
+        }
 		db_name_map_.clear();
 		
 		// Reset the robot back to the default waypoint.

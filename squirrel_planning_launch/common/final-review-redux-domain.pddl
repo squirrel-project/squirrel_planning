@@ -15,6 +15,7 @@
 ;; Emotions in the range (0,0.5] are 'low' and emotions (0.5,1) are 'high'.
 (:functions
 	(power ?r - robot)
+    (distance ?wp1 ?wp2 - waypoint)
 )
 
 (:constants
@@ -39,12 +40,12 @@
 	(observed-from ?o - object ?wp - waypoint)
 
 	;; Tidy room predicates, we only assume there is a single area.
-	(explored_room)
+	;(explored_room)
 )
 
 (:durative-action goto_waypoint
 	:parameters (?v - robot ?from ?to - waypoint)
-	:duration (= ?duration 10)
+	:duration (= ?duration (distance ?from ?to))
 	:condition (and
 		(over all (> (power ?v) 0))
 		(at start (robot_at ?v ?from))
@@ -128,40 +129,47 @@
 	:condition (and
 		(over all (> (power ?v) 0))
 		(over all (near ?from ?view))
-		(over all (robot_at ?v ?from))
+;;		(over all (robot_at ?v ?from))
 		(over all (object_at ?o ?view))
+		(at start (not_busy))
 	)
 	:effect (and 
 		(at end (observed-from ?o ?from))
 		(at start (decrease (power ?v) (* ?duration 0.01)))
+		(at start (not (not_busy)))
+		(at end (not_busy))
 	)
 )
 
-(:action put_object_in_box
+(:durative-action put_object_in_box
     :parameters (?v - robot ?wp ?near_wp - waypoint ?o - object ?b - box)
-    :precondition (and"
-        (box_at ?b ?wp)
-        (robot_at ?v ?near_wp)
-        (near ?near_wp ?wp)
-        (holding ?v ?o)
-        (belongs_in ?o ?b)
+	:duration (= ?duration 60)
+    :condition (and"
+        (over all (box_at ?b ?wp))
+        (over all (robot_at ?v ?near_wp))
+        (over all (near ?near_wp ?wp))
+        (at start (holding ?v ?o))
+        (over all (belongs_in ?o ?b))
+		(at start (not_busy))
     )
     :effect (and
-        (not (holding ?v ?o))
-        (gripper_empty ?v)
-        (in_box ?o ?b)
+        (at end (not (holding ?v ?o)))
+        (at end (gripper_empty ?v))
+        (at end (in_box ?o ?b))
+		(at start (not (not_busy)))
+		(at end (not_busy))
     )
 )
 
-;; Tidy room actions.
-
-(:action explore_area
-	:parameters ()
-	:precondition (and
-		()
+;; Use perception actions to search for objects at the current waypoint
+(:durative-action explore_waypoint
+	:parameters (?v - robot ?wp - waypoint)
+	:duration (= ?duration 60)
+	:condition (and
+		(over all (robot_at ?v ?wp))
 	)
 	:effect (and
-		(explored_room)
+		(at end (explored ?wp))
 	)
 )
 )

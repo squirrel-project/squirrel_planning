@@ -12,7 +12,7 @@ namespace KCL_rosplan {
 
 	/* constructor */
 	PerformSocialBehaviour::PerformSocialBehaviour(ros::NodeHandle &nh, const std::string& move_base_action_name)
-		 : message_store(nh), arousal_threshold(0.25f), action_client(move_base_action_name), has_received_pointing_location_(false), head_down_angle_(-0.3), head_up_angle_(0.3), current_arousal(-1)
+//		 : message_store(nh), arousal_threshold(0.25f), action_client(move_base_action_name), has_received_pointing_location_(false), head_down_angle_(-0.3), head_up_angle_(0.3), current_arousal(-1)
 	{
 		knowledgeInterface = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -205,28 +205,29 @@ void PerformSocialBehaviour::dispatchCallback(const rosplan_dispatch_msgs::Actio
 			ros::Duration(delay).sleep();
 			time += delay;
 
-
 			std_msgs::UInt16MultiArray bs;
-			bs.data.reserve(42*3);
-			float delta = 255.0 / (total_lights / 3.0);
-//			bs.colors.reserve(42 * 3);
-			for (unsigned int j = 0; j < total_lights / 3; ++j)
+			bs.data.resize(total_lights * 3);
+			float delta = 3 * 255.0 / total_lights;
+
+            unsigned int j;
+            float light_index = 0;
+			for (j = 0; j < total_lights; j += 3, ++light_index)
 			{
-				bs.data[(j + i) % (total_lights * 3)] = j * delta;
-				bs.data[(j + 1 + i) % (total_lights * 3)] = 255 - j * delta;
+				bs.data[(j + i) % (total_lights * 3)] = light_index * delta;
+				bs.data[(j + 1 + i) % (total_lights * 3)] = 255.0 - light_index * delta;
 				bs.data[(j + 2 + i) % (total_lights * 3)] = 0;
 			}
-			for (unsigned int j = 0; j < total_lights / 3; ++j)
+			for (light_index = 0; j < 2 * total_lights; j += 3, ++light_index)
 			{
-				bs.data[(j + total_lights + i) % (total_lights * 3)] = 255 - j * delta;
-				bs.data[(j + 1 + total_lights + i) % (total_lights * 3)] = 0;
-				bs.data[(j + 2 + total_lights + i) % (total_lights * 3)] = j * delta;
+				bs.data[(j + i) % (total_lights * 3)] = 255.0 - light_index * delta;
+				bs.data[(j + 1 + i) % (total_lights * 3)] = 0;
+				bs.data[(j + 2 + i) % (total_lights * 3)] = light_index * delta;
 			}
-			for (unsigned int j = 0; j < total_lights / 3; ++j)
+			for (light_index = 0; j < 3 * total_lights; j += 3, ++light_index)
 			{
-				bs.data[(j + total_lights * 2 + i) % (total_lights * 3)] = 0;
-				bs.data[(j + 2 + total_lights * 2 + i) % (total_lights * 3)] = j * delta;
-				bs.data[(j + 1 + total_lights * 2 + i) % (total_lights * 3)] = 255 - j * delta;
+				bs.data[(j + i) % (total_lights * 3)] = 0;
+				bs.data[(j + 1 + i) % (total_lights * 3)] = light_index * delta;
+				bs.data[(j + 2 + i) % (total_lights * 3)] = 255.0 - light_index * delta;
 			}
 			lights_complex_pub_.publish(bs);
 			ros::spinOnce();
@@ -374,6 +375,16 @@ int main(int argc, char **argv) {
 	ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::PerformSocialBehaviour::dispatchCallback, &psb);
 	ROS_INFO("KCL: (PerformSocialBehaviour) Ready to receive");
 
+    ros::Rate rate(1.0f);
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        std::cout << "RAINBows!" << std::endl;
+        psb.displayRainbow(0.1f, 10.0f);
+        rate.sleep();
+    }
+
+    /*
 	while (true)
 	{
 		ROS_INFO("KCL: (PerformSocialBehaviour) Perform Social gaze...");
@@ -392,5 +403,6 @@ int main(int argc, char **argv) {
 		ROS_INFO("KCL: (PerformSocialBehaviour) Perform Deictic gaze to: (%f, %f, %f...", p.pose.position.x, p.pose.position.y, p.pose.position.z);
 		psb.performDeicticGaze(p);
 	}
+    */
 	return 0;
 }

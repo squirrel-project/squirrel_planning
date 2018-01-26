@@ -57,12 +57,9 @@
 	</node>
     -->
 
-	<!-- SQUIRREL interfaces 
+    <!-- SQUIRREL interfaces -->
 	<node name="squirrel_object_server" pkg="squirrel_interface_perception" type="rpObjectPerception" respawn="false" output="screen" unless="$(arg simulated)"></node>
-	-->	
-<!--
-	<node name="squirrel_social_behaviour" pkg="squirrel_interface_hri" type="PerformSocialBehaviour" respawn="false" output="screen"></node>
-	-->
+	<!--node name="squirrel_social_behaviour" pkg="squirrel_interface_hri" type="PerformSocialBehaviour" respawn="false" output="screen"></node-->
 
 	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" respawn="false" output="screen" unless="$(arg simulated)">
 		<!-- set "true" if you want to fake object perception completely -->

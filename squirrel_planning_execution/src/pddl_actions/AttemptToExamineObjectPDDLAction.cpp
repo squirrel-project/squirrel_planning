@@ -124,6 +124,7 @@ void AttemptToExamineObjectPDDLAction::dispatchCallback(const rosplan_dispatch_m
 	parameters["o"] = object;
 	if (knowledge_base_->isFactTrue("examined", parameters, true))
 	{
+	    ROS_INFO("KCL: (AttemptToExamineObjectPDDLAction) %s is already examined, moving on!", object.c_str());
 		fb.action_id = msg->action_id;
 		fb.status = "action achieved";
 		action_feedback_pub_.publish(fb);
@@ -132,7 +133,7 @@ void AttemptToExamineObjectPDDLAction::dispatchCallback(const rosplan_dispatch_m
 	
 	// If the object has not yet been examined then we need to drive towards it and then examine it.
 	// This movement is allowed to fail, so simply return 'action achieved' so the planner can continue.
-	if (true || moveTo(from))
+	if (moveTo(from))
 	{
 		// Update the robot's location.
 		std::vector<rosplan_knowledge_msgs::KnowledgeItem> store;
@@ -171,3 +172,4 @@ void AttemptToExamineObjectPDDLAction::dispatchCallback(const rosplan_dispatch_m
 }
 
 };
+

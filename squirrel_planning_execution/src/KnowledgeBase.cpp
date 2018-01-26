@@ -166,7 +166,7 @@ bool KnowledgeBase::addFunction(const std::string& predicate, const std::map<std
 		ROS_ERROR("KCL: (KnowledgeBase) Could not add %s to the knowledge base.", s.c_str());
 		return false;
 	}
-	ROS_INFO("KCL: (KnowledgeBase) Added %s to the knowledge base.", s.c_str());
+	ROS_DEBUG("KCL: (KnowledgeBase) Added %s to the knowledge base.", s.c_str());
 	return true;
 }
 

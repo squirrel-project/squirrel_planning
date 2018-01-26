@@ -20,6 +20,9 @@
 #include <string>
 #include <vector>
 
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
+
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <rosplan_knowledge_msgs/KnowledgeItem.h>
@@ -30,19 +33,21 @@
 
 #include <squirrel_planning_execution/KnowledgeBase.h>
 #include <squirrel_planning_execution/ConfigReader.h>
+#include "squirrel_planning_execution/ViewConeGenerator.h"
 
-#include "pddl_actions/ExploreAreaPDDLAction.h"
+//#include "pddl_actions/ExploreAreaPDDLAction.h"
 #include "pddl_actions/AttemptToExamineObjectPDDLAction.h"
 
 // All service clients.
 ros::ServiceClient classify_object_waypoint_client;
+KCL_rosplan::ViewConeGenerator* view_cone_generator_;
 
 bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy& message_store)
 {
 	std::vector< boost::shared_ptr<squirrel_object_perception_msgs::SceneObject> > sceneObjects_results;
 	message_store.query<squirrel_object_perception_msgs::SceneObject>(sceneObjects_results);
 	
-	bool found_lumps = false;
+	unsigned int nr_lumps_found = 0;
 	ROS_INFO("KCL: (SetupLumps) Found %lu lumps.", sceneObjects_results.size());
 	
 	// Check if this fact actually exists, or is a leftover (this is bad!).
@@ -123,7 +128,6 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 				ROS_ERROR("KCL: (SetupLumps) Failed to remove (object_at %s %s) from the knowledge base!", lump_name.c_str(), lump_waypoint.c_str());
 				exit(-1);
 			}
-			return false;
 		}
 
 		ROS_INFO("KCL: (SetupLumps) Found %lu observation poses", getTaskPose.response.poses.size());
@@ -142,11 +146,11 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 			parameters["wp2"] = lump_waypoint;
 			kb.addFact("near", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE);
 			
-			//const geometry_msgs::PoseWithCovarianceStamped& pwcs = getTaskPose.response.poses[i];
+			const geometry_msgs::PoseWithCovarianceStamped& pwcs = getTaskPose.response.poses[i];
 			geometry_msgs::PoseStamped ps;
-			//ps.header= pwcs.header;
+			ps.header= pwcs.header;
 			ps.header.frame_id = "/map";
-			//ps.pose = pwcs.pose.pose;
+			ps.pose = pwcs.pose.pose;
 			std::string near_waypoint_mongodb_id(message_store.insertNamed(ss.str(), ps));
 			
 			// Add as goal to examine this object from each possible waypoint.
@@ -154,11 +158,13 @@ bool setupLumps(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 			parameters["o"] = lump_name;
 			parameters["wp"] = ss.str();
 			kb.addFact("observed-from", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL);
-			found_lumps = true;
+			++nr_lumps_found;
+
+			if (nr_lumps_found > 5) return true;
 		}
 	}
 	
-	return found_lumps;
+	return nr_lumps_found > 0;
 }
 
 bool setupToysToTidy(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy& message_store, const std::vector<rosplan_knowledge_msgs::KnowledgeItem>& all_facts)
@@ -233,6 +239,125 @@ bool setupToysToTidy(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStore
 	return found_a_toy_to_tidy;
 }
 
+void setupViewCones(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy& message_store)
+{
+	static std::map<std::string, std::string> db_name_map;
+	std::vector<rosplan_knowledge_msgs::KnowledgeItem> all_facts;
+	if (!kb.getFacts(all_facts, "explored"))
+	{
+		ROS_INFO("KCL: (ExploreAreaPDDLAction) Failed to get all actions!");
+		exit(-1);
+	}
+	
+	// Remove all explored facts, otherwise subsequent calls will fail.
+	for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = all_facts.begin(); ci != all_facts.end(); ++ci)
+	{
+		const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
+		kb.removeFact(ki, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE);
+	}
+	
+	// Cleanup any previous waypoints from MongoDB.
+	for (std::map<std::string, std::string>::const_iterator ci = db_name_map.begin(); ci != db_name_map.end(); ++ci)
+	{
+		ROS_INFO("KCL: (SetupViewCones) Remove the waypoint: %s, MongoDB id: %s!", ci->first.c_str(), ci->second.c_str());
+		kb.removeInstance("waypoint", ci->first);
+		message_store.deleteID(db_name_map[ci->second]);
+	}
+	db_name_map.clear();
+	
+	// Reset the robot back to the default waypoint.
+	all_facts.clear();
+	if (!kb.getFacts(all_facts, "robot_at"))
+	{
+		ROS_INFO("KCL: (ExploreAreaPDDLAction) Failed to get all actions!");
+		exit(-1);
+	}
+	for (std::vector<rosplan_knowledge_msgs::KnowledgeItem>::const_iterator ci = all_facts.begin(); ci != all_facts.end(); ++ci)
+	{
+		const rosplan_knowledge_msgs::KnowledgeItem& ki = *ci;
+		kb.removeFact(ki, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE);
+	}
+	
+	std::map<std::string, std::string> params;
+	params["v"] = "robot";
+	params["wp"] = "kenny_waypoint";
+	if (!kb.addFact("robot_at", params, true, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE) ||
+	    !kb.addInstance("waypoint", "kenny_waypoint"))
+	{
+		ROS_INFO("KCL: (ExploreAreaPDDLAction) Failed to reset the waypoint of the robot!");
+		exit(-1);
+	}
+
+	// Locate the location of the robot.
+	tf::StampedTransform transform;
+	tf::TransformListener tfl;
+	try {
+		tfl.waitForTransform("/map","/base_link", ros::Time::now(), ros::Duration(1.0));
+		tfl.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+	} catch ( tf::TransformException& ex ) {
+		ROS_ERROR("KCL: (ExploreAreaPDDLAction) Error find the transform between /map and /base_link.");
+		return;
+	}
+	geometry_msgs::PoseStamped robot_pose;
+	robot_pose.header.frame_id = "/map";
+	robot_pose.pose.position.x = transform.getOrigin().getX();
+	robot_pose.pose.position.y = transform.getOrigin().getY();
+	robot_pose.pose.position.z = transform.getOrigin().getZ();
+	robot_pose.pose.orientation.x = transform.getRotation().getX();
+	robot_pose.pose.orientation.y = transform.getRotation().getY();
+	robot_pose.pose.orientation.z = transform.getRotation().getZ();
+	robot_pose.pose.orientation.w = transform.getRotation().getW();
+	std::string robot_id(message_store.insertNamed("kenny_waypoint", robot_pose));
+	db_name_map["kenny_waypoint"] = robot_id;
+
+	ROS_INFO("KCL: (setupViewCones) Store the location of kenny.");
+	
+	// Create the view cones.
+	tf::Vector3 p1(transform.getOrigin().getX() - 5.0f, transform.getOrigin().getY() - 5.0f, 0.00);
+	tf::Vector3 p2(transform.getOrigin().getX() + 5.0f, transform.getOrigin().getY() - 5.0f, 0.00);
+	tf::Vector3 p3(transform.getOrigin().getX() + 5.0f, transform.getOrigin().getY() + 5.0f, 0.00);
+	tf::Vector3 p4(transform.getOrigin().getX() + 5.0f, transform.getOrigin().getY() - 5.0f, 0.00);
+	std::vector<tf::Vector3> bounding_box;
+	bounding_box.push_back(p1);
+	bounding_box.push_back(p3);
+	bounding_box.push_back(p4);
+	bounding_box.push_back(p2);
+	std::vector<geometry_msgs::Pose> view_poses;
+	view_cone_generator_->createViewCones(view_poses, bounding_box, 1, 5, 30.0f, 2.0f, 100, 0.5f);
+	
+	// Add these poses to the knowledge base.
+	unsigned int waypoint_number = 0;
+	for (std::vector<geometry_msgs::Pose>::const_iterator ci = view_poses.begin(); ci != view_poses.end(); ++ci) {
+		
+		std::stringstream ss;
+		ss << "explore_wp" << waypoint_number;
+		
+		if (!kb.addInstance("waypoint", ss.str()))
+		{
+			ROS_ERROR("KCL: (ExploreAreaPDDLAction) Could not add an explore wayoint to the knowledge base.");
+			exit(-1);
+		}
+		
+		// add waypoint to MongoDB
+		geometry_msgs::PoseStamped pose;
+		pose.header.frame_id = "/map";
+		pose.pose = *ci;
+		std::string id(message_store.insertNamed(ss.str(), pose));
+		db_name_map[ss.str()] = id;
+		
+		std::map<std::string, std::string> parameters;
+		parameters["wp"] = ss.str();
+		if (!kb.addFact("explored", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL))
+		{
+			ROS_ERROR("KCL: (ExploreAreaPDDLAction) Could not add the goal (explored %s) to the knowledge base.", ss.str().c_str());
+			exit(-1);
+		}
+		++waypoint_number;
+	}
+	
+	ROS_INFO("KCL: (ExploreAreaPDDLAction) Added %u waypoints to the knowledge base.", waypoint_number);
+}
+
 void setupGoals(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy& message_store)
 {
 	kb.removeAllGoals();
@@ -255,17 +380,37 @@ void setupGoals(KCL_rosplan::KnowledgeBase& kb, mongodb_store::MessageStoreProxy
 	// If no toys were found to tidy and no lumps exist, then we need to explore the room.
 	if (!found_a_toy_to_tidy)
 	{
-		std::map<std::string, std::string> parameters;
-		if (!kb.removeFact("explored_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_REMOVE_KNOWLEDGE))
-		{
-			ROS_ERROR("KCL: (SetupGoals) Failed to remove the predicate (explored_roomn)!");
-			exit(-1);
-		}
+		setupViewCones(kb, message_store);
+	}
+
+	// Update the distance between any pair of waypoints.
+	std::vector<std::string> waypoints;
+	kb.getInstances(waypoints, "waypoint");
+
+	for (int i = 0; i < waypoints.size() - 1; ++i)
+	{
+		const std::string& wp = waypoints[i];
+		std::vector< boost::shared_ptr<geometry_msgs::PoseStamped> > results;
+		if (!message_store.queryNamed<geometry_msgs::PoseStamped>(wp, results) || results.size() < 1) continue;
+		geometry_msgs::PoseStamped &wp_pose = *results[0];
 		
-		if (!kb.addFact("explored_room", parameters, true, KCL_rosplan::KnowledgeBase::KB_ADD_GOAL))
+		for (int j = i + 1; j < waypoints.size(); ++j)
 		{
-			ROS_ERROR("KCL: (SetupGoals) Failed to add (explored) as a goal!");
-			exit(-1);
+			const std::string& other_wp = waypoints[j];
+			std::vector< boost::shared_ptr<geometry_msgs::PoseStamped> > other_results;
+			if (!message_store.queryNamed<geometry_msgs::PoseStamped>(other_wp, other_results) || other_results.size() < 1) continue;
+			geometry_msgs::PoseStamped &other_wp_pose = *other_results[0];
+
+			float distance = sqrt((wp_pose.pose.position.x - other_wp_pose.pose.position.x) * (wp_pose.pose.position.x - other_wp_pose.pose.position.x) +
+								  (wp_pose.pose.position.y - other_wp_pose.pose.position.y) * (wp_pose.pose.position.y - other_wp_pose.pose.position.y));
+			std::map<std::string, std::string> parameters;
+			parameters["wp1"] = wp;
+			parameters["wp2"] = other_wp;
+			kb.addFunction("distance", parameters, distance, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE);
+
+			parameters["wp1"] = other_wp;
+			parameters["wp2"] = wp;
+			kb.addFunction("distance", parameters, distance, KCL_rosplan::KnowledgeBase::KB_ADD_KNOWLEDGE);
 		}
 	}
 }
@@ -340,12 +485,15 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
 	
 	// Setup all services.
-	ros::ServiceClient classify_object_waypoint_client = nh.serviceClient<squirrel_waypoint_msgs::ExamineWaypoint>("/squirrel_perception_examine_waypoint");
+	classify_object_waypoint_client = nh.serviceClient<squirrel_waypoint_msgs::ExamineWaypoint>("/squirrel_perception_examine_waypoint");
 	
+	std::string occupancyTopic("/map");
+	nh.param("occupancy_topic", occupancyTopic, occupancyTopic);
+	view_cone_generator_ = new KCL_rosplan::ViewConeGenerator(nh, occupancyTopic);
+
 	// Setup the knowledge base.
 	mongodb_store::MessageStoreProxy message_store(nh);
 	KCL_rosplan::KnowledgeBase knowledge_base(nh, message_store);
-	
 	
 	// Initialise the context for this planning task.
 	std::string config_file;
@@ -355,7 +503,7 @@ int main(int argc, char **argv) {
 	reader.readConfigurationFile(config_file);
 	
 	// Create all PDDL actions that we might need during execution.
-	KCL_rosplan::ExploreAreaPDDLAction explore_area_action(nh, knowledge_base);
+//	KCL_rosplan::ExploreAreaPDDLAction explore_area_action(nh, knowledge_base);
 	KCL_rosplan::AttemptToExamineObjectPDDLAction attempt_to_examine_action(nh, knowledge_base, message_store);
 	
 	initialiseKnowledgeBase(knowledge_base);
@@ -363,6 +511,7 @@ int main(int argc, char **argv) {
 	// Keep running forever.
 	while (true)
 	{
+		ros::spinOnce();
 		setupGoals(knowledge_base, message_store);
 		startPlanning(nh);
 	}

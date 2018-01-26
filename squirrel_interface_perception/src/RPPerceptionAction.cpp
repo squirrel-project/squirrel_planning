@@ -36,16 +36,17 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (PerceptionAction) waiting for action server to start on %s", actionserver.c_str());
 		examine_action_client.waitForServer();
 		ROS_INFO("KCL: (PerceptionAction) action server found!");
-
+/*
 		ROS_INFO("KCL: (PerceptionAction) waiting for recognision server to start on %s", recogniseserver.c_str());
 		recognise_action_client.waitForServer();
 		ROS_INFO("KCL: (PerceptionAction) action server found!");
+		*/
 
-        /*
+		/*
 		ROS_INFO("KCL: (PerceptionAction) waiting for manipulation server to start on %s", object_manipulation_topic.c_str());
 		object_manipulation_client_.waitForServer();
 		ROS_INFO("KCL: (PerceptionAction) manipulation server found!");
-        */
+		*/
 		
 		// create the action feedback publisher
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -291,7 +292,7 @@ namespace KCL_rosplan {
 			// request manipulation waypoints for object
 			geometry_msgs::PoseStamped &box_pose = *results[0];
 			float distance = (box_pose.pose.position.x - transform.getOrigin().getX()) * (box_pose.pose.position.x - transform.getOrigin().getX()) +
-			                 (box_pose.pose.position.y - transform.getOrigin().getY()) * (box_pose.pose.position.y - transform.getOrigin().getY());
+							 (box_pose.pose.position.y - transform.getOrigin().getY()) * (box_pose.pose.position.y - transform.getOrigin().getY());
 			
 			if (distance < min_distance_from_robot)
 			{
@@ -338,7 +339,7 @@ namespace KCL_rosplan {
 	}
 
 	bool RPPerceptionAction::examineAction(squirrel_planning_msgs::CallAction::Request& req,
-	                                       squirrel_planning_msgs::CallAction::Response& res)
+										   squirrel_planning_msgs::CallAction::Response& res)
 	{
 		ROS_INFO("KCL: (PerceptionAction) explore action recieved");
 
@@ -385,6 +386,17 @@ namespace KCL_rosplan {
 			ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not add the classifiable_from predicate to the knowledge base.");
 			exit(-1);
 		}
+
+        if (success)
+        {
+            parameters.clear();
+            parameters["o"] = objectID;
+            if (!knowledge_base_.addFact("examined", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
+            {
+                ROS_ERROR("KCL: (ClassifyObjectPDDLAction) Could not add the examined predicate to the knowledge base.");
+                exit(-1);
+            }
+        }
 
 		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
 
@@ -680,7 +692,7 @@ namespace KCL_rosplan {
 	}
 
 	void RPPerceptionAction::updateObject(squirrel_object_perception_msgs::SceneObject &object, std::string newWaypoint) {
-        
+		
 		if (object.id == "") return;
 
 	// add the new object
@@ -816,7 +828,6 @@ int main(int argc, char **argv) {
 	nh.param("manipulation_action_server", manipulation_server, std::string("/manipulation_server"));
 
 	// create PDDL action subscriber
-	std::cout << "HHHHHHHHHHERERE WE GASOGIJ !" << std::endl;
 	KCL_rosplan::RPPerceptionAction rppa(nh, actionserver, recogniseserver, manipulation_server);
 
 	// listen for action dispatch
