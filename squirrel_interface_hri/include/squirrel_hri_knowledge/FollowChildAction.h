@@ -9,7 +9,7 @@
 #include "mongodb_store/message_store.h"
 #include "squirrel_hri_msgs/FollowChildAction.h"
 #include "actionlib/client/simple_action_client.h"
-#include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Point.h>
 
 #ifndef SQUIRREL_INTERFACE_HRI_FOLLOW_CHILD_ACTION_H
 #define SQUIRREL_INTERFACE_HRI_FOLLOW_CHILD_ACTION_H
