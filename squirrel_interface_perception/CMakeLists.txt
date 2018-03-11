@@ -43,6 +43,7 @@ catkin_package(
 ## include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${squirrel_planning_execution_INCLUDE_DIRS}
   include
 )
 

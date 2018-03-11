@@ -30,7 +30,7 @@ namespace KCL_rosplan {
 		mongodb_store::MessageStoreProxy message_store;
 
 		actionlib::SimpleActionClient<squirrel_object_perception_msgs::LookForObjectsAction> examine_action_client;
-		actionlib::SimpleActionClient<squirrel_object_perception_msgs::RecognizeObjectsAction> recognise_action_client;
+		//actionlib::SimpleActionClient<squirrel_object_perception_msgs::RecognizeObjectsAction> recognise_action_client;
 		actionlib::SimpleActionClient<squirrel_manipulation_msgs::ManipulationAction> object_manipulation_client_;
 
 		ros::ServiceClient find_dynamic_objects_client;
@@ -50,10 +50,10 @@ namespace KCL_rosplan {
 
 		/* actions */
 		void examineAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
-		void examineObject(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+		//void examineObject(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 		void examineObjectInHandAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 		void exploreAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
-		void lookAtObject(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
+		//void lookAtObject(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);
 
 		/* objects to database */
 		void updateType(const std::string& object_id, const std::string& object_rec_id);

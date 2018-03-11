@@ -13,7 +13,7 @@
 #include "rosplan_dispatch_msgs/ActionDispatch.h"
 #include "rosplan_dispatch_msgs/ActionFeedback.h"
 #include "squirrel_object_perception_msgs/LookForObjectsAction.h"
-#include "squirrel_object_perception_msgs/RecognizeObjectsAction.h"
+//#include "squirrel_object_perception_msgs/RecognizeObjectsAction.h"
 #include "squirrel_object_perception_msgs/FindDynamicObjects.h"
 #include "squirrel_interface_perception/RPPerceptionAction.h"
 #include "squirrel_planning_knowledge_msgs/AddObjectService.h"
@@ -30,7 +30,7 @@ namespace KCL_rosplan {
 
 	/* constructor */
 	RPPerceptionAction::RPPerceptionAction(ros::NodeHandle &nh, const std::string &actionserver, const std::string& recogniseserver, const std::string& object_manipulation_topic)
-	 : message_store(nh), examine_action_client(actionserver, true), recognise_action_client(recogniseserver, true), object_manipulation_client_(object_manipulation_topic, true), knowledge_base_(nh, message_store)
+	 : message_store(nh), examine_action_client(actionserver, true), /*recognise_action_client(recogniseserver, true), */object_manipulation_client_(object_manipulation_topic, true), knowledge_base_(nh, message_store)
 	{
 		// create the action clients
 		ROS_INFO("KCL: (PerceptionAction) waiting for action server to start on %s", actionserver.c_str());
@@ -67,8 +67,8 @@ namespace KCL_rosplan {
 		// ignore non-perception actions
 		if(msg->name == "explore_waypoint") exploreAction(msg);
 		if(msg->name == "observe-classifiable_from") examineAction(msg);
-		if(msg->name == "look_at_object") lookAtObject(msg);
-		if(msg->name == "examine_object") examineObject(msg);
+		//if(msg->name == "look_at_object") lookAtObject(msg);
+		//if(msg->name == "examine_object") examineObject(msg);
 		if(msg->name == "examine_object_in_hand") examineObjectInHandAction(msg);
 	}
 
@@ -136,7 +136,7 @@ namespace KCL_rosplan {
 	/**
 	 * examine action dispatch callback;
 	 * parameters ()
-	 */
+	 
 	void RPPerceptionAction::lookAtObject(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
 	{
 		ROS_INFO("KCL: (PerceptionAction) explore action recieved");
@@ -228,11 +228,11 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (PerceptionAction) action complete");
 		publishFeedback(msg->action_id, "action achieved");
 	}
-
+	*/
 	/**
 	 * examine action dispatch callback;
 	 * parameters ()
-	 */
+	 *
 	void RPPerceptionAction::examineObject(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
 	{
 
@@ -337,7 +337,7 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (PerceptionAction) action complete");
 		publishFeedback(msg->action_id, "action achieved");
 	}
-
+	*/
 	bool RPPerceptionAction::examineAction(squirrel_planning_msgs::CallAction::Request& req,
 										   squirrel_planning_msgs::CallAction::Response& res)
 	{

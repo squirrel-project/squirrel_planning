@@ -15,7 +15,8 @@
 ;; Emotions in the range (0,0.5] are 'low' and emotions (0.5,1) are 'high'.
 (:functions
 	(power ?r - robot)
-    (distance ?wp1 ?wp2 - waypoint)
+	(distance ?wp1 ?wp2 - waypoint)
+	(frustration ?r - robot)
 )
 
 (:constants
@@ -60,6 +61,30 @@
 	)
 )
 
+
+(:durative-action ask_child_to_give
+	:parameters (?v - robot ?robot_wp ?object_wp - waypoint ?o - object)
+	:duration (= ?duration 60)
+	:condition (and
+		(at start (gripper_empty ?v))
+		(over all (robot_at ?v ?robot_wp))
+		(at start (object_at ?o ?object_wp))
+		(over all (> (power ?v) 0))
+		(at start (not_busy))
+		(over all (near ?robot_wp ?object_wp))
+		(over all (< (frustration ?v) 0))
+	)
+	:effect (and
+		(at start (not (not_busy)))
+		(at end (not_busy))
+		(at start (not (gripper_empty ?v)))
+		(at end (holding ?v ?o))
+		(at start (not (object_at ?o ?object_wp)))
+		(at start (decrease (power ?v) (* ?duration 0.05)))
+	)
+)
+
+
 (:durative-action pickup_object
 	:parameters (?v - robot ?robot_wp ?object_wp - waypoint ?o - object)
 	:duration (= ?duration 60)
@@ -70,6 +95,7 @@
 		(over all (> (power ?v) 0))
 		(at start (not_busy))
 		(over all (near ?robot_wp ?object_wp))
+		(over all (>= (frustration ?v) 0))
 	)
 	:effect (and
 		(at start (not (not_busy)))
