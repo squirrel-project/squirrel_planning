@@ -11,7 +11,6 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/JointState.h>
 
-#include <squirrel_manipulation_msgs/JointPtpAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include "rosplan_dispatch_msgs/ActionDispatch.h"
 #include "rosplan_dispatch_msgs/ActionFeedback.h"
