@@ -20,6 +20,9 @@
   <build_depend>mongodb_store</build_depend>
   <build_depend>rosplan_knowledge_msgs</build_depend>
   <build_depend>rosplan_dispatch_msgs</build_depend>
+  <build_depend>squirrel_view_controller_msgs</build_depend>
+  <build_depend>squirrel_hri_msgs</build_depend>
+  <build_depend>squirrel_vad_msgs</build_depend>
   <build_depend>tf</build_depend>
 
   <run_depend>rospy</run_depend>
@@ -33,6 +36,9 @@
   <run_depend>mongodb_store</run_depend>
   <run_depend>rosplan_knowledge_msgs</run_depend>
   <run_depend>rosplan_dispatch_msgs</run_depend>
+  <run_depend>squirrel_view_controller_msgs</run_depend>
+  <run_depend>squirrel_hri_msgs</run_depend>
+  <run_depend>squirrel_vad_msgs</run_depend>
   <run_depend>tf</run_depend>
 
   <export></export>
