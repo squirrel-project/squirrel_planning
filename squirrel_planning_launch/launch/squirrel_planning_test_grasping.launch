@@ -4,6 +4,7 @@
 	<!-- data paths -->
 	<param name="/rosplan/data_path" value="$(find squirrel_planning_launch)/common/" />
 	<param name="/rosplan/planner_path" value="$(find rosplan_planning_system)/common/bin/" />
+	<param name="/scenario_setup_file" value="$(find squirrel_planning_execution)/conf/grasping-test.conf" />
 
 	<!-- domain file -->
 	<param name="/rosplan/domain_path" value="$(find squirrel_planning_launch)/common/grasping_domain-nt.pddl" />
@@ -25,27 +26,24 @@
 
 		<param name="planner_command" value="cat $(find squirrel_planning_launch)/common/test_grasp_plan.pddl" />
 		<param name="generate_default_problem" value="true" />
+		<param name="parser" value="ff" />
 	</node>
 
 	<!-- Interface nodes -->
 	<node name="squirrel_interface_manipulation" pkg="squirrel_interface_manipulation" type="rpgraspServer" respawn="false" output="screen">
-		<param name="blind_grasp_action_server" value="/metahand_grasp_server" />
+		<param name="manipulation_action_server" value="/squirrel_object_manipulation_server" />
+		<param name="placement" value="false" />
 	</node>
 
-	<node name="squirrel_interface_perception" pkg="squirrel_interface_perception" type="rpperceptionServer" output="screen">
-		<param name="action_server" value="/squirrel_look_for_objects_in_hand" />
+	<node name="squirrel_planning_execution" pkg="squirrel_planning_execution" type="graspTest" respawn="false" output="screen">
+		<param name="data_path" value="$(find squirrel_planning_launch)/common/" />
+		<param name="cost_map_topic" value="/move_base/global_costmap/costmap" />
+		<param name="cost_map_update_topic" value="/move_base/global_costmap/costmap_updates" />
+		<param name="use_static_map" value="false" type="bool" />
+		<param name="static_map_service" value="/static_map" />
+		<param name="occupancy_threshold" value="20" />
+		<param name="manipulation_service_topic" value="/squirrel_manipulation/waypoint_request" />
+		<param name="simulated" value="false" />
 	</node>
-
-	<node name="squirrel_interface_perception_object" pkg="squirrel_interface_perception" type="rpObjectPerception" output="screen">
-
-	</node>
-<!--
-	<node name="squirrel_grasping_node" pkg="squirrel_grasping" type="squirrel_blind_grasping_node.py" output="screen" />
--->
-<!--
-	<include file="$(find squirrel_grasping)/launch/squirrel_grasping_metahand.launch" >
-	</include>
--->
-
 </launch>
 

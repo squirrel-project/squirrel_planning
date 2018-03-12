@@ -9,12 +9,12 @@
 )
 
 (:predicates
-	(robot_at ?r - robot ?wp - waypoint)
+	(robot_at ?v - robot ?wp - waypoint)
 	(grasped ?o - object)
 )
 
 (:action pickup_object
-	:parameters (?r - robot ?wp - waypoint ?ob - object)
+	:parameters (?v - robot ?wp - waypoint ?o - object)
 	:precondition (and
 		(robot_at ?r ?wp)
 	)
@@ -24,7 +24,7 @@
 )
 
 (:action putdown_object
-	:parameters (?r - robot ?wp - waypoint ?ob - object)
+	:parameters (?v - robot ?wp - waypoint ?o - object)
 	:precondition (and
 		(robot_at ?r ?wp)
 	)

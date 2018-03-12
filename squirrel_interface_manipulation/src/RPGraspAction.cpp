@@ -1,31 +1,28 @@
 #include "squirrel_interface_manipulation/RPGraspAction.h"
+#include <squirrel_manipulation_msgs/ManipulationAction.h>
 #include <std_srvs/Empty.h>
 
 /* The implementation of RPGraspAction.h */
 namespace KCL_rosplan {
 
 	/* constructor */
-	RPGraspAction::RPGraspAction(ros::NodeHandle &nh, std::string &blindGraspActionServer)
-	 : message_store(nh), blind_grasp_action_client(blindGraspActionServer, true), putDownActionClient("metahand_place_server", true), kclhandGraspActionClient("hand_controller/actuate_hand", true), ptpActionClient("/joint_ptp", true)
+	RPGraspAction::RPGraspAction(ros::NodeHandle &nh, const std::string &object_manipulation_topic)
+	 : message_store(nh), object_manipulation_client_(object_manipulation_topic, true)
 
 	{
-
 		// Read the parameter if real placement is selected or only dropping
-		nh.param("/squirrel_interface_manipulation/placement", do_placement, false);
+		nh.param("/squirrel_interface_manipulation/placement", do_placement, true);
 		if (!do_placement)
-		    ROS_WARN("KCL: (GraspAction) placement is not selected, only dropping objects");
+			ROS_WARN("KCL: (GraspAction) placement is not selected, only dropping objects");
 		else
-		    ROS_INFO("KCL: (GraspAction) placement is selected");
+			ROS_INFO("KCL: (GraspAction) placement is selected");
 
-		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", blindGraspActionServer.c_str());
-		ROS_INFO("KCL: (GraspAction) action servers found");
+		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", object_manipulation_topic.c_str());
 
 		// Wait for the action servers.
-        	kclhandGraspActionClient.waitForServer();
-		putDownActionClient.waitForServer();
-		ptpActionClient.waitForServer();
-		ROS_INFO("KCL: (GraspAction) all action servers found!");
-		
+		ROS_INFO("KCL: (GraspAction) waiting for action server to start on %s", object_manipulation_topic.c_str());
+		object_manipulation_client_.waitForServer();
+		ROS_INFO("KCL: (GraspAction) action server found!");
 
 		// create the action feedback publisher
 		action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 10, true);
@@ -51,7 +48,7 @@ namespace KCL_rosplan {
 				publishFeedback(msg->action_id, "action achieved");
 				return;
 			}
-			publishFeedback(msg->action_id, "action achieved");
+			publishFeedback(msg->action_id, "action failed");
 		}
 
 		// ignore non-drop objects
@@ -91,17 +88,17 @@ namespace KCL_rosplan {
 	*/
 	bool RPGraspAction::dispatchDropAction(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg) {
 
-        ROS_INFO("KCL: (DropAction) dropping the object from the hand");
+		ROS_INFO("KCL: (DropAction) dropping the object from the hand");
 
 		// get object ID from action dispatch
 		std::string robotID, objectID, wpID;
 		bool foundObject = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
-			if(0==msg->parameters[i].key.compare("wp"))
+			if(msg->parameters[i].key == "wp")
 				wpID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("r"))
+			if(msg->parameters[i].key == "v")
 				robotID = msg->parameters[i].value;
-	            if(0==msg->parameters[i].key.substr(0,1).compare("o")) {
+			if(msg->parameters[i].key == "o") {
 				objectID = msg->parameters[i].value;
 				foundObject = true;
 			}
@@ -112,16 +109,15 @@ namespace KCL_rosplan {
 		}
 
 		// Call action to open hand
-		kclhand_control::ActuateHandActionGoal open_hand_goal;
-		open_hand_goal.goal.command = 0;
-		open_hand_goal.goal.force_limit = 1.0;
-		kclhandGraspActionClient.sendGoal(open_hand_goal.goal);
+		squirrel_manipulation_msgs::ManipulationGoal open_hand_goal;
+		open_hand_goal.manipulation_type = "open";
+
+		object_manipulation_client_.sendGoal(open_hand_goal);
 		ROS_INFO("KCL: sent the goal, waiting for the result");
-		kclhandGraspActionClient.waitForResult();
-		actionlib::SimpleClientGoalState state = kclhandGraspActionClient.getState();
-		sleep(1.0);
-		kclhandGraspActionClient.sendGoal(open_hand_goal.goal);
+		object_manipulation_client_.waitForResult();
+		actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
 		ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
+
 		if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
 		{
 			// gripper_empty fact
@@ -130,11 +126,11 @@ namespace KCL_rosplan {
 			knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
 			knowledge_update_service.request.knowledge.attribute_name = "gripper_empty";
 			diagnostic_msgs::KeyValue kv;
-			kv.key = "v";
+			kv.key = "r";
 			kv.value = robotID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-                ROS_ERROR("KCL: (DropAction) Could not add gripper_empty predicate to the knowledge base.");
+				ROS_ERROR("KCL: (DropAction) Could not add gripper_empty predicate to the knowledge base.");
 			}
 
 			// holding fact
@@ -144,7 +140,7 @@ namespace KCL_rosplan {
 			kv.value = objectID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-                ROS_ERROR("KCL: (DropAction) Could not remove holding predicate from the knowledge base.");
+				ROS_ERROR("KCL: (DropAction) Could not remove holding predicate from the knowledge base.");
 			}
 
 			// object_at fact
@@ -158,7 +154,7 @@ namespace KCL_rosplan {
 			kv.value = wpID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-                ROS_ERROR("KCL: (DropAction) Could not remove object_at predicate to the knowledge base.");
+				ROS_ERROR("KCL: (DropAction) Could not remove object_at predicate to the knowledge base.");
 			}
 			
 			return true;
@@ -168,27 +164,22 @@ namespace KCL_rosplan {
 
 	bool RPGraspAction::dispatchDropActionCorrect(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg) {
 
-	        ROS_INFO("KCL: (DropActionCorrect) placing the object on the ground");
+		ROS_INFO("KCL: (DropActionCorrect) placing the object on the ground");
 
-        	// get object ID from action dispatch
+		// get object ID from action dispatch
 		std::string boxID, robotID, wpID, objectID;
-		bool foundBox = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
-			std::cout << msg->parameters[i].key << std::endl;
-			if(0==msg->parameters[i].key.compare("b"))
-			{
+			if(msg->parameters[i].key == "o")
 				boxID = msg->parameters[i].value;
-				foundBox = true;
-			}
 			if (msg->parameters[i].key == "v")
 				robotID = msg->parameters[i].value;
-			if (msg->parameters[i].key == "o1")
+			if (msg->parameters[i].key == "o")
 				objectID = msg->parameters[i].value;
 			if (msg->parameters[i].key == "wp")
 				wpID = msg->parameters[i].value;
 		}
-		if(!foundBox) {
-		ROS_INFO("KCL: (DropActionCorrect) aborting action dispatch; malformed parameters");
+		if(boxID == "" || objectID == "" || robotID == "" || wpID == "") {
+    		ROS_INFO("KCL: (DropActionCorrect) aborting action dispatch; malformed parameters");
 			return false;
 		}
 
@@ -234,36 +225,27 @@ namespace KCL_rosplan {
 		float angle = atan2(objPose.pose.position.y - nearPose.pose.position.y, objPose.pose.position.x - nearPose.pose.position.x);
 		
 		// Call action to move arm to put down location
-		squirrel_manipulation_msgs::PutDownActionGoal put_down_goal;
-		put_down_goal.goal.destination_id = "box";
-		put_down_goal.goal.destPoseSE2.header.frame_id = "map";
-		put_down_goal.goal.destPoseSE2.pose = results[0]->pose;
-		put_down_goal.goal.destPoseSE2.pose.position.z = 0.2;
-		put_down_goal.goal.destPoseSE2.pose.orientation = tf::createQuaternionMsgFromYaw(angle);
+		squirrel_manipulation_msgs::ManipulationGoal put_down_goal;
+		put_down_goal.manipulation_type = "place";
+		put_down_goal.object_id = boxID;
+		put_down_goal.pose = objPose;
 
-		// Call action
-		putDownActionClient.sendGoal(put_down_goal.goal);
-		putDownActionClient.waitForResult();
-		sleep(1.0);
-		putDownActionClient.sendGoal(put_down_goal.goal);
-		actionlib::SimpleClientGoalState state_put_down = putDownActionClient.getState();
-		ROS_INFO("KCL: (DropActionCorrect) action finished: %s", state_put_down.toString().c_str());
-
-		//retractArm(); // moved to after open hand (for failure case)
+		object_manipulation_client_.sendGoal(put_down_goal);
+		ROS_INFO("KCL: sent the goal, waiting for the result");
+		object_manipulation_client_.waitForResult();
+		actionlib::SimpleClientGoalState state_put_down = object_manipulation_client_.getState();
+		ROS_INFO("KCL: (DropAction) action finished: %s", state_put_down.toString().c_str());
 
 		if (state_put_down != actionlib::SimpleClientGoalState::SUCCEEDED) {
 			ROS_WARN("KCL (DropActionCorrect) failed to put down, but that is not catastrophic so proceeding with opening hand");
 			// Call action to open hand
-			kclhand_control::ActuateHandActionGoal open_hand_goal;
-			open_hand_goal.goal.command = 0;
-			open_hand_goal.goal.force_limit = 1.0;
-			kclhandGraspActionClient.sendGoal(open_hand_goal.goal);
-		
-			// bool finished_before_timeout = false;
-			kclhandGraspActionClient.waitForResult();
-			actionlib::SimpleClientGoalState state = kclhandGraspActionClient.getState();
+			put_down_goal.manipulation_type = "open";
+
+			object_manipulation_client_.sendGoal(put_down_goal);
+			ROS_INFO("KCL: sent the goal, waiting for the result");
+			object_manipulation_client_.waitForResult();
+			actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
 			ROS_INFO("KCL: (DropAction) action finished: %s", state.toString().c_str());
-                
 			if (state != actionlib::SimpleClientGoalState::SUCCEEDED)
 				success = false;
 		}
@@ -283,7 +265,7 @@ namespace KCL_rosplan {
 			kv.value = robotID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-		                ROS_ERROR("KCL: (DropActionCorrect) Could not add gripper_empty predicate to the knowledge base.");
+						ROS_ERROR("KCL: (DropActionCorrect) Could not add gripper_empty predicate to the knowledge base.");
 			}
 
 			// holding fact
@@ -293,18 +275,18 @@ namespace KCL_rosplan {
 			kv.value = objectID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
-               			ROS_ERROR("KCL: (DropActionCorrect) Could not remove holding predicate from the knowledge base.");
+						ROS_ERROR("KCL: (DropActionCorrect) Could not remove holding predicate from the knowledge base.");
 			}
 
 			// object_at fact
 			knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-			knowledge_update_service.request.knowledge.attribute_name = "object_at";
+			knowledge_update_service.request.knowledge.attribute_name = "in_box";
 			knowledge_update_service.request.knowledge.values.clear();
 			kv.key = "o";
 			kv.value = objectID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
-			kv.key = "wp";
-			kv.value = wpID;
+			kv.key = "b";
+			kv.value = boxID;
 			knowledge_update_service.request.knowledge.values.push_back(kv);
 			if (!update_knowledge_client.call(knowledge_update_service)) {
 				ROS_ERROR("KCL: (DropActionCorrect) Could not remove object_at predicate to the knowledge base.");
@@ -351,29 +333,14 @@ namespace KCL_rosplan {
 
 	bool RPGraspAction::retractArm()
 	{
-		ROS_INFO("KCL: (RPPerceptionAction) Retract arm\n");
-		std_msgs::Float64MultiArray data_arm;
-		data_arm.data = last_joint_state.position;
-		data_arm.data[3] = 0.7;
-		data_arm.data[4] = 1.6;
-		data_arm.data[5] = 0;
-		data_arm.data[6] = -1.7;
-		data_arm.data[7] = -1.8;
+		ROS_INFO("KCL: (RPPerceptionAction) Retract arm");
+        squirrel_manipulation_msgs::ManipulationGoal grasp_goal;
+        grasp_goal.manipulation_type = "fold";
+        object_manipulation_client_.sendGoal(grasp_goal);
 
-		squirrel_manipulation_msgs::JointPtpActionGoal armEndGoal;
-		armEndGoal.goal.joints = data_arm;
+		actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
 
-		ptpActionClient.sendGoal(armEndGoal.goal);
-		ROS_INFO("KCL: (RPGraspAction) Goal sent\n");
-		ptpActionClient.waitForResult(ros::Duration(30.0));
-		ROS_INFO("KCL: (RPGraspAction) Waiting form arm to finish moving...\n");
-		sleep(1.0);
-		ptpActionClient.sendGoal(armEndGoal.goal);
-
-		waitForArm(data_arm, 0.05f);
-		return true;
-
-		if (ptpActionClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
 			ROS_INFO("KCL: (RPGraspAction) Arm moved \n");
 			return true;
 		}else{
@@ -398,21 +365,19 @@ namespace KCL_rosplan {
 		// get object ID from action dispatch
 		std::string robotID;
 		std::string objectID;
-		bool foundObject = false;
 		for(size_t i=0; i<msg->parameters.size(); i++) {
 			if(0==msg->parameters[i].key.compare("v"))
 				robotID = msg->parameters[i].value;
-			if(0==msg->parameters[i].key.compare("o")) {
+			if(0==msg->parameters[i].key.compare("o"))
 				objectID = msg->parameters[i].value;
-				foundObject = true;
-			}
 		}
-		if(!foundObject) {
-			ROS_INFO("KCL: (GraspAction) aborting action dispatch; malformed parameters");
+		if(objectID == "" || robotID == "") {
+			ROS_INFO("KCL: (GraspAction) aborting action dispatch; malformed parameters. Found object %s, robot %s", objectID.c_str(), robotID.c_str());
 			return false;
 		}
 		
 		// get details from message store
+		ROS_INFO("KCL: (GraspAction) Find the scene object %s", objectID.c_str());
 		std::vector< boost::shared_ptr<squirrel_object_perception_msgs::SceneObject> > results;
 		if(message_store.queryNamed<squirrel_object_perception_msgs::SceneObject>(objectID, results)) {
 			if(results.size()<1) {
@@ -426,96 +391,20 @@ namespace KCL_rosplan {
 			geometry_msgs::PoseStamped poseMap;
 			poseMap.header = results[0]->header;
 			poseMap.pose = results[0]->pose;
-/*			tf::TransformListener tfl;
-			try {
-				tfl.waitForTransform("/odom", "/map", ros::Time::now(), ros::Duration(20.0));
-				tfl.transformPose("/odom", poseMap, pose);
-			} catch ( tf::TransformException& ex ) {
-				ROS_ERROR("%s: error while transforming point: %s", ros::this_node::getName().c_str(), ex.what());
-				return false;
-			}
-*/
-			// Get the object pose.
-			std::stringstream ss;
-			ss << objectID << "_wp";
-			std::vector< boost::shared_ptr<geometry_msgs::PoseStamped> > object_results;
-			if(message_store.queryNamed<geometry_msgs::PoseStamped>(ss.str(), object_results)) {
-				if(results.size()<1) {
-					ROS_ERROR("KCL: (PerceptionAction) aborting waypoint request; no matching object wp %s", ss.str().c_str());
-					publishFeedback(msg->action_id, "action failed");
-					return false;
-				}
-			} else {
-				ROS_ERROR("KCL: (PerceptionAction) could not query message store to fetch object wp %s", ss.str().c_str());
-				publishFeedback(msg->action_id, "action failed");
-				return false;
-			}
-
-			// request manipulation waypoints for object
-			geometry_msgs::PoseStamped &object_wp = *object_results[0];
 
 			// dispatch Grasp action
-			squirrel_manipulation_msgs::BlindGraspGoal goal;
-			goal.heap_center_pose = poseMap;
-			goal.heap_center_pose_static = object_wp;
-			goal.heap_bounding_cylinder = results[0]->bounding_cylinder;
-			goal.heap_point_cloud = results[0]->cloud;
-			actionlib::SimpleClientGoalState state = actionlib::SimpleClientGoalState::PENDING;
-			
-			while (ros::ok() && state != actionlib::SimpleClientGoalState::SUCCEEDED && state != actionlib::SimpleClientGoalState::ACTIVE)
-			{
-				blind_grasp_action_client.sendGoal(goal);
-				ROS_INFO("KCL: (GraspAction) goal sent, waiting for result");
-				
-				// bool finished_before_timeout = false;
-				blind_grasp_action_client.waitForResult(ros::Duration(150));
-				state = blind_grasp_action_client.getState();
-
-				
-				ROS_INFO("KCL: (GraspAction) Returned state: %s (%s)", state.getText().c_str(), state.toString().c_str());
-			}
+			squirrel_manipulation_msgs::ManipulationGoal grasp_goal;
+			grasp_goal.manipulation_type = "pick";
+			grasp_goal.object_id = objectID;
+			grasp_goal.pose = poseMap;
+			grasp_goal.object_bounding_cylinder = results[0]->bounding_cylinder;
+			object_manipulation_client_.sendGoal(grasp_goal);
+			ROS_INFO("KCL: (GraspAction) sent the goal, waiting for the result");
+			object_manipulation_client_.waitForResult();
+			actionlib::SimpleClientGoalState state = object_manipulation_client_.getState();
 			ROS_INFO("KCL: (GraspAction) action finished: %s", state.toString().c_str());
-		
-/**
- * TODO For the sorting demo we assume that this always fails!
- */	
+            
 			if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-/*
-
-				// gripper_empty fact (remove)
-				rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
-				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
-				knowledge_update_service.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
-				knowledge_update_service.request.knowledge.attribute_name = "gripper_empty";
-				diagnostic_msgs::KeyValue kv;
-				kv.key = "v";
-				kv.value = robotID;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				if (!update_knowledge_client.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (PerceptionAction) Could not remove gripper_empty predicate from the knowledge base.");
-				}
-
-				// holding fact	
-				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-				knowledge_update_service.request.knowledge.attribute_name = "holding";
-				kv.key = "o";
-				kv.value = objectID;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				if (!update_knowledge_client.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (PerceptionAction) Could not add holding predicate to the knowledge base.");
-				}
-
-				// object_at fact (remove)
-				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
-				knowledge_update_service.request.knowledge.attribute_name = "object_at";
-				knowledge_update_service.request.knowledge.values.clear();
-				kv.key = "o";
-				kv.value = objectID;
-				knowledge_update_service.request.knowledge.values.push_back(kv);
-				if (!update_knowledge_client.call(knowledge_update_service)) {
-					ROS_ERROR("KCL: (PerceptionAction) Could not remove object_at predicate from the knowledge base.");
-				}
-*/
 				// holding fact	
 				rosplan_knowledge_msgs::KnowledgeUpdateService knowledge_update_service;
 				knowledge_update_service.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
@@ -548,26 +437,27 @@ namespace KCL_rosplan {
 	}
 } // close namespace
 
-	/*-------------*/
-	/* Main method */
-	/*-------------*/
+/*-------------*/
+/* Main method */
+/*-------------*/
 
-	int main(int argc, char **argv) {
+int main(int argc, char **argv) {
 
-		ros::init(argc, argv, "rosplan_interface_grasping");
-		ros::NodeHandle nh;
+	ros::init(argc, argv, "rosplan_interface_grasping");
+	ros::NodeHandle nh;
 
 
-		std::string GraspActionserver, blindGraspActionServer;
-		nh.param("blind_grasp_action_server", blindGraspActionServer, std::string("/metahand_grasp_server"));
+	std::string manipulation_server = "/squirrel_object_manipulation_server";
+	nh.param("manipulation_action_server", manipulation_server, std::string("/squirrel_object_manipulation_server"));
 
-		// create PDDL action subscriber
-		KCL_rosplan::RPGraspAction rpga(nh, blindGraspActionServer);
-	
-		// listen for action dispatch
-		ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPGraspAction::dispatchCallback, &rpga);
-		ROS_INFO("KCL: (GraspAction) Ready to receive");
+	// create PDDL action subscriber
+	KCL_rosplan::RPGraspAction rpga(nh, manipulation_server);
 
-		ros::spin();
-		return 0;
-	}
+	// listen for action dispatch
+	ros::Subscriber ds = nh.subscribe("/kcl_rosplan/action_dispatch", 1000, &KCL_rosplan::RPGraspAction::dispatchCallback, &rpga);
+	ROS_INFO("KCL: (GraspAction) Ready to receive");
+
+	ros::spin();
+	return 0;
+}
+

@@ -26,8 +26,6 @@ void ContingentStrategicClassifyPDDLGenerator::generateProblemFile(const std::st
 		}
 	}
 	
-	std::cout << "Created " << states.size() << " states. About to write to: " << file_name << std::endl;
-	
 	std::ofstream myfile;
 	myfile.open(file_name.c_str());
 	myfile << "(define (problem squirrel)" << std::endl;
@@ -57,7 +55,6 @@ void ContingentStrategicClassifyPDDLGenerator::generateProblemFile(const std::st
 		}
 	}
 	
-	std::cout << "Create facts that are true for the current knowledge base. " << current_knowledge_base.states_.size() << std::endl;
 	for (std::vector<const State*>::const_iterator ci = current_knowledge_base.states_.begin(); ci != current_knowledge_base.states_.end(); ++ci)
 	{
 		const State* state = *ci;
@@ -333,7 +330,6 @@ void ContingentStrategicClassifyPDDLGenerator::generateDomainFile(const std::str
 	*/
 	/**
 	 * GOTO WAYPOINT.
-	 */
 	myfile << "(:action goto_waypoint" << std::endl;
 	myfile << "\t:parameters (?v - robot ?from ?to - waypoint)" << std::endl;
 	myfile << "\t:precondition (and" << std::endl;
@@ -369,6 +365,7 @@ void ContingentStrategicClassifyPDDLGenerator::generateDomainFile(const std::str
 	myfile << "\t)" << std::endl;
 	myfile << ")" << std::endl;
 	myfile << std::endl;
+	 */
 	
 	/**
 	 * PUSH OBJECT.
@@ -451,7 +448,7 @@ void ContingentStrategicClassifyPDDLGenerator::generateDomainFile(const std::str
 	myfile << std::endl;
 	
 	/**********************
-	 * SENSE actions.     *
+	 * SENSE actions.	  *
 	 *********************/
 	
 	/**
@@ -477,8 +474,8 @@ void ContingentStrategicClassifyPDDLGenerator::generateDomainFile(const std::str
 		const KnowledgeBase* knowledge_base = *ci;
 		for (std::vector<const State*>::const_iterator ci = knowledge_base->states_.begin(); ci != knowledge_base->states_.end(); ++ci)
 		{
-			myfile << "\t\t(Rrobot_at ?v ?from " << (*ci)->state_name_ << ")" << std::endl;
-			myfile << "\t\t(Robject_at ?o ?from " << (*ci)->state_name_ << ")" << std::endl;
+//			myfile << "\t\t(Rrobot_at ?v ?from " << (*ci)->state_name_ << ")" << std::endl;
+//			myfile << "\t\t(Robject_at ?o ?from " << (*ci)->state_name_ << ")" << std::endl;
 			myfile << "\t\t(Rcleared ?o " << (*ci)->state_name_ << ")" << std::endl;
 			myfile << "\t\t(Rcurrent_counter ?o ?c " << (*ci)->state_name_ << ")" << std::endl;
 		}
@@ -1164,16 +1161,11 @@ void ContingentStrategicClassifyPDDLGenerator::createPDDL(const std::string& pat
 	std::vector<Object*> objects;
 	std::map<std::string, Object*> predicate_to_object_mapping;
 	
-	std::cout << "[ContingentStrategicClassifyPDDLGenerator::createPDDL] " << path << "; domain=" << domain_file << "; problem=" << problem_file << std::endl;
-	std::cout << "Robot is at: " << robot_location_predicate << std::endl;
-	
 	// Create the objects.
 	for (std::map<std::string, std::string>::const_iterator ci = object_location_predicates.begin(); ci != object_location_predicates.end(); ++ci)
 	{
 		const std::string& object_predicate = (*ci).first;
 		const std::string& location_predicate = (*ci).second;
-		
-		std::cout << object_predicate << " is at " << location_predicate << std::endl;
 		
 		Location* object_location = new Location(location_predicate, true);
 		Object* object = new Object(object_predicate, *object_location);
@@ -1194,7 +1186,6 @@ void ContingentStrategicClassifyPDDLGenerator::createPDDL(const std::string& pat
 				Location* near_location = new Location(near_location_predicate, false);
 				locations.push_back(near_location);
 				near_location->near_locations_.push_back(object_location);
-				std::cout << near_location->name_ << " is near " << object_location << std::endl;
 			}
 		}
 	}
@@ -1212,7 +1203,6 @@ void ContingentStrategicClassifyPDDLGenerator::createPDDL(const std::string& pat
 			location->connected_locations_.push_back(other_location);
 			other_location->connected_locations_.push_back(location);
 			
-			std::cout << location->name_ << " is connected to " << other_location->name_ << std::endl;
 		}
 	}
 	std::stringstream ss;
@@ -1226,8 +1216,6 @@ void ContingentStrategicClassifyPDDLGenerator::createPDDL(const std::string& pat
 	knowledge_bases.push_back(&basis_kb);
 	
 	unsigned int state_id = 0;
-	
-	std::cout << "Create knowledge bases for " << objects.size() << " objects." << std::endl;
 	
 	// Create a new knowledge base for each object.
 	for (std::vector<Object*>::const_iterator ci = objects.begin(); ci != objects.end(); ++ci)
@@ -1259,7 +1247,7 @@ void ContingentStrategicClassifyPDDLGenerator::createPDDL(const std::string& pat
 	ROS_INFO("KCL: (ContingentStrategicClassifyPDDLGenerator) Generate domain... %s", ss.str().c_str());
 	generateDomainFile(ss.str(), basis_kb, knowledge_bases, *robot_location, locations, objects, max_classification_attemps);
 	ss.str(std::string());
-	ss << path  << problem_file;
+	ss << path	<< problem_file;
 	ROS_INFO("KCL: (ContingentStrategicClassifyPDDLGenerator) Generate problem... %s", ss.str().c_str());
 	generateProblemFile(ss.str(), basis_kb, knowledge_bases, *robot_location, locations, objects, max_classification_attemps);
 }

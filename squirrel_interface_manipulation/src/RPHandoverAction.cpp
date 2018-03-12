@@ -54,7 +54,7 @@ namespace KCL_rosplan {
 		}
 		if("" == robotID || "" == objectID || "" == childID || "" == waypointID)
 		{
-			ROS_ERROR("KCL: (HandoverAction) Give handover, aborting action dispatch; malformed parameters. robot=%s, object=%o, child=%s, waypoint=%s", robotID.c_str(), objectID.c_str(), childID.c_str(), waypointID.c_str());
+			ROS_ERROR("KCL: (HandoverAction) Give handover, aborting action dispatch; malformed parameters. robot=%s, object=%s, child=%s, waypoint=%s", robotID.c_str(), objectID.c_str(), childID.c_str(), waypointID.c_str());
 			return;
 		}
 		
@@ -145,7 +145,7 @@ namespace KCL_rosplan {
 		}
 		if("" == robotID || "" == objectID || "" == childID || "" == waypointID)
 		{
-			ROS_ERROR("KCL: (HandoverAction) Take handover, aborting action dispatch; malformed parameters. robot=%s, object=%o, child=%s, waypoit=%s", robotID.c_str(), objectID.c_str(), childID.c_str(), waypointID.c_str());
+			ROS_ERROR("KCL: (HandoverAction) Take handover, aborting action dispatch; malformed parameters. robot=%s, object=%s, child=%s, waypoit=%s", robotID.c_str(), objectID.c_str(), childID.c_str(), waypointID.c_str());
 			return;
 		}
 		
