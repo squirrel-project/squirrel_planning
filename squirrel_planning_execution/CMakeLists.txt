@@ -243,6 +243,11 @@ target_link_libraries(graspTest ${catkin_LIBRARIES})
 ##########
 ## Test ##
 ##########
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
+
 # please do not use add_rosttest_gtest (seems to be interfering with qtcreator and cmake)
 # see test documentation: http://wiki.ros.org/gtest
 
