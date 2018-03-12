@@ -10,8 +10,8 @@
 #include "move_base_msgs/MoveBaseAction.h"
 #include "mongodb_store/message_store.h"
 #include <squirrel_manipulation_msgs/ManipulationAction.h>
-//#include "squirrel_planning_execution/KnowledgeBase.h"
-#include "../../../squirrel_planning_execution/include/squirrel_planning_execution/KnowledgeBase.h"
+#include "squirrel_planning_execution/KnowledgeBase.h"
+//#include "../../../squirrel_planning_execution/include/squirrel_planning_execution/KnowledgeBase.h"
 #include <squirrel_planning_msgs/CallAction.h>
 
 #ifndef KCL_perception
