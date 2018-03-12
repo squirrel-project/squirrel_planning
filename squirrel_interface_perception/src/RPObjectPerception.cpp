@@ -16,9 +16,9 @@ namespace KCL_rosplan {
 
 	/* constructor */
 	RPObjectPerception::RPObjectPerception(ros::NodeHandle &nh, std::string &dp)
-	 : message_store(nh), dataPath(dp) {
+	 : dataPath(dp), message_store(nh), knowledge_base_(nh, message_store)
+    {
 
-		update_knowledge_client = nh.serviceClient<rosplan_knowledge_msgs::KnowledgeUpdateService>("/kcl_rosplan/update_knowledge_base");
 		add_waypoint_client = nh.serviceClient<rosplan_knowledge_msgs::AddWaypoint>("/kcl_rosplan/roadmap_server/add_waypoint");
 		
 		add_object_service = nh.advertiseService("/kcl_rosplan/add_object", &RPObjectPerception::addObjects, this);
@@ -37,6 +37,13 @@ namespace KCL_rosplan {
 		std::string mongo_id = message_store.insertNamed(req.object.id, req.object);
 		mongo_id_mapping.insert(std::make_pair(req.object.id, mongo_id));
 		
+        if (!knowledge_base_.addInstance("object", req.object.id))
+        {
+			ROS_ERROR("KCL: (ObjectPerception) error adding knowledge");
+			res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::FAILURE;
+			return false;
+        }
+/*
 		// Add INSTANCE object
 		rosplan_knowledge_msgs::KnowledgeUpdateService obSrv;
 		obSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
@@ -48,6 +55,7 @@ namespace KCL_rosplan {
 			res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::FAILURE;
 			return false;
 		}
+*/
 
 		// create new waypoint
 		rosplan_knowledge_msgs::AddWaypoint addWPSrv;
@@ -55,7 +63,7 @@ namespace KCL_rosplan {
 		ss << "wp_" << req.object.id;
 		addWPSrv.request.id = ss.str();
 		addWPSrv.request.waypoint.header = req.object.header;
-                addWPSrv.request.waypoint.pose = req.object.pose;
+        addWPSrv.request.waypoint.pose = req.object.pose;
 
 		addWPSrv.request.waypoint.pose.position.z = 0;
 
@@ -73,6 +81,34 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (ObjectPerception) Road map service returned");
 		
 		// Add PREDICATE at_object
+        std::map<std::string, std::string> parameters;
+        parameters["o"] = req.object.id;
+        parameters["wp"] = ss.str();
+        if (!knowledge_base_.addFact("object_at", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
+        {
+			ROS_ERROR("KCL: (ObjectPerception) error adding object_at predicate");
+			res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::FAILURE;
+			return false;
+        }
+
+        parameters.clear();
+        parameters["o"] = req.object.id;
+        if (!knowledge_base_.addFact("tidy_location_unknown", parameters, true, KnowledgeBase::KB_ADD_KNOWLEDGE))
+        {
+			ROS_ERROR("KCL: (ObjectPerception) error adding tidy_location_unknown predicate");
+			res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::FAILURE;
+			return false;
+        }
+
+        if (!knowledge_base_.addFact("tidy", parameters, true, KnowledgeBase::KB_ADD_GOAL))
+        {
+			ROS_ERROR("KCL: (ObjectPerception) error adding tidy goal");
+			res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::FAILURE;
+			return false;
+        }
+		res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::SUCCESS;
+
+/*
 		rosplan_knowledge_msgs::KnowledgeUpdateService atObjectSrv;
 		atObjectSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
 		atObjectSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
@@ -89,6 +125,7 @@ namespace KCL_rosplan {
 			res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::FAILURE;
 			return false;
 		}
+   
 		
 		// Add PREDICATE tidy_location_unknown
 		rosplan_knowledge_msgs::KnowledgeUpdateService tidyLocationUnknownSrv;
@@ -119,6 +156,7 @@ namespace KCL_rosplan {
 		}
 
 		res.result = squirrel_planning_knowledge_msgs::AddObjectService::Response::SUCCESS;
+*/
 		return true;
 	}
 
@@ -133,7 +171,15 @@ namespace KCL_rosplan {
 		for (std::multimap<std::string, std::string>::const_iterator ci = mm_ci.first; ci != mm_ci.second; ++ci) {
 			message_store.deleteID((*ci).second);
 		}
+
+        if (!knowledge_base_.addInstance("object", req.id))
+        {
+			ROS_ERROR("KCL: (ObjectPerception) error removing knowledge");
+			res.result = squirrel_planning_knowledge_msgs::RemoveObjectService::Response::FAILURE;
+			return false;
+        }
 		
+        /*
 		// Remove the mappings from knowledge base.
 		rosplan_knowledge_msgs::KnowledgeUpdateService wpSrv;
 		wpSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::REMOVE_KNOWLEDGE;
@@ -145,7 +191,7 @@ namespace KCL_rosplan {
 			res.result = squirrel_planning_knowledge_msgs::RemoveObjectService::Response::FAILURE;
 			return false;
 		}
-		
+        */
 		res.result = squirrel_planning_knowledge_msgs::RemoveObjectService::Response::SUCCESS;
 		return true;
 	}

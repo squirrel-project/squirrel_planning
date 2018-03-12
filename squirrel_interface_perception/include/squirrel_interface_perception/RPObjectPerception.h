@@ -5,6 +5,8 @@
 #include "squirrel_planning_knowledge_msgs/AddObjectService.h"
 #include "squirrel_planning_knowledge_msgs/RemoveObjectService.h"
 #include "squirrel_planning_knowledge_msgs/UpdateObjectService.h"
+#include "squirrel_planning_execution/KnowledgeBase.h"
+//#include "../../../squirrel_planning_execution/include/squirrel_planning_execution/KnowledgeBase.h"
 #include "mongodb_store/message_store.h"
 #include <tf/LinearMath/Vector3.h>
 #include <tf/LinearMath/Quaternion.h>
@@ -34,7 +36,7 @@ namespace KCL_rosplan {
 		mongodb_store::MessageStoreProxy message_store;
 
 		// Knowledge base
-		ros::ServiceClient update_knowledge_client;
+		KnowledgeBase knowledge_base_;
 
 		// ROSPlan interface roadmap
 		ros::ServiceClient add_waypoint_client;

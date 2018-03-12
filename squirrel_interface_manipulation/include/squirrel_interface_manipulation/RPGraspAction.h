@@ -11,7 +11,6 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/JointState.h>
 
-#include <squirrel_manipulation_msgs/JointPtpAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include "rosplan_dispatch_msgs/ActionDispatch.h"
 #include "rosplan_dispatch_msgs/ActionFeedback.h"
@@ -21,11 +20,7 @@
 
 #include "geometry_msgs/PoseStamped.h"
 #include "squirrel_object_perception_msgs/SceneObject.h"
-#include "squirrel_manipulation_msgs/BlindGraspAction.h"
-#include "squirrel_manipulation_msgs/PutDownAction.h"
-#include "squirrel_manipulation_msgs/PtpAction.h"
-#include "kclhand_control/graspPreparation.h"
-#include "kclhand_control/ActuateHandAction.h"
+#include "squirrel_manipulation_msgs/ManipulationAction.h"
 
 
 #ifndef KCL_graspaction
@@ -45,10 +40,8 @@ namespace KCL_rosplan {
 	private:
 
 		mongodb_store::MessageStoreProxy message_store;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::BlindGraspAction> blind_grasp_action_client;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::PutDownAction> putDownActionClient;
-		actionlib::SimpleActionClient<kclhand_control::ActuateHandAction> kclhandGraspActionClient;
-		actionlib::SimpleActionClient<squirrel_manipulation_msgs::JointPtpAction> ptpActionClient;
+		actionlib::SimpleActionClient<squirrel_manipulation_msgs::ManipulationAction> object_manipulation_client_;
+
 		ros::Publisher action_feedback_pub;
 		ros::ServiceClient update_knowledge_client;
 		ros::ServiceClient clear_cost_map_client;
@@ -77,7 +70,7 @@ namespace KCL_rosplan {
 	public:
 
 		/* constructor */
-		RPGraspAction(ros::NodeHandle &nh, std::string &blindGraspActionServer);
+		RPGraspAction(ros::NodeHandle &nh, const std::string &blindGraspActionServer);
 
 		/* listen to and process action_dispatch topic */
 		void dispatchCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg);

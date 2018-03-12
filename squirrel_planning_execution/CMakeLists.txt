@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   occupancy_grid_utils
   squirrel_speech_msgs
   squirrel_object_perception_msgs
+  squirrel_planning_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS
@@ -32,7 +33,7 @@ find_package(Boost REQUIRED COMPONENTS
 ## Declare things to be passed to dependent projects
 catkin_package(
   INCLUDE_DIRS include ${catkin_INCLUDE_DIRS}
-  CATKIN_DEPENDS roscpp rospy std_msgs actionlib rosplan_knowledge_msgs rosplan_planning_system nav_msgs mongodb_store geometry_msgs diagnostic_msgs visualization_msgs tf occupancy_grid_utils squirrel_speech_msgs squirrel_object_perception_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs actionlib rosplan_knowledge_msgs rosplan_planning_system nav_msgs mongodb_store geometry_msgs diagnostic_msgs visualization_msgs tf occupancy_grid_utils squirrel_speech_msgs squirrel_object_perception_msgs squirrel_planning_msgs
   DEPENDS
 )
 
@@ -47,49 +48,50 @@ include_directories(
 )
 
 ## Pointing service
-set(tidyroom_SOURCES
-	src/TidyRoom.cpp)
+#set(tidyroom_SOURCES
+#	src/TidyRoom.cpp)
 
 ## map sources
-set(rpsquirrelroadmap_SOURCES
-  src/RPSquirrelRoadmap.cpp
-  src/RPSimpleMapVisualization.cpp)
+#set(rpsquirrelroadmap_SOURCES
+#  src/RPSquirrelRoadmap.cpp
+#  src/RPSimpleMapVisualization.cpp)
 
 ## recurse sources
-set(rpsquirrelRecursion_SOURCES
-  src/RPSquirrelRecursion.cpp
-  src/ContingentTacticalClassifyPDDLGenerator.cpp
-  src/ContingentStrategicClassifyPDDLGenerator.cpp
-  src/ClassicalTidyPDDLGenerator.cpp
-  src/pddl_actions/PlannerInstance.cpp
-  src/pddl_actions/NextTurnPDDLAction.cpp
-  src/pddl_actions/ShedKnowledgePDDLAction.cpp
-  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
-  src/pddl_actions/ExamineAreaPDDLAction.cpp
-  src/pddl_actions/ExploreAreaPDDLAction.cpp
-  src/pddl_actions/TidyAreaPDDLAction.cpp
-  src/pddl_actions/ObserveClassifiableOnAttemptPDDLAction.cpp
-  src/ViewConeGenerator.cpp)
+#set(rpsquirrelRecursion_SOURCES
+#  src/RPSquirrelRecursion.cpp
+#  src/ContingentTacticalClassifyPDDLGenerator.cpp
+#  src/ContingentStrategicClassifyPDDLGenerator.cpp
+#  src/ClassicalTidyPDDLGenerator.cpp
+#  src/pddl_actions/PlannerInstance.cpp
+#  src/pddl_actions/NextTurnPDDLAction.cpp
+#  src/pddl_actions/ShedKnowledgePDDLAction.cpp
+#  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
+#  src/pddl_actions/ExamineAreaPDDLAction.cpp
+#  src/pddl_actions/ExploreAreaPDDLAction.cpp
+#  src/pddl_actions/TidyAreaPDDLAction.cpp
+#  src/pddl_actions/ObserveClassifiableOnAttemptPDDLAction.cpp
+#  src/ViewConeGenerator.cpp)
   
 ## robot knows game (year 3, 1st scenario)
-set(robotKnows_SOURCES
-  src/RobotKnowsGame.cpp
-  src/ContingentTacticalClassifyPDDLGenerator.cpp
-  src/ContingentStrategicClassifyPDDLGenerator.cpp
-  src/ClassicalTidyPDDLGenerator.cpp
-  src/pddl_actions/PlannerInstance.cpp
-  src/pddl_actions/NextTurnPDDLAction.cpp
-  src/pddl_actions/ShedKnowledgePDDLAction.cpp
-  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
-  src/pddl_actions/ExamineAreaPDDLAction.cpp
-  src/pddl_actions/ExploreAreaPDDLAction.cpp
-  src/pddl_actions/TidyAreaPDDLAction.cpp
-  src/pddl_actions/ObserveClassifiableOnAttemptPDDLAction.cpp
-  src/pddl_actions/GotoViewWaypointPDDLAction.cpp
-  src/ViewConeGenerator.cpp)
+#set(robotKnows_SOURCES
+#  src/RobotKnowsGame.cpp
+#  src/ContingentTacticalClassifyPDDLGenerator.cpp
+#  src/ContingentStrategicClassifyPDDLGenerator.cpp
+#  src/ClassicalTidyPDDLGenerator.cpp
+#  src/pddl_actions/PlannerInstance.cpp
+#  src/pddl_actions/NextTurnPDDLAction.cpp
+#  src/pddl_actions/ShedKnowledgePDDLAction.cpp
+#  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
+#  src/pddl_actions/ExamineAreaPDDLAction.cpp
+#  src/pddl_actions/ExploreAreaPDDLAction.cpp
+#  src/pddl_actions/TidyAreaPDDLAction.cpp
+#  src/pddl_actions/ObserveClassifiableOnAttemptPDDLAction.cpp
+#  src/pddl_actions/GotoViewWaypointPDDLAction.cpp
+#  src/ViewConeGenerator.cpp)
   
 set(simulatedPDDLActionsNode_SOURCES
   src/SimulatedPDDLActionsNode.cpp
+  src/KnowledgeBase.cpp
   src/pddl_actions/PlannerInstance.cpp
   src/pddl_actions/GotoPDDLAction.cpp
   src/pddl_actions/PushObjectPDDLAction.cpp
@@ -106,29 +108,76 @@ set(simulatedPDDLActionsNode_SOURCES
   src/pddl_actions/ChildrenPDDLAction.cpp
   src/pddl_actions/SimulatedObservePDDLAction.cpp
   src/pddl_actions/ExamineObjectInHandPDDLAction.cpp
-  src/pddl_actions/FollowChildPDDLAction.cpp)
+  src/pddl_actions/FollowChildPDDLAction.cpp
+  src/pddl_actions/ChildGiveObjectToRobotPDDLAction.cpp
+  src/pddl_actions/ChildPickupPDDLAction.cpp)
   
-set(sortingGame_SOURCES
-  src/SortingGame.cpp
+#set(sortingGame_SOURCES
+#  src/SortingGame.cpp
+#  src/pddl_actions/PlannerInstance.cpp
+#  src/pddl_actions/NextTurnPDDLAction.cpp
+#  src/pddl_actions/ShedKnowledgePDDLAction.cpp
+#  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
+#  src/pddl_actions/SimulatedObservePDDLAction.cpp)
+  
+#set(behaviour_SOURCES
+#  src/BehaviourAndEmotion.cpp)
+  
+#set(speechSimulator_SOURCES
+#  src/SpeechSimulator.cpp)
+
+#set(viewConeTester_SOURCES
+#  src/ViewConeGenerator.cpp
+#  src/view_cone_test_suite/ViewConeCaller.cpp)
+  
+#set(recommenderTester_SOURCES
+#  src/RecommenderSystem.cpp
+#  src/PlanToSensePDDLGenerator.cpp
+#  src/PlanToAskPDDLGenerator.cpp
+#  src/pddl_actions/ListenToFeedbackPDDLAction.cpp
+#  src/pddl_actions/InspectObjectPDDLAction.cpp)
+  
+set(needBattery_SOURCES
+  src/ConfigReader.cpp
+  src/KnowledgeBase.cpp
+  src/NeedBattery/NeedBattery.cpp
+  src/NeedBattery/PersuadeChild.cpp
   src/pddl_actions/PlannerInstance.cpp
-  src/pddl_actions/NextTurnPDDLAction.cpp
+)
+
+set(finalReview_SOURCES
+  src/FinalReviewMain.cpp
+  src/ConfigReader.cpp
+  src/KnowledgeBase.cpp
+  src/pddl_actions/PlannerInstance.cpp
+  src/pddl_actions/FinaliseClassificationPDDLAction.cpp
+  src/pddl_actions/ExamineAreaPDDLAction.cpp
+  src/pddl_actions/ExploreAreaPDDLAction.cpp
+  src/pddl_actions/TidyAreaPDDLAction.cpp
+  src/pddl_actions/ObserveClassifiableOnAttemptPDDLAction.cpp
+  src/pddl_actions/ClearObjectPDDLAction.cpp
   src/pddl_actions/ShedKnowledgePDDLAction.cpp
   src/pddl_actions/FinaliseClassificationPDDLAction.cpp
-  src/pddl_actions/SimulatedObservePDDLAction.cpp)
-  
-set(speechSimulator_SOURCES
-  src/SpeechSimulator.cpp)
-
-set(viewConeTester_SOURCES
+  src/ContingentTacticalClassifyPDDLGenerator.cpp
+  src/ContingentStrategicClassifyPDDLGenerator.cpp
+  src/ClassicalTidyPDDLGenerator.cpp
   src/ViewConeGenerator.cpp
-  src/view_cone_test_suite/ViewConeCaller.cpp)
-  
-set(recommenderTester_SOURCES
-  src/RecommenderSystem.cpp
-  src/PlanToSensePDDLGenerator.cpp
-  src/PlanToAskPDDLGenerator.cpp
-  src/pddl_actions/ListenToFeedbackPDDLAction.cpp
-  src/pddl_actions/InspectObjectPDDLAction.cpp)
+)
+
+set(finalReviewRedux_SOURCES
+  src/FinalReviewRedux.cpp
+  src/ConfigReader.cpp
+  src/KnowledgeBase.cpp
+  src/pddl_actions/AttemptToExamineObjectPDDLAction.cpp
+  src/pddl_actions/PlannerInstance.cpp
+  src/ViewConeGenerator.cpp
+)
+
+set(graspTest_SOURCES
+  src/TestGrasping.cpp
+  src/ConfigReader.cpp
+  src/KnowledgeBase.cpp
+)
   
 ## planning simulation
 #set(planSim_SOURCES
@@ -143,42 +192,62 @@ set(recommenderTester_SOURCES
 #  src/ViewConeGenerator.cpp)
 
 ## Declare cpp executables
-add_executable(tidyroom ${tidyroom_SOURCES})
-add_executable(simpledemo src/TidyRoomGrasping.cpp)
-add_executable(rpsquirrelRoadmap ${rpsquirrelroadmap_SOURCES})
-add_executable(rpsquirrelRecursion ${rpsquirrelRecursion_SOURCES})
+#add_executable(tidyroom ${tidyroom_SOURCES})
+#add_executable(simpledemo src/TidyRoomGrasping.cpp)
+#add_executable(rpsquirrelRoadmap ${rpsquirrelroadmap_SOURCES})
+#add_executable(rpsquirrelRecursion ${rpsquirrelRecursion_SOURCES})
 add_executable(simulatedPDDLActionsNode ${simulatedPDDLActionsNode_SOURCES})
-add_executable(sortingGame ${sortingGame_SOURCES})
-add_executable(speechSimulator ${speechSimulator_SOURCES})
-add_executable(viewConeTester ${viewConeTester_SOURCES})
-add_executable(recommenderTester ${recommenderTester_SOURCES})
-add_executable(robotKnowsGame ${robotKnows_SOURCES})
+#add_executable(sortingGame ${sortingGame_SOURCES})
+#add_executable(speechSimulator ${speechSimulator_SOURCES})
+#add_executable(viewConeTester ${viewConeTester_SOURCES})
+#add_executable(recommenderTester ${recommenderTester_SOURCES})
+#add_executable(robotKnowsGame ${robotKnows_SOURCES})
+#add_executable(behaviour ${behaviour_SOURCES})
+add_executable(needBattery ${needBattery_SOURCES})
+add_executable(finalReview ${finalReview_SOURCES})
+add_executable(finalReviewRedux ${finalReviewRedux_SOURCES})
+add_executable(graspTest ${graspTest_SOURCES})
 
-add_dependencies(tidyroom ${catkin_EXPORTED_TARGETS})
-add_dependencies(simpledemo ${catkin_EXPORTED_TARGETS})
-add_dependencies(rpsquirrelRoadmap ${catkin_EXPORTED_TARGETS})
-add_dependencies(rpsquirrelRecursion ${catkin_EXPORTED_TARGETS})
+#add_dependencies(tidyroom ${catkin_EXPORTED_TARGETS})
+#add_dependencies(simpledemo ${catkin_EXPORTED_TARGETS})
+#add_dependencies(rpsquirrelRoadmap ${catkin_EXPORTED_TARGETS})
+#add_dependencies(rpsquirrelRecursion ${catkin_EXPORTED_TARGETS})
 add_dependencies(simulatedPDDLActionsNode ${catkin_EXPORTED_TARGETS})
-add_dependencies(sortingGame ${catkin_EXPORTED_TARGETS})
-add_dependencies(speechSimulator ${catkin_EXPORTED_TARGETS})
-add_dependencies(viewConeTester ${catkin_EXPORTED_TARGETS})
-add_dependencies(recommenderTester ${catkin_EXPORTED_TARGETS})
-add_dependencies(robotKnowsGame ${catkin_EXPORTED_TARGETS})
+#add_dependencies(sortingGame ${catkin_EXPORTED_TARGETS})
+#add_dependencies(speechSimulator ${catkin_EXPORTED_TARGETS})
+#add_dependencies(viewConeTester ${catkin_EXPORTED_TARGETS})
+#add_dependencies(recommenderTester ${catkin_EXPORTED_TARGETS})
+#add_dependencies(robotKnowsGame ${catkin_EXPORTED_TARGETS})
+#add_dependencies(behaviour ${catkin_EXPORTED_TARGETS})
+add_dependencies(needBattery ${catkin_EXPORTED_TARGETS})
+add_dependencies(finalReview ${catkin_EXPORTED_TARGETS})
+add_dependencies(finalReviewRedux ${catkin_EXPORTED_TARGETS})
+add_dependencies(graspTest ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(tidyroom ${catkin_LIBRARIES})
-target_link_libraries(simpledemo ${catkin_LIBRARIES})
-target_link_libraries(rpsquirrelRoadmap ${catkin_LIBRARIES})
-target_link_libraries(rpsquirrelRecursion ${catkin_LIBRARIES})
+#target_link_libraries(tidyroom ${catkin_LIBRARIES})
+#target_link_libraries(simpledemo ${catkin_LIBRARIES})
+#target_link_libraries(rpsquirrelRoadmap ${catkin_LIBRARIES})
+#target_link_libraries(rpsquirrelRecursion ${catkin_LIBRARIES})
 target_link_libraries(simulatedPDDLActionsNode ${catkin_LIBRARIES})
-target_link_libraries(sortingGame ${catkin_LIBRARIES})
-target_link_libraries(speechSimulator ${catkin_LIBRARIES})
-target_link_libraries(viewConeTester ${catkin_LIBRARIES})
-target_link_libraries(recommenderTester ${catkin_LIBRARIES})
-target_link_libraries(robotKnowsGame ${catkin_LIBRARIES})
+#target_link_libraries(sortingGame ${catkin_LIBRARIES})
+#target_link_libraries(speechSimulator ${catkin_LIBRARIES})
+#target_link_libraries(viewConeTester ${catkin_LIBRARIES})
+#target_link_libraries(recommenderTester ${catkin_LIBRARIES})
+#target_link_libraries(robotKnowsGame ${catkin_LIBRARIES})
+#target_link_libraries(behaviour ${catkin_LIBRARIES})
+target_link_libraries(needBattery ${catkin_LIBRARIES})
+target_link_libraries(finalReview ${catkin_LIBRARIES})
+target_link_libraries(finalReviewRedux ${catkin_LIBRARIES})
+target_link_libraries(graspTest ${catkin_LIBRARIES})
 
 ##########
 ## Test ##
 ##########
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
+
 # please do not use add_rosttest_gtest (seems to be interfering with qtcreator and cmake)
 # see test documentation: http://wiki.ros.org/gtest
 

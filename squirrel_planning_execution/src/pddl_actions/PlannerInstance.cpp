@@ -1,12 +1,12 @@
 #include "PlannerInstance.h"
-
+#include <iostream>	 	
 
 namespace KCL_rosplan
 {
 
 unsigned int PlannerInstance::total_planner_instances_ = 0;
 	
-PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle)
+PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle, const std::string& parser, bool generate_default_problem)
 {
 	++total_planner_instances_;
 	
@@ -16,6 +16,9 @@ PlannerInstance& PlannerInstance::createInstance(ros::NodeHandle& node_handle)
 	
 	std::stringstream commandLine;
 	commandLine << "rosrun rosplan_planning_system planner ";
+	commandLine << "parser=" << parser << " ";
+    if (!generate_default_problem)
+	    commandLine << "no-gen ";
 	commandLine << "/rosplan_planning_system:=/" << nspace.str() << "/rosplan_planning_system ";
 	commandLine << "/kcl_rosplan/plan:=/kcl_rosplan/" << nspace.str() << "/plan ";
 	commandLine << "/kcl_rosplan/system_state:=/kcl_rosplan/" << nspace.str() << "/system_state ";

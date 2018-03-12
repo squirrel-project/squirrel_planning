@@ -52,10 +52,11 @@ namespace KCL_rosplan {
 		
 		// Update the domain.
 		const std::string& robot = msg->parameters[0].value;
-		const std::string& sound = msg->parameters[1].value;
-		const std::string& wiggle = msg->parameters[2].value;
+		const std::string& child = msg->parameters[1].value;
+		const std::string& sound = msg->parameters[2].value;
+		const std::string& wiggle = msg->parameters[3].value;
 		
-		ROS_INFO("KCL: (RPEmoteAction) Process the action: %s, %s: emit sound %s and wiggle like %s", normalised_action_name.c_str(), robot.c_str(), sound.c_str(), wiggle.c_str());
+		ROS_INFO("KCL: (RPEmoteAction) Process the action: %s, %s: emit sound %s and wiggle like %s towards child %s", normalised_action_name.c_str(), robot.c_str(), sound.c_str(), wiggle.c_str(), child.c_str());
 
 		// Check the arousal level and match it to some social behaviour.
 		

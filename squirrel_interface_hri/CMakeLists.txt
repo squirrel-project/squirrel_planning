@@ -47,6 +47,9 @@ set(RPPointingService_SOURCES
 
 set(FollowChildService_SOURCES
 	src/FollowChildAction.cpp)
+	
+set(PerformSocialBehaviour_SOURCES
+	src/PerformSocialBehaviour.cpp)
 
 ## Declare cpp executables
 add_executable(rppointingServer ${RPPointingService_SOURCES})
@@ -55,9 +58,13 @@ add_dependencies(rppointingServer ${catkin_EXPORTED_TARGETS})
 add_executable(FollowChildServer ${FollowChildService_SOURCES})
 add_dependencies(FollowChildServer ${catkin_EXPORTED_TARGETS})
 
+add_executable(PerformSocialBehaviour ${PerformSocialBehaviour_SOURCES})
+add_dependencies(PerformSocialBehaviour ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries against which to link a library or executable target
 target_link_libraries(rppointingServer ${catkin_LIBRARIES})
 target_link_libraries(FollowChildServer ${catkin_LIBRARIES})
+target_link_libraries(PerformSocialBehaviour ${catkin_LIBRARIES})
 
 ##########
 ## Test ##

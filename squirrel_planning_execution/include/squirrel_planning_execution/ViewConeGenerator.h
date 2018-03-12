@@ -76,6 +76,14 @@ namespace KCL_rosplan {
 		*/
 		bool isBlocked(const geometry_msgs::Point& point, float min_distance) const;
 		
+		/**
+		 * Get the next colour that is different enough than the previous generated colours.
+		 * @param r The set red value.
+		 * @param g The set green value.
+		 * @param b The set blue value.
+		 */
+		void getNextColour(float& r, float& g, float& b) const;
+
 		ros::Publisher rivz_pub_;
 		ros::Subscriber navigation_grid_sub_;
 		nav_msgs::OccupancyGrid last_received_occupancy_grid_msgs_;

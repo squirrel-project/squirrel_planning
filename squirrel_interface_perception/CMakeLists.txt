@@ -10,12 +10,15 @@ find_package(catkin REQUIRED COMPONENTS
   rosplan_dispatch_msgs
   squirrel_object_perception_msgs
   squirrel_planning_knowledge_msgs
+  squirrel_manipulation_msgs
   nav_msgs
   mongodb_store
   geometry_msgs
   diagnostic_msgs
   visualization_msgs
   tf
+  squirrel_planning_execution
+  squirrel_planning_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS
@@ -29,7 +32,7 @@ find_package(Boost REQUIRED COMPONENTS
 ## Declare things to be passed to dependent projects
 catkin_package(
   LIBRARIES squirrel_knowledge_base
-  CATKIN_DEPENDS roscpp rospy std_msgs rosplan_knowledge_msgs rosplan_dispatch_msgs squirrel_object_perception_msgs squirrel_planning_knowledge_msgs nav_msgs mongodb_store geometry_msgs diagnostic_msgs visualization_msgs tf
+  CATKIN_DEPENDS roscpp rospy std_msgs rosplan_knowledge_msgs rosplan_dispatch_msgs squirrel_object_perception_msgs squirrel_planning_knowledge_msgs squirrel_manipulation_msgs nav_msgs mongodb_store geometry_msgs diagnostic_msgs visualization_msgs tf squirrel_planning_execution squirrel_planning_msgs
   DEPENDS
 )
 
@@ -40,15 +43,21 @@ catkin_package(
 ## include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${squirrel_planning_execution_INCLUDE_DIRS}
   include
 )
 
 ## Pointing service
 set(SIP_SOURCES
-	src/RPPerceptionAction.cpp)
+	src/RPPerceptionAction.cpp
+    ../squirrel_planning_execution/src/KnowledgeBase.cpp)
 
 set(ROP_SOURCES
-	src/RPObjectPerception.cpp)
+	src/RPObjectPerception.cpp
+    ../squirrel_planning_execution/src/KnowledgeBase.cpp)
+
+set(RCC_SOURCES
+	src/RPCameraControl.cpp)
 
 ## Declare cpp executables
 add_executable(rpperceptionServer ${SIP_SOURCES})
@@ -57,10 +66,15 @@ add_dependencies(rpperceptionServer ${catkin_EXPORTED_TARGETS})
 add_executable(rpObjectPerception ${ROP_SOURCES})
 add_dependencies(rpObjectPerception ${catkin_EXPORTED_TARGETS})
 
+add_executable(rpCameraControl ${RCC_SOURCES})
+add_dependencies(rpCameraControl ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries against which to link a library or executable target
 target_link_libraries(rpperceptionServer ${catkin_LIBRARIES})
 
 target_link_libraries(rpObjectPerception ${catkin_LIBRARIES})
+
+target_link_libraries(rpCameraControl ${catkin_LIBRARIES})
 
 ##########
 ## Test ##
